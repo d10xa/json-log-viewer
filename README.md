@@ -1,3 +1,9 @@
+# json-log-viewer
+
+Print json logs in human-readable form
+
+![screenshot.png](screenshot.png)
+
 ## build
 
 ```
