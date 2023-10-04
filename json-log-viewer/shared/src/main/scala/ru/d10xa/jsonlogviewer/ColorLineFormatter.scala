@@ -4,10 +4,6 @@ import cats.syntax.all.*
 import fansi.EscapeAttr
 import fansi.Str
 
-import scala.collection.immutable.AbstractMap
-import scala.collection.immutable.SeqMap
-import scala.collection.immutable.SortedMap
-
 class ColorLineFormatter(c: Config) extends OutputLineFormatter:
   private val strSpace: Str = Str(" ")
 
@@ -65,19 +61,31 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
         val formattedAttrs = colorAttr(mapAsString(m))
         strSpace :: formattedAttrs :: Nil
 
+  def strPrefix(s: Option[String]): Seq[Str] =
+    s match
+      case Some(prefix) => fansi.Color.Reset(prefix) :: strSpace :: Nil
+      case None => Nil
+
+  def strPostfix(s: Option[String]): Seq[Str] =
+    s match
+      case Some(postfix) => strSpace :: fansi.Color.Reset(postfix) :: Nil
+      case None => Nil
+
   override def formatLine(p: ParseResult): Str =
     p.parsed match
       case Some(line) =>
         val color = line.level.map(levelToColor).getOrElse(fansi.Color.Reset)
         Str.join(
           Seq(
+            strPrefix(p.prefix),
             Seq(fansi.Color.Green(line.timestamp)),
             strThreadName(line.threadName, color),
             strLevel(line.level, color),
             strLoggerName(line.loggerName, color),
             strMessage(line.message, color),
             strStackTrace(line.stackTrace, color),
-            strOtherAttributes(line.otherAttributes, color)
+            strOtherAttributes(line.otherAttributes, color),
+            strPostfix(p.postfix)
           ).flatten
         )
       case None => Str(p.raw)

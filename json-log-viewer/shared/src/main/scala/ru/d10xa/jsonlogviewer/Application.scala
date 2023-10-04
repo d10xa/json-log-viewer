@@ -36,7 +36,8 @@ object Application
 
   def main: Opts[IO[ExitCode]] = config.map { c =>
     val timestampFilter = TimestampFilter()
-    val logLineParser = new LogLineParser(c)
+    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
+    val logLineParser = LogLineParser(c, jsonPrefixPostfix)
     val outputLineFormatter = ColorLineFormatter(c)
     val stream: Stream[IO, Nothing] =
       stringStream

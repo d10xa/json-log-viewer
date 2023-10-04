@@ -1,6 +1,7 @@
 {"@timestamp":"2023-09-18T19:10:42.132318Z","message":"first line","logger_name":"MakeLogs","thread_name":"main","level":"INFO"}
 {"@timestamp":"2023-09-18T19:11:42.132318Z","message":"test","logger_name":"MakeLogs","thread_name":"main","level":"INFO"}
 {"@timestamp":"2023-09-18T19:11:42.132319Z","message":"debug msg","logger_name":"MakeLogs","thread_name":"main","level":"DEBUG"}
-{"@timestamp":"2023-09-18T19:11:42.132320Z","message":"warn msg","logger_name":"MakeLogs","thread_name":"main","level":"WARNING"}
+prefix before json {"@timestamp":"2023-09-18T19:11:42.132320Z","message":"warning msg","logger_name":"MakeLogs","thread_name":"main","level":"WARNING"}
+{"@timestamp":"2023-09-18T19:11:42.132321Z","message":"warn msg","logger_name":"MakeLogs","thread_name":"main","level":"WARN"}
 {"@timestamp":"2023-09-18T19:12:42.137207Z","message":"error message","logger_name":"MakeLogs","thread_name":"main","level":"ERROR","stack_trace":"java.lang.RuntimeException: java.lang.IllegalArgumentException: java.lang.ArithmeticException: hello\n\tat ru.d10xa.jsonlogviewer.MakeLogs$.main(MakeLogs.scala:9)\n\tat ru.d10xa.jsonlogviewer.MakeLogs.main(MakeLogs.scala)\nCaused by: java.lang.IllegalArgumentException: java.lang.ArithmeticException: hello\n\t... 2 common frames omitted\nCaused by: java.lang.ArithmeticException: hello\n\t... 2 common frames omitted\n"}
 {"@timestamp":"2023-09-18T19:14:42.137207Z","message":"last line","logger_name":"MakeLogs","thread_name":"main","level":"INFO"}
