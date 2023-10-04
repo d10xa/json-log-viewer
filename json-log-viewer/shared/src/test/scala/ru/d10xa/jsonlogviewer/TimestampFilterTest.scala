@@ -33,6 +33,9 @@ class TimestampFilterTest extends FunSuite {
         threadName = None,
         otherAttributes = Map.empty
       )
-    )
+    ),
+    middle = "",
+    prefix = None,
+    postfix = None
   )
 }
