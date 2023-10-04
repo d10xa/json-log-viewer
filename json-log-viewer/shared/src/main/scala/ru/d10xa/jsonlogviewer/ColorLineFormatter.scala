@@ -14,7 +14,7 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
   def levelToColor(level: String): EscapeAttr =
     level match
       case "DEBUG"   => fansi.Color.LightGray
-      case "WARNING" => fansi.Color.Yellow
+      case "WARNING" | "WARN" => fansi.Color.Yellow
       case "ERROR"   => fansi.Color.Red
       case _         => fansi.Color.Reset
 
