@@ -14,8 +14,9 @@ class LogLineFilter(config: Config) {
     config.grep
       .flatMap { case ConfigGrep(grepKey, regex) =>
         getByKey(grepKey, parseResult).map(regex.matches)
-      }
-      .forall(identity)
+      } match
+      case Nil  => true
+      case list => list.reduce(_ || _)
 
   def getByKey(
     fieldName: String,
