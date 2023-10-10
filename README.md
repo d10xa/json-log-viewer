@@ -27,3 +27,7 @@ sbt fullLinkJS
 ```
 cat log.txt | node ./json-log-viewer/js/target/scala-3.3.1/json-log-viewer-opt/main.js
 ```
+
+# frontend-laminar
+
+```~fastOptJS::webpack```

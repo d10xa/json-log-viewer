@@ -12,7 +12,7 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
       case "DEBUG"   => fansi.Color.LightGray
       case "WARNING" | "WARN" => fansi.Color.Yellow
       case "ERROR"   => fansi.Color.Red
-      case _         => fansi.Color.Reset
+      case _         => fansi.Color.White
 
   def strLevel(levelOpt: Option[String], colorAttr: EscapeAttr): Seq[Str] =
     levelOpt match
@@ -63,18 +63,18 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
 
   def strPrefix(s: Option[String]): Seq[Str] =
     s match
-      case Some(prefix) => fansi.Color.Reset(prefix) :: strSpace :: Nil
+      case Some(prefix) => fansi.Color.White(prefix) :: strSpace :: Nil
       case None => Nil
 
   def strPostfix(s: Option[String]): Seq[Str] =
     s match
-      case Some(postfix) => strSpace :: fansi.Color.Reset(postfix) :: Nil
+      case Some(postfix) => strSpace :: fansi.Color.White(postfix) :: Nil
       case None => Nil
 
   override def formatLine(p: ParseResult): Str =
     p.parsed match
       case Some(line) =>
-        val color = line.level.map(levelToColor).getOrElse(fansi.Color.Reset)
+        val color = line.level.map(levelToColor).getOrElse(fansi.Color.White)
         Str.join(
           Seq(
             strPrefix(p.prefix),
