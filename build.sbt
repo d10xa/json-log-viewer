@@ -2,7 +2,7 @@ val scala3Version = "3.3.1"
 
 val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
-  scalaVersion := scala3Version,
+  scalaVersion := scala3Version
 )
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
@@ -43,4 +43,27 @@ lazy val `make-logs` = project
       "net.logstash.logback" % "logstash-logback-encoder" % "7.4"
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test)
+  )
+
+lazy val `frontend-laminar` = project
+  .in(file("frontend-laminar"))
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
+  .dependsOn(`json-log-viewer`.js)
+  .settings(commonSettings)
+  .settings(
+    (installJsdom / version) := "20.0.3",
+    (webpack / version) := "5.75.0",
+    (startWebpackDevServer / version) := "4.11.1",
+    libraryDependencies ++= Seq(
+      "com.raquo" %%% "laminar" % "16.0.0",
+      "com.raquo" %%% "airstream" % "16.0.0",
+      "com.raquo" %%% "waypoint" % "7.0.0",
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.20.3",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.20.3" % "provided"
+    ),
+    Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
+    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
+    scalaJSUseMainModuleInitializer := true,
+    (Test / requireJsDomEnv) := true,
+    useYarn := true
   )
