@@ -1,6 +1,6 @@
 package ru.d10xa.jsonlogviewer
 
-import ru.d10xa.jsonlogviewer.Application.ConfigGrep
+import ru.d10xa.jsonlogviewer.Config.ConfigGrep
 import HardcodedFieldNames.messageFieldName
 import HardcodedFieldNames.levelFieldName
 import HardcodedFieldNames.loggerNameFieldName
