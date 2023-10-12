@@ -1,11 +1,13 @@
 import Router0.{*, given}
+import com.monovore.decline.Help
 import com.raquo.laminar.DomApi
 import fansi.ErrorMode
-
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.api.L
 import com.raquo.waypoint.*
 import org.scalajs.dom
+import ru.d10xa.jsonlogviewer.Config
+import ru.d10xa.jsonlogviewer.DeclineOpts
 
 object App {
   val textVar: Var[String] = Var("""
@@ -19,7 +21,17 @@ object App {
       |
       |""".stripMargin)
 
+  val cliVar: Var[String] = Var("""--timestamp-after 2023-09-18T19:10:42.132318Z --grep level:INFO --grep level:.+ING --grep level:ERR.+""")
 
+  val splitPattern = "([^\"]\\S*|\".+?\")\\s*".r
+  def splitArgs(s: String): Seq[String] =
+    splitPattern
+      .findAllMatchIn(s)
+      .map(_.group(1).replace("\"", ""))
+      .toSeq
+
+  val configSignal: Signal[Either[Help, Config]] =
+    cliVar.signal.map(s => DeclineOpts.command.parse(splitArgs(s)))
 
   def main(args: Array[String]): Unit = {
     lazy val container = dom.document.getElementById("app-container")
@@ -57,21 +69,30 @@ object App {
 
   private def renderLivePage(): HtmlElement = {
     div(
+      CliArgsElement.render(
+        value <-- cliVar,
+        onInput.mapToValue --> cliVar
+      ),
       EditElement.render(
         value <-- textVar,
         onInput.mapToValue --> textVar
       ),
-      ViewElement.render(textVar.signal)
+      ViewElement.render(textVar.signal, configSignal)
     )
   }
+
   private def renderViewPage(): HtmlElement = {
     div(
-      ViewElement.render(textVar.signal)
+      ViewElement.render(textVar.signal, configSignal)
     )
   }
 
   private def renderEditPage(): HtmlElement = {
     div(
+      CliArgsElement.render(
+        value <-- cliVar,
+        onInput.mapToValue --> cliVar
+      ),
       EditElement.render(
         value <-- textVar,
         onInput.mapToValue --> textVar

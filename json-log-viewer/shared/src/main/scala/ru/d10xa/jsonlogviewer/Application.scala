@@ -24,29 +24,9 @@ object Application
     .repartition(s => Chunk.array(s.split("\n", -1)))
     .filter(_.nonEmpty)
 
-  def jsonLogViewerStream[F[_]](
-    config: Config
-  ): Pipe[F, String, String] = stream =>
-    val timestampFilter = TimestampFilter()
-    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-    val logLineParser = LogLineParser(config, jsonPrefixPostfix)
-    val outputLineFormatter = ColorLineFormatter(config)
-    val logLineFilter = LogLineFilter(config)
-    stream
-      .map(logLineParser.parse)
-      .filter(logLineFilter.grep)
-      .through(timestampFilter.filterTimestampAfter[F](config.timestamp.after))
-      .through(
-        timestampFilter.filterTimestampBefore[F](config.timestamp.before)
-      )
-      .map(outputLineFormatter.formatLine)
-      .map(_.toString)
-      .intersperse("\n")
-      .append(Stream.emit("\n"))
-
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { c =>
       stdinLinesStream
-        .through(jsonLogViewerStream[IO](c))
+        .through(JsonLogViewerStream.stream[IO](c))
         .through(text.utf8.encode)
         .through(io.stdout)
         .compile.drain.as(ExitCode.Success)

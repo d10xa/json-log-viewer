@@ -39,4 +39,10 @@ object DeclineOpts {
 
   val config: Opts[Config] = (timestampConfig, grepConfig)
     .mapN(Config.apply)
+  
+  val command: Command[Config] = Command(
+    name = "json-log-viewer",
+    header = "Print json logs in human-readable form",
+    helpFlag = true
+  ).apply(config)
 }
