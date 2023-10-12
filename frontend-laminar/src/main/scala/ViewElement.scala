@@ -1,8 +1,10 @@
 import App.textVar
+import com.monovore.decline.Help
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.DomApi
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.api.L
+import ru.d10xa.jsonlogviewer.Application
 import ru.d10xa.jsonlogviewer.Config
 import ru.d10xa.jsonlogviewer.TimestampConfig
 import ru.d10xa.jsonlogviewer.Config
@@ -12,40 +14,37 @@ import ru.d10xa.jsonlogviewer.LogLineParser
 import ru.d10xa.jsonlogviewer.TimestampConfig
 import ru.d10xa.jsonlogviewer.TimestampFilter
 import ru.d10xa.jsonlogviewer.ColorLineFormatter
+import ru.d10xa.jsonlogviewer.JsonLogViewerStream
 import ru.d10xa.jsonlogviewer.LogLineFilter
+import fs2.*
+import scala.util.chaining.scalaUtilChainingOps
 object ViewElement {
 
-  val c: Config = Config(
-    TimestampConfig(
-      "@timestamp",
-      None,
-      None
-    ),
-    Nil
-  )
-
-  val timestampFilter = TimestampFilter()
-  val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-  val logLineParser = LogLineParser(c, jsonPrefixPostfix)
-  val outputLineFormatter = ColorLineFormatter(c)
-  val logLineFilter = LogLineFilter(c)
-
-  def runApp(s: String): String =
-    s
-      .split("\n", -1)
-      .toList
-      .filter(_.nonEmpty)
-      .map(logLineParser.parse)
-      .filter(logLineFilter.grep)
-      .map(outputLineFormatter.formatLine)
-      .map(_.toString)
-      .mkString("\n")
-  def render(logLines: Signal[String]): HtmlElement =
+  def runApp(
+    logLinesSignal: Signal[String],
+    configSignal: Signal[Either[Help, Config]]
+  ): Signal[HtmlElement] =
+    logLinesSignal.combineWith(configSignal).map {
+      case (string, Right(c)) =>
+        fs2.Stream
+          .emits(string.split("\n"))
+          .filter(_.trim.nonEmpty)
+          .through(JsonLogViewerStream.stream(c))
+          .map(Ansi2HtmlWithClasses.apply)
+          .toList
+          .mkString("<div>", "", "</div>")
+          .pipe(DomApi.unsafeParseHtmlString)
+          .pipe(foreignHtmlElement)
+      case (string, Left(help)) =>
+        pre(color := "white", help.toString)
+    }
+  def render(
+    logLinesSignal: Signal[String],
+    configSignal: Signal[Either[Help, Config]]
+  ): HtmlElement =
     div(
       cls := "log-view",
-      child <-- logLines.map(runApp).map(Ansi2HtmlWithClasses.apply).map(x => s"<div>$x</div>").map(x =>
-        foreignHtmlElement(DomApi.unsafeParseHtmlString(x))
-      )
+      child <-- runApp(logLinesSignal, configSignal)
     )
 
 }

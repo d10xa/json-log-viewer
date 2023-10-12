@@ -29,6 +29,9 @@ body {
 
 .log-edit {
 }
+.cli-args textarea {
+  width: 100%
+}
 
 .log-edit textarea {
   width:100%;
