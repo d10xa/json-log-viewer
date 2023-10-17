@@ -8,7 +8,7 @@ val commonSettings = Seq(
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
   .settings(commonSettings)
-  .enablePlugins(JavaAppPackaging)
+  .jvmEnablePlugins(JavaAppPackaging)
   .settings(
     name := "json-log-viewer",
     libraryDependencies ++= Seq(

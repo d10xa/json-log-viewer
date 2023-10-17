@@ -4,7 +4,6 @@ import com.raquo.laminar.api.L
 object CliArgsElement {
   def render(mods: Modifier[TextArea]*): HtmlElement =
     div(
-      cls := "cli-args",
-      textArea(typ := "text", mods)
+      textArea(cls := "col-12", typ := "text", mods)
     )
 }

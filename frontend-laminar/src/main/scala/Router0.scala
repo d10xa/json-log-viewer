@@ -11,13 +11,15 @@ object Router0 {
   case object LivePage extends Page("Live")
   case object EditPage extends Page("Edit")
   case object ViewPage extends Page("View")
+  case object HelpPage extends Page("Help")
 
   given codec: JsonValueCodec[Page] = JsonCodecMaker.make
 
   private val routes = List(
     Route.static(LivePage, root  / endOfSegments, dom.window.location.pathname + "#"),
     Route.static(EditPage, root / "edit" / endOfSegments, dom.window.location.pathname + "#"),
-    Route.static(ViewPage, root / "view" / endOfSegments, dom.window.location.pathname + "#")
+    Route.static(ViewPage, root / "view" / endOfSegments, dom.window.location.pathname + "#"),
+    Route.static(HelpPage, root / "help" / endOfSegments, dom.window.location.pathname + "#")
   )
 
   val router = new Router[Page](

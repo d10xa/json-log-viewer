@@ -5,7 +5,10 @@ object EditElement {
 
   def render(mods: Modifier[TextArea]*): HtmlElement =
     div(
-      cls := "log-edit",
-      textArea(typ := "text", mods)
+      textArea(
+        minHeight := "400px",
+        cls := "col-12",
+        typ := "text", mods
+      )
     )
 }

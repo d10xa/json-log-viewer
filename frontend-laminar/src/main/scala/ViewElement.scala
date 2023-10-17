@@ -36,14 +36,14 @@ object ViewElement {
           .pipe(DomApi.unsafeParseHtmlString)
           .pipe(foreignHtmlElement)
       case (string, Left(help)) =>
-        pre(color := "white", help.toString)
+        pre(cls := "text-light", help.toString)
     }
   def render(
     logLinesSignal: Signal[String],
     configSignal: Signal[Either[Help, Config]]
   ): HtmlElement =
-    div(
-      cls := "log-view",
+    pre(
+      cls := "bg-dark font-monospace",
       child <-- runApp(logLinesSignal, configSignal)
     )
 
