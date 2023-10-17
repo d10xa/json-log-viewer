@@ -18,7 +18,7 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
       case (col1, col2) if color.isDefinedAt(col2) =>
         val closing   = if color.isDefinedAt(col1) then "</span>" else ""
         val nextColor = color(col2)
-        s"$closing<span class='ansi-$nextColor'>"
+        s"$closing<span class='text-break ansi-$nextColor'>"
       case (col1, fansi.Color.Reset) if color.isDefinedAt(col1) =>
         "</span>"
       case _ => ""

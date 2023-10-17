@@ -1,64 +1,24 @@
-html,
-body {
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  line-height: 1.4em;
-  background: #f5f5f5;
-  min-width: 230px;
-  margin: 0 0;
-  padding: 0 0;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  font-weight: 300;
-  width: 100%;
-}
-
-.hidden {
-  display: none;
-}
-
-.log-page-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-}
-
-.log-edit {
-}
-.cli-args textarea {
-  width: 100%
-}
-
-.log-edit textarea {
-  width:100%;
-  min-height: 400px;
-  max-height:100%
-}
-
-.log-view {
-  overflow: auto;
-  overflow-y: scroll;
-  background: #2f2f2f;
-  font-family: monospace;
-  font-weight: bold;
-  height: max-content;
-}
 .ansi-green {
-  color: green
+  color: #198754
 }
 .ansi-lightgray {
-  color: lightgray
+  color: #959da6
 }
 .ansi-red {
-  color: red
+  color: #dc3545
 }
 .ansi-white {
   color: white
 }
+.ansi-black {
+  color: black
+}
 .ansi-yellow {
-  color: yellow
+  color: #ffc107
+}
+.ansi-magenta {
+  color: #e31081
+}
+.ansi-lightmagenta {
+  color: #f567b3
 }
