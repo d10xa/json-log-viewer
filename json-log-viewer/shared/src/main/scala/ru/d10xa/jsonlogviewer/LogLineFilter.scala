@@ -12,8 +12,8 @@ class LogLineFilter(config: Config) {
     parseResult: ParseResult
   ): Boolean =
     config.grep
-      .flatMap { case ConfigGrep(grepKey, regex) =>
-        getByKey(grepKey, parseResult).map(regex.matches)
+      .map { case ConfigGrep(grepKey, regex) =>
+        getByKey(grepKey, parseResult).exists(regex.matches)
       } match
       case Nil  => true
       case list => list.reduce(_ || _)
