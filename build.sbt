@@ -19,7 +19,8 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
       "com.monovore" %%% "decline-effect" % "2.4.1",
       "io.circe" %%% "circe-core" % "0.14.6",
       "io.circe" %%% "circe-parser" % "0.14.6",
-      "com.lihaoyi" %%% "fansi" % "0.4.0"
+      "com.lihaoyi" %%% "fansi" % "0.4.0",
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.3.0"
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
