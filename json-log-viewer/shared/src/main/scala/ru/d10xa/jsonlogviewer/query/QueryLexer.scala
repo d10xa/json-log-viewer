@@ -14,7 +14,7 @@ object QueryLexer extends RegexParsers:
   }
 
   def literal: Parser[LITERAL] = {
-    """'[^"]*'""".r ^^ { str =>
+    """'[^']*'""".r ^^ { str =>
       val content = str.substring(1, str.length - 1)
       LITERAL(content)
     }
@@ -22,8 +22,10 @@ object QueryLexer extends RegexParsers:
   def equal: Parser[QueryToken] = { "=" ^^ (_ => EQUAL) }
   def notEqual: Parser[QueryToken] = { "!=" ^^ (_ => NOT_EQUAL) }
 
+  def or: Parser[QueryToken] = { "OR" ^^ (_ => OR )}
+
   def tokens: Parser[List[QueryToken]] =
-    phrase(rep1(equal | notEqual | literal | identifier)) ^^ identity
+    phrase(rep1(or | equal | notEqual | literal | identifier)) ^^ identity
 
   def apply(code: String): Either[QueryLexerError, List[QueryToken]] =
     parse(tokens, code) match {

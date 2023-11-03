@@ -12,29 +12,26 @@ object QueryParser extends Parsers:
     accept("identifier", { case i @ IDENTIFIER(name) => i })
   }
 
-  private def equal: Parser[QueryToken] = {
-    accept("equal", { case i @ EQUAL => i })
-  }
-  private def notEqual: Parser[QueryToken] = {
-    accept("not equal", { case i @ NOT_EQUAL => i })
+  def statement: Parser[Binop] = {
+    or | eq | neq
   }
 
-  def block: Parser[QueryAST] = {
-    rep1(eq | neq) ^^ { stmtList => stmtList.head } // TODO
-  }
-
-  def program: Parser[QueryAST] = {
-    phrase(block)
-  }
+  def program: Parser[QueryAST] = phrase(statement)
 
   def eq: QueryParser.Parser[Eq] = {
-    (identifier ~ equal ~ literal) ^^ { case id ~ eq ~ lit =>
+    (identifier ~ EQUAL ~ literal) ^^ { case id ~ eq ~ lit =>
       Eq(StrIdentifier(id.str), StrLiteral(lit.str))
     }
   }
   def neq: QueryParser.Parser[Neq] = {
-    (identifier ~ notEqual ~ literal) ^^ { case id ~ neq ~ lit =>
+    (identifier ~ NOT_EQUAL ~ literal) ^^ { case id ~ neq ~ lit =>
       Neq(StrIdentifier(id.str), StrLiteral(lit.str))
+    }
+  }
+
+  def or: QueryParser.Parser[OrExpr] = {
+    (eq ~ OR ~ eq) ^^ { case lhs ~ or ~ rhs =>
+      OrExpr(lhs, rhs)
     }
   }
 
