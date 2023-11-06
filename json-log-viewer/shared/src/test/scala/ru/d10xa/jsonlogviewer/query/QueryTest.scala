@@ -9,8 +9,42 @@ class QueryTest extends munit.FunSuite {
     val result = QueryCompiler("g != 'hello'")
     assertEquals(result, Right(Neq(StrIdentifier("g"), StrLiteral("hello"))))
   }
+  test("like") {
+    val result = QueryCompiler("g LIKE '*test*'")
+    assertEquals(
+      result,
+      Right(LikeExpr(StrIdentifier("g"), StrLiteral("*test*")))
+    )
+  }
   test("or") {
     val result = QueryCompiler("a = 'a' OR b = 'b'")
+    assertEquals(
+      result,
+      Right(
+        OrExpr(
+          Eq(StrIdentifier("a"), StrLiteral("a")),
+          Eq(StrIdentifier("b"), StrLiteral("b"))
+        )
+      )
+    )
+  }
+  test("or or") {
+    val result = QueryCompiler("a = 'a' OR b = 'b' OR c = 'c'")
+    assertEquals(
+      result,
+      Right(
+        OrExpr(
+          OrExpr(
+            Eq(StrIdentifier("a"), StrLiteral("a")),
+            Eq(StrIdentifier("b"), StrLiteral("b"))
+          ),
+          Eq(StrIdentifier("c"), StrLiteral("c"))
+        )
+      )
+    )
+  }
+  test("blocks") {
+    val result = QueryCompiler("(a = 'a' OR b = 'b') AND c = 'c'")
     assertEquals(
       result,
       Right(

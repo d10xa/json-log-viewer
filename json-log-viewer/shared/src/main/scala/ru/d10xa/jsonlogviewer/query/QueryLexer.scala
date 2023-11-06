@@ -21,11 +21,16 @@ object QueryLexer extends RegexParsers:
   }
   def equal: Parser[QueryToken] = { "=" ^^ (_ => EQUAL) }
   def notEqual: Parser[QueryToken] = { "!=" ^^ (_ => NOT_EQUAL) }
-
-  def or: Parser[QueryToken] = { "OR" ^^ (_ => OR )}
+  def or: Parser[QueryToken] = { "OR" ^^ (_ => OR) }
+  def and: Parser[QueryToken] = { "AND" ^^ (_ => AND) }
+  def like: Parser[QueryToken] = { "LIKE" ^^ (_ => LIKE) }
+  def lparen: Parser[QueryToken] = { "(" ^^ (_ => LPAREN) }
+  def rparen: Parser[QueryToken] = { ")" ^^ (_ => RPAREN) }
 
   def tokens: Parser[List[QueryToken]] =
-    phrase(rep1(or | equal | notEqual | literal | identifier)) ^^ identity
+    phrase(
+      rep1(lparen | rparen | like | or | and | equal | notEqual | literal | identifier)
+    ) ^^ identity
 
   def apply(code: String): Either[QueryLexerError, List[QueryToken]] =
     parse(tokens, code) match {

@@ -4,41 +4,38 @@ import scala.util.parsing.combinator.Parsers
 
 object QueryParser extends Parsers:
   override type Elem = QueryToken
-  private def literal: Parser[LITERAL] = {
-    accept("literal", { case lit @ LITERAL(name) => lit })
+  private def literal0: Parser[SqlExpr] =
+    accept("literal", { case lit @ LITERAL(name) => StrLiteral(name) })
+
+  private def identifier0: Parser[SqlExpr] =
+    accept("identifier", { case i @ IDENTIFIER(name) => StrIdentifier(name) })
+
+  def statement: Parser[SqlExpr] = expr
+
+  def expr = compExpr ~ opt(rep(exprRight)) ^^ {
+    case l ~ None => l
+    case l ~ Some(r) =>
+      r.foldLeft(l) { case (left, (expr, right)) =>
+        expr.logicalExpr(left, right)
+      }
   }
 
-  private def identifier: Parser[IDENTIFIER] = {
-    accept("identifier", { case i @ IDENTIFIER(name) => i })
-  }
+  def compExpr: Parser[Binop] =
+    (atomExpr ~ (EQUAL | NOT_EQUAL | LIKE) ~ atomExpr) ^^ { case l ~ op ~ r =>
+      op.compareOp(l, r)
+    }
 
-  def statement: Parser[Binop] = {
-    or | eq | neq
-  }
+  def atomExpr: QueryParser.Parser[SqlExpr] =
+    (literal0 | identifier0 | (LPAREN ~> expr <~ RPAREN)) ^^ identity
+
+  def exprRight: QueryParser.Parser[(QueryToken, Binop)] =
+    (OR | AND) ~ compExpr ^^ { case op ~ e => (op, e) }
 
   def program: Parser[QueryAST] = phrase(statement)
 
-  def eq: QueryParser.Parser[Eq] = {
-    (identifier ~ EQUAL ~ literal) ^^ { case id ~ eq ~ lit =>
-      Eq(StrIdentifier(id.str), StrLiteral(lit.str))
-    }
-  }
-  def neq: QueryParser.Parser[Neq] = {
-    (identifier ~ NOT_EQUAL ~ literal) ^^ { case id ~ neq ~ lit =>
-      Neq(StrIdentifier(id.str), StrLiteral(lit.str))
-    }
-  }
-
-  def or: QueryParser.Parser[OrExpr] = {
-    (eq ~ OR ~ eq) ^^ { case lhs ~ or ~ rhs =>
-      OrExpr(lhs, rhs)
-    }
-  }
-
-  def apply(tokens: Seq[QueryToken]): Either[QueryParserError, QueryAST] = {
+  def apply(tokens: Seq[QueryToken]): Either[QueryParserError, QueryAST] =
     val reader = new QueryTokenReader(tokens)
     program(reader) match {
       case NoSuccess(msg, next)  => Left(QueryParserError(msg))
       case Success(result, next) => Right(result)
     }
-  }
