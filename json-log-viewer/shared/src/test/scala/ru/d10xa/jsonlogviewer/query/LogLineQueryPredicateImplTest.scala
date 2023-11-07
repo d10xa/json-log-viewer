@@ -28,9 +28,11 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   test("like empty") {
     assert(!stackTraceLike("", false).test(msg("")))
   }
-
   test("not like empty") {
     assert(stackTraceLike("", true).test(msg("")))
+  }
+  test("custom field") {
+    assert(customFieldLike("custom", false).test(msg("custom")))
   }
 
   private val config: Config = Config(
@@ -53,6 +55,9 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   private def stackTraceLike(s: String, negate: Boolean): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("stack_trace"), StrLiteral(s), negate)
     new LogLineQueryPredicateImpl(le, parseResultKeys)
+  private def customFieldLike(s: String, negate: Boolean): LogLineQueryPredicateImpl =
+    val le = LikeExpr(StrIdentifier("custom_field"), StrLiteral(s), negate)
+    new LogLineQueryPredicateImpl(le, parseResultKeys)
 
   private def msg(m: String) = ParseResult(
     "",
@@ -64,7 +69,9 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
         stackTrace = None,
         loggerName = Some(""),
         threadName = Some(""),
-        otherAttributes = Map.empty
+        otherAttributes = Map(
+          "custom_field" -> m
+        )
       )
     ),
     "",

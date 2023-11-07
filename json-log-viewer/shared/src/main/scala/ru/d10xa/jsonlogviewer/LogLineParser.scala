@@ -5,13 +5,12 @@ import io.circe.Decoder
 import io.circe.HCursor
 import io.circe.parser.*
 import cats.syntax.all.*
-
-import HardcodedFieldNames._
+import HardcodedFieldNames.*
 
 class LogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) {
   given Decoder[ParsedLine] = (c: HCursor) =>
     val timestampFieldName = config.timestamp.fieldName
-    
+
     val knownFieldNames = Seq(
       timestampFieldName,
       levelFieldName,
@@ -20,6 +19,22 @@ class LogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) {
       loggerNameFieldName,
       threadNameFieldName
     )
+
+    def mapOtherAttributes(m: Map[String, Json]): Map[String, String] =
+      m.view
+        .mapValues { v =>
+          v.fold(
+            jsonNull = "null",
+            jsonBoolean = _.booleanValue().toString,
+            jsonNumber = _.toString,
+            jsonString = identity,
+            jsonArray = _.toString,
+            jsonObject = _.toString
+          )
+        }
+        .toMap
+        .--(knownFieldNames)
+
     for
       timestampOpt <- c.downField(timestampFieldName).as[Option[String]]
       levelOpt <- c.downField(levelFieldName).as[Option[String]]
@@ -29,7 +44,7 @@ class LogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) {
       threadNameOpt <- c.downField(threadNameFieldName).as[Option[String]]
       attributes <- c
         .as[Map[String, Json]]
-        .map(_.view.mapValues(_.toString).toMap.--(knownFieldNames))
+        .map(mapOtherAttributes)
     yield ParsedLine(
       timestamp = timestampOpt,
       message = messageOpt,
