@@ -24,16 +24,19 @@ object QueryLexer extends RegexParsers:
   def or: Parser[QueryToken] = { "OR" ^^ (_ => OR) }
   def and: Parser[QueryToken] = { "AND" ^^ (_ => AND) }
   def like: Parser[QueryToken] = { "LIKE" ^^ (_ => LIKE) }
+  def notlike: Parser[QueryToken] = { "NOT LIKE" ^^ (_ => NOTLIKE) }
   def lparen: Parser[QueryToken] = { "(" ^^ (_ => LPAREN) }
   def rparen: Parser[QueryToken] = { ")" ^^ (_ => RPAREN) }
 
   def tokens: Parser[List[QueryToken]] =
     phrase(
-      rep1(lparen | rparen | like | or | and | equal | notEqual | literal | identifier)
+      rep1(lparen | rparen | notlike |like | or | and | equal | notEqual | literal | identifier)
     ) ^^ identity
 
   def apply(code: String): Either[QueryLexerError, List[QueryToken]] =
     parse(tokens, code) match {
-      case NoSuccess(msg, next)  => Left(QueryLexerError(msg))
-      case Success(result, next) => Right(result)
+      case NoSuccess(msg, next)  =>
+        Left(QueryLexerError(msg))
+      case Success(result, next) =>
+        Right(result)
     }

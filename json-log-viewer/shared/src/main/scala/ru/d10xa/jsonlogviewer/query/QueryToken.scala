@@ -18,7 +18,10 @@ case object NOT_EQUAL extends QueryToken {
     Neq(lhs, rhs)
 }
 case object LIKE extends QueryToken {
-  override def compareOp(lhs: SqlExpr, rhs: SqlExpr): CompareExpr = LikeExpr(lhs, rhs)
+  override def compareOp(lhs: SqlExpr, rhs: SqlExpr): CompareExpr = LikeExpr(lhs, rhs, false)
+}
+case object NOTLIKE extends QueryToken {
+  override def compareOp(lhs: SqlExpr, rhs: SqlExpr): CompareExpr = LikeExpr(lhs, rhs, true)
 }
 sealed trait LogicalExprQueryToken extends QueryToken
 case object OR extends LogicalExprQueryToken {

@@ -21,7 +21,7 @@ object QueryParser extends PackratParsers:
   }
 
   def compExpr: Parser[Binop] =
-    (atomExpr ~ (EQUAL | NOT_EQUAL | LIKE) ~ atomExpr) ^^ { case l ~ op ~ r =>
+    (atomExpr ~ (EQUAL | NOT_EQUAL | NOTLIKE | LIKE) ~ atomExpr) ^^ { case l ~ op ~ r =>
       op.compareOp(l, r)
     }
 

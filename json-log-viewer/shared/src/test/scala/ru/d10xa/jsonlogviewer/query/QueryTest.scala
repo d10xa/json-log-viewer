@@ -13,7 +13,14 @@ class QueryTest extends munit.FunSuite {
     val result = QueryCompiler("g LIKE '*test*'")
     assertEquals(
       result,
-      Right(LikeExpr(StrIdentifier("g"), StrLiteral("*test*")))
+      Right(LikeExpr(StrIdentifier("g"), StrLiteral("*test*"), false))
+    )
+  }
+  test("not like") {
+    val result = QueryCompiler("g NOT LIKE '*test*'")
+    assertEquals(
+      result,
+      Right(LikeExpr(StrIdentifier("g"), StrLiteral("*test*"), true))
     )
   }
   test("or") {
