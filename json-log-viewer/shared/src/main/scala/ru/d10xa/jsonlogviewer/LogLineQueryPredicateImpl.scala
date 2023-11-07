@@ -24,13 +24,9 @@ class LogLineQueryPredicateImpl(q: QueryAST, parseResultKeys: ParseResultKeys) {
       case AndExpr(l, r) => ast(l, parseResult) && ast(r, parseResult)
       case OrExpr(l, r)  => ast(l, parseResult) || ast(r, parseResult)
       case like @ LikeExpr(_, _, _) =>
-        val x = like0(like, parseResult)
-        println(
-          s"like = ${like}, message = ${parseResult.parsed.get.message.get}, like=$x"
-        )
-        x
+        caseLikeExpr(like, parseResult)
 
-  def like0(likeExpr: LikeExpr, parseResult: ParseResult): Boolean =
+  def caseLikeExpr(likeExpr: LikeExpr, parseResult: ParseResult): Boolean =
     likeExpr match
       case LikeExpr(StrIdentifier(key), StrLiteral(lit), false) =>
         parseResultKeys
