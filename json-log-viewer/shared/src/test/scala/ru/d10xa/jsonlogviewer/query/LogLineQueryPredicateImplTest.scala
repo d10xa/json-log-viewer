@@ -12,19 +12,27 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
   test("startsWith") {
     assert(likeContains("abc", "a%"))
-    assert(likeE("a%").test(msg("abc")))
-    assert(!likeE("a%").test(msg("cba")))
+    assert(messageLike("a%").test(msg("abc")))
+    assert(!messageLike("a%").test(msg("cba")))
   }
   test("endsWith") {
     assert(likeContains("abc", "%c"))
-    assert(likeE("%c").test(msg("abc")))
-    assert(!likeE("%c").test(msg("cba")))
+    assert(messageLike("%c").test(msg("abc")))
+    assert(!messageLike("%c").test(msg("cba")))
   }
   test("contains") {
     assert(likeContains("abc", "%b%"))
-    assert(likeE("%b%").test(msg("abc")))
-    assert(!likeE("%b%").test(msg("ac")))
+    assert(messageLike("%b%").test(msg("abc")))
+    assert(!messageLike("%b%").test(msg("ac")))
   }
+  test("like empty") {
+    assert(!stackTraceLike("", false).test(msg("")))
+  }
+
+  test("not like empty") {
+    assert(stackTraceLike("", true).test(msg("")))
+  }
+
   private val config: Config = Config(
     TimestampConfig(
       fieldName = "@timestamp",
@@ -34,13 +42,17 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     List.empty,
     None
   )
-  private def likeE(s: String): LogLineQueryPredicateImpl =
+
+  private val parseResultKeys = new ParseResultKeys(config = config)
+
+  private def messageLike(s: String): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("message"), StrLiteral(s), false)
-    val qp = new LogLineQueryPredicateImpl(
-      le,
-      new ParseResultKeys(config = config)
-    )
-    qp
+    new LogLineQueryPredicateImpl(le, parseResultKeys)
+
+
+  private def stackTraceLike(s: String, negate: Boolean): LogLineQueryPredicateImpl =
+    val le = LikeExpr(StrIdentifier("stack_trace"), StrLiteral(s), negate)
+    new LogLineQueryPredicateImpl(le, parseResultKeys)
 
   private def msg(m: String) = ParseResult(
     "",
@@ -49,7 +61,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
         "",
         level = Some(""),
         message = Some(m),
-        stackTrace = Some(""),
+        stackTrace = None,
         loggerName = Some(""),
         threadName = Some(""),
         otherAttributes = Map.empty

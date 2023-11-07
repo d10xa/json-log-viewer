@@ -34,8 +34,9 @@ class LogLineQueryPredicateImpl(q: QueryAST, parseResultKeys: ParseResultKeys) {
           .exists(k => likeContains(k, lit))
       case LikeExpr(StrIdentifier(key), StrLiteral(lit), true) =>
         parseResultKeys
-          .getByKey(parseResult, key)
-          .exists(k => !likeContains(k, lit))
+          .getByKey(parseResult, key) match
+            case Some(k) => !likeContains(k, lit)
+            case None => true
       case _ => false
 
 }
