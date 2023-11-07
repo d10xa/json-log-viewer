@@ -6,9 +6,26 @@ import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParseResultKeys
 import ru.d10xa.jsonlogviewer.ParsedLine
 import ru.d10xa.jsonlogviewer.TimestampConfig
+import LogLineQueryPredicateImpl.likeContains
 
 class LogLineQueryPredicateImplTest extends munit.FunSuite {
-  val config = Config(
+
+  test("startsWith") {
+    assert(likeContains("abc", "a%"))
+    assert(likeE("a%").test(msg("abc")))
+    assert(!likeE("a%").test(msg("cba")))
+  }
+  test("endsWith") {
+    assert(likeContains("abc", "%c"))
+    assert(likeE("%c").test(msg("abc")))
+    assert(!likeE("%c").test(msg("cba")))
+  }
+  test("contains") {
+    assert(likeContains("abc", "%b%"))
+    assert(likeE("%b%").test(msg("abc")))
+    assert(!likeE("%b%").test(msg("ac")))
+  }
+  private val config: Config = Config(
     TimestampConfig(
       fieldName = "@timestamp",
       None,
@@ -17,17 +34,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     List.empty,
     None
   )
-  test("startsWith") {
-    assert(likeE("a*").test(msg("abc")))
-  }
-  test("endsWith") {
-    assert(likeE("*c").test(msg("abc")))
-  }
-  test("contains") {
-    assert(likeE("*b*").test(msg("abc")))
-  }
-
-  def likeE(s: String) =
+  private def likeE(s: String): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("message"), StrLiteral(s), false)
     val qp = new LogLineQueryPredicateImpl(
       le,
@@ -35,7 +42,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     )
     qp
 
-  def msg(m: String) = ParseResult(
+  private def msg(m: String) = ParseResult(
     "",
     parsed = Some(
       ParsedLine(
