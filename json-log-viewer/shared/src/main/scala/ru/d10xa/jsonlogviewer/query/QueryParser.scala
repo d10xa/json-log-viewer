@@ -1,8 +1,8 @@
 package ru.d10xa.jsonlogviewer.query
 
-import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.combinator.PackratParsers
 
-object QueryParser extends Parsers:
+object QueryParser extends PackratParsers:
   override type Elem = QueryToken
   private def literal0: Parser[SqlExpr] =
     accept("literal", { case lit @ LITERAL(name) => StrLiteral(name) })
@@ -29,12 +29,12 @@ object QueryParser extends Parsers:
     (literal0 | identifier0 | (LPAREN ~> expr <~ RPAREN)) ^^ identity
 
   def exprRight: QueryParser.Parser[(QueryToken, Binop)] =
-    (OR | AND) ~ compExpr ^^ { case op ~ e => (op, e) }
+    (AND | OR) ~ compExpr ^^ { case op ~ e => (op, e) }
 
   def program: Parser[QueryAST] = phrase(statement)
 
   def apply(tokens: Seq[QueryToken]): Either[QueryParserError, QueryAST] =
-    val reader = new QueryTokenReader(tokens)
+    val reader = new PackratReader(new QueryTokenReader(tokens))
     program(reader) match {
       case NoSuccess(msg, next)  => Left(QueryParserError(msg))
       case Success(result, next) => Right(result)
