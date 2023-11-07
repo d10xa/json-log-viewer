@@ -44,6 +44,15 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
         strSpace :: colorAttr(loggerName.ansiStrip) :: Nil
       case None => Nil
 
+  def strTimestamp(
+    timestampOpt: Option[String],
+    colorAttr: EscapeAttr
+  ): Seq[Str] =
+    timestampOpt match
+      case Some(timestamp) =>
+        strSpace :: colorAttr(timestamp.ansiStrip) :: Nil
+      case None => Nil
+
   def strThreadName(
     threadNameOpt: Option[String],
     colorAttr: EscapeAttr
@@ -92,7 +101,7 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
         val color = line.level.map(levelToColor).getOrElse(fansi.Color.White)
         val substrings1 = Seq(
           strPrefix(p.prefix),
-          Seq(fansi.Color.Green(line.timestamp.ansiStrip)),
+          strTimestamp(line.timestamp, fansi.Color.Green),
           strThreadName(line.threadName, color),
           strLevel(line.level, color),
           strLoggerName(line.loggerName, color),

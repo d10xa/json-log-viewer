@@ -21,7 +21,7 @@ class LogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) {
       threadNameFieldName
     )
     for
-      timestamp <- c.downField(timestampFieldName).as[String]
+      timestampOpt <- c.downField(timestampFieldName).as[Option[String]]
       levelOpt <- c.downField(levelFieldName).as[Option[String]]
       messageOpt <- c.downField(messageFieldName).as[Option[String]]
       stackTraceOpt <- c.downField(stackTraceFieldName).as[Option[String]]
@@ -31,7 +31,7 @@ class LogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) {
         .as[Map[String, Json]]
         .map(_.view.mapValues(_.toString).toMap.--(knownFieldNames))
     yield ParsedLine(
-      timestamp = timestamp,
+      timestamp = timestampOpt,
       message = messageOpt,
       stackTrace = stackTraceOpt,
       level = levelOpt,

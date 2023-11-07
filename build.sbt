@@ -1,7 +1,7 @@
 val scala3Version = "3.3.1"
 
 val commonSettings = Seq(
-  version := "0.2.0",
+  version := "0.2.1",
   scalaVersion := scala3Version
 )
 

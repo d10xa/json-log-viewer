@@ -58,7 +58,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     "",
     parsed = Some(
       ParsedLine(
-        "",
+        timestamp = Some(""),
         level = Some(""),
         message = Some(m),
         stackTrace = None,

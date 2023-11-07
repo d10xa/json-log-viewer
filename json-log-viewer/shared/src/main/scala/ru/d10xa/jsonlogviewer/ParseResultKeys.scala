@@ -10,7 +10,7 @@ class ParseResultKeys(config: Config) {
     parseResult: ParseResult,
     fieldName: String
   ): Option[String] = fieldName match {
-    case config.timestamp.fieldName => parseResult.parsed.map(_.timestamp)
+    case config.timestamp.fieldName => parseResult.parsed.flatMap(_.timestamp)
     case `messageFieldName`         => parseResult.parsed.flatMap(_.message)
     case `levelFieldName`           => parseResult.parsed.flatMap(_.level)
     case `loggerNameFieldName`      => parseResult.parsed.flatMap(_.loggerName)

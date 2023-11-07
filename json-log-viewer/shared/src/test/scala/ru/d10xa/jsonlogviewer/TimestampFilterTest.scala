@@ -25,7 +25,7 @@ class TimestampFilterTest extends FunSuite {
     raw = "",
     parsed = Some(
       ParsedLine(
-        timestamp = ts,
+        timestamp = Some(ts),
         level = None,
         message = None,
         stackTrace = None,
