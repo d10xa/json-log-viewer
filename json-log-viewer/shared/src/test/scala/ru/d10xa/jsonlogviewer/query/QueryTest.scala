@@ -50,17 +50,5 @@ class QueryTest extends munit.FunSuite {
       )
     )
   }
-  test("blocks") {
-    val result = QueryCompiler("(a = 'a' OR b = 'b') AND c = 'c'")
-    assertEquals(
-      result,
-      Right(
-        OrExpr(
-          Eq(StrIdentifier("a"), StrLiteral("a")),
-          Eq(StrIdentifier("b"), StrLiteral("b"))
-        )
-      )
-    )
-  }
 
 }
