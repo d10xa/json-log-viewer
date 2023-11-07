@@ -11,10 +11,12 @@ object JsonLogViewerStream {
     val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
     val logLineParser = LogLineParser(config, jsonPrefixPostfix)
     val outputLineFormatter = ColorLineFormatter(config)
-    val logLineFilter = LogLineFilter(config)
+    val parseResultKeys = ParseResultKeys(config)
+    val logLineFilter = LogLineFilter(config, parseResultKeys)
     stream
       .map(logLineParser.parse)
       .filter(logLineFilter.grep)
+      .filter(logLineFilter.logLineQueryPredicate)
       .through(timestampFilter.filterTimestampAfter[F](config.timestamp.after))
       .through(
         timestampFilter.filterTimestampBefore[F](config.timestamp.before)

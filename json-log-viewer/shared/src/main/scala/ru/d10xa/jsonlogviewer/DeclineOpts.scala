@@ -4,12 +4,16 @@ import com.monovore.decline.Opts
 import com.monovore.decline.*
 import com.monovore.decline.effect.*
 import com.monovore.decline.time.*
+
 import java.time.ZonedDateTime
 import cats.data.Validated
 import cats.data.ValidatedNel
 import cats.data.NonEmptyList
 import cats.syntax.all.*
 import ru.d10xa.jsonlogviewer.Config.ConfigGrep
+import ru.d10xa.jsonlogviewer.query.QueryAST
+import ru.d10xa.jsonlogviewer.query.QueryCompiler
+import ru.d10xa.jsonlogviewer.query.SqlExpr
 
 object DeclineOpts {
   val timestampAfter: Opts[Option[ZonedDateTime]] =
@@ -33,11 +37,19 @@ object DeclineOpts {
     .mapValidated { lines => lines.traverse(validateConfigGrep) }
     .orEmpty
 
+  val filterConfig: Opts[Option[QueryAST]] = Opts
+    .option[String]("filter", "sql expression")
+    .mapValidated { str =>
+      QueryCompiler(str) match
+        case Left(value) => Validated.invalidNel(value.toString)
+        case Right(value) => Validated.validNel(value)
+    }.orNone
+
   def timestampConfig: Opts[TimestampConfig] =
     (timestampField, timestampAfter, timestampBefore)
       .mapN(TimestampConfig.apply)
 
-  val config: Opts[Config] = (timestampConfig, grepConfig)
+  val config: Opts[Config] = (timestampConfig, grepConfig, filterConfig)
     .mapN(Config.apply)
   
   val command: Command[Config] = Command(

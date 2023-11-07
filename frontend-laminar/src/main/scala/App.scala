@@ -21,7 +21,7 @@ object App {
      |""".stripMargin)
 
   val cliVar: Var[String] = Var(
-    """--timestamp-after 2023-09-18T19:10:42.132318Z --grep level:INFO --grep level:.+ING --grep level:ERR.+"""
+    """--filter "message LIKE '%first%' OR level = 'ERROR'""""
   )
 
   val splitPattern = "([^\"]\\S*|\".+?\")\\s*".r
