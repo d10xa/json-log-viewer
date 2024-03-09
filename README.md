@@ -1,6 +1,10 @@
 # json-log-viewer
 
-Print json logs in human-readable form
+The `json-log-viewer` converts JSON logs to a human-readable
+format via stdin and offers a Scala.js browser version,
+streamlining log analysis for developers and system administrators.
+
+[DEMO](https://d10xa.ru/json-log-viewer/)
 
 ![screenshot.png](screenshot.png)
 
