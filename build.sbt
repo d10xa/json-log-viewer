@@ -1,4 +1,4 @@
-val scala3Version = "3.3.1"
+val scala3Version = "3.4.0"
 
 val commonSettings = Seq(
   version := "0.2.2",
@@ -12,7 +12,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     name := "json-log-viewer",
     libraryDependencies ++= Seq(
-      "org.typelevel" %%% "cats-effect" % "3.5.1",
+      "org.typelevel" %%% "cats-effect" % "3.5.4",
       "co.fs2" %%% "fs2-core" % "3.9.2",
       "co.fs2" %%% "fs2-io" % "3.9.2",
       "com.monovore" %%% "decline" % "2.4.1",
@@ -40,7 +40,7 @@ lazy val `make-logs` = project
   .settings(
     publish / skip := true,
     libraryDependencies ++= Seq(
-      "ch.qos.logback" % "logback-classic" % "1.4.11",
+      "ch.qos.logback" % "logback-classic" % "1.5.3",
       "net.logstash.logback" % "logstash-logback-encoder" % "7.4"
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test)
@@ -59,8 +59,8 @@ lazy val `frontend-laminar` = project
       "com.raquo" %%% "laminar" % "16.0.0",
       "com.raquo" %%% "airstream" % "16.0.0",
       "com.raquo" %%% "waypoint" % "7.0.0",
-      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.20.3",
-      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.20.3" % "provided"
+      "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.28.4",
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided"
     ),
     Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
     Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
