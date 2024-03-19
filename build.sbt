@@ -1,12 +1,28 @@
 val scala3Version = "3.4.0"
 
 val commonSettings = Seq(
-  version := "0.2.2",
+  version := "0.2.3-SNAPSHOT",
   scalaVersion := scala3Version
 )
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
+  .settings(
+    organization := "ru.d10xa",
+    description := "The json-log-viewer converts JSON logs to a human-readable format",
+    licenses := Seq(("MIT", url("https://opensource.org/licenses/MIT"))),
+    homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
+    pomIncludeRepository := { _ => false }
+  )
+  .jvmSettings(
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+    },
+    publishMavenStyle := true
+  )
   .settings(commonSettings)
   .jvmEnablePlugins(JavaAppPackaging)
   .settings(

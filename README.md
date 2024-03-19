@@ -8,6 +8,12 @@ streamlining log analysis for developers and system administrators.
 
 ![screenshot.png](screenshot.png)
 
+## install
+
+```
+coursier install json-log-viewer --channel https://git.io/JvV0g
+```
+
 ## build jvm version
 
 ```
