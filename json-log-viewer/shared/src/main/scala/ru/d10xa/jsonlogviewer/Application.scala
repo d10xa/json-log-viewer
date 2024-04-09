@@ -6,6 +6,7 @@ import com.monovore.decline.effect.CommandIOApp
 import fs2.*
 import fs2.io.*
 import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 
 object Application
   extends CommandIOApp(

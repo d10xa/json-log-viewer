@@ -17,16 +17,36 @@ object LogFmtDecoder {
       escapeNext: Boolean = false
     ): (Map[String, String], Vector[String]) = chars match {
       case Nil =>
-        if (currentKey.nonEmpty) (acc + (currentKey -> currentValue), otherValues)
-        else (acc, otherValues)
+        if (currentKey.nonEmpty)
+          (acc + (currentKey -> currentValue), otherValues)
+        else
+          (
+            acc,
+            otherValues ++ (if (currentValue.nonEmpty) Vector(currentValue)
+                            else Vector.empty)
+          )
       case '"' :: tail if !escapeNext && !inQuotes =>
         parse(otherValues, tail, acc, currentKey, currentValue, inQuotes = true)
       case '"' :: tail if !escapeNext && inQuotes =>
-        parse(otherValues, tail, acc + (currentKey -> currentValue), inQuotes = false)
+        parse(
+          otherValues,
+          tail,
+          acc + (currentKey -> currentValue),
+          inQuotes = false
+        )
       case '\\' :: tail if inQuotes =>
-        parse(otherValues, tail, acc, currentKey, currentValue, inQuotes, escapeNext = true)
+        parse(
+          otherValues,
+          tail,
+          acc,
+          currentKey,
+          currentValue,
+          inQuotes,
+          escapeNext = true
+        )
       case char :: tail if escapeNext =>
-        parse(otherValues,
+        parse(
+          otherValues,
           tail,
           acc,
           currentKey,
@@ -37,7 +57,8 @@ object LogFmtDecoder {
       case '=' :: tail if !inQuotes && currentKey.isEmpty =>
         parse(otherValues, tail, acc, currentValue, "")
       case ' ' :: tail if !inQuotes && currentKey.nonEmpty =>
-        parse(otherValues,
+        parse(
+          otherValues,
           tail.dropWhile(_ == ' '),
           acc + (currentKey -> currentValue)
         )
@@ -45,12 +66,12 @@ object LogFmtDecoder {
         parse(otherValues, tail, acc, currentKey, currentValue + char, inQuotes)
       case _ :: tail =>
         val values = currentValue match
-          case "" => otherValues
+          case ""          => otherValues
           case nonEmptyStr => otherValues :+ nonEmptyStr
         parse(values, tail, acc)
     }
 
     parse(Vector.empty[String], log.toList, Map.empty[String, String])
   }
-  
+
 }

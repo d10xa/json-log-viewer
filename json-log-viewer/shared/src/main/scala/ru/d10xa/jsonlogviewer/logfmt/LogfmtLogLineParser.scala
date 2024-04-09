@@ -1,18 +1,19 @@
-package ru.d10xa.jsonlogviewer
+package ru.d10xa.jsonlogviewer.logfmt
 
+import ru.d10xa.jsonlogviewer.Config
 import ru.d10xa.jsonlogviewer.HardcodedFieldNames.*
-import ru.d10xa.jsonlogviewer.logfmt.LogFmtDecoder
+import ru.d10xa.jsonlogviewer.LogLineParser
+import ru.d10xa.jsonlogviewer.ParseResult
+import ru.d10xa.jsonlogviewer.ParsedLine
 
 class LogfmtLogLineParser(config: Config)
   extends LogLineParser {
 
   val timestampFieldName: String = config.timestamp.fieldName
 
-    // TODO fix copypaste
   val knownFieldNames: Seq[String] = Seq(
     timestampFieldName,
     levelFieldName,
-//    messageFieldName,
     stackTraceFieldName,
     loggerNameFieldName,
     threadNameFieldName
