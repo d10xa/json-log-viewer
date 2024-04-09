@@ -22,7 +22,7 @@ object Application
     val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
     val logLineParser = c.formatIn match
       case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
-      case FormatIn.Logfmt => LogfmtLogLineParser(c, jsonPrefixPostfix)
+      case FormatIn.Logfmt => LogfmtLogLineParser(c)
 
     stdinLinesStream
       .through(LogViewerStream.stream[IO](c, logLineParser))
