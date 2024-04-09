@@ -2,14 +2,13 @@ package ru.d10xa.jsonlogviewer
 
 import fs2.*
 import fs2.io.*
-object JsonLogViewerStream {
+object LogViewerStream {
 
   def stream[F[_]](
-    config: Config
+    config: Config,
+    logLineParser: LogLineParser
   ): Pipe[F, String, String] = stream =>
     val timestampFilter = TimestampFilter()
-    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-    val logLineParser = LogLineParser(config, jsonPrefixPostfix)
     val outputLineFormatter = ColorLineFormatter(config)
     val parseResultKeys = ParseResultKeys(config)
     val logLineFilter = LogLineFilter(config, parseResultKeys)
