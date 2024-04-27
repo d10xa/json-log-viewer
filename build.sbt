@@ -5,6 +5,16 @@ val commonSettings = Seq(
   scalaVersion := scala3Version
 )
 
+lazy val `playground` = project
+  .in(file("playground"))
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.3.0",
+"com.lihaoyi" %% "pprint" % "0.9.0"
+    )
+  )
+
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(test / fork := false)
   .in(file("json-log-viewer"))
