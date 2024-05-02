@@ -17,6 +17,9 @@ import ru.d10xa.jsonlogviewer.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.LogLineFilter
 import fs2.*
+import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
+
 import scala.util.chaining.scalaUtilChainingOps
 object ViewElement {
 
@@ -27,7 +30,10 @@ object ViewElement {
     logLinesSignal.combineWith(configSignal).map {
       case (string, Right(c)) =>
         val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-        val logLineParser = JsonLogLineParser(c, jsonPrefixPostfix)
+        val logLineParser = c.formatIn match
+          case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
+          case FormatIn.Logfmt => LogfmtLogLineParser(c)
+
         fs2.Stream
           .emits(string.split("\n"))
           .filter(_.trim.nonEmpty)
