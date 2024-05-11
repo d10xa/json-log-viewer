@@ -1,0 +1,2 @@
+@timestamp=2023-09-18T19:10:10.123456Z thread_name=main logger_name=MakeLogs first line custom_field=custom
+@timestamp=2023-09-18T19:10:10.123456Z second line {"level":"INFO"}

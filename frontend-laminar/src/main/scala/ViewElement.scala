@@ -10,13 +10,16 @@ import ru.d10xa.jsonlogviewer.TimestampConfig
 import ru.d10xa.jsonlogviewer.Config
 import ru.d10xa.jsonlogviewer.JsonDetector
 import ru.d10xa.jsonlogviewer.JsonPrefixPostfix
-import ru.d10xa.jsonlogviewer.LogLineParser
+import ru.d10xa.jsonlogviewer.JsonLogLineParser
 import ru.d10xa.jsonlogviewer.TimestampConfig
 import ru.d10xa.jsonlogviewer.TimestampFilter
 import ru.d10xa.jsonlogviewer.ColorLineFormatter
-import ru.d10xa.jsonlogviewer.JsonLogViewerStream
+import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.LogLineFilter
 import fs2.*
+import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
+
 import scala.util.chaining.scalaUtilChainingOps
 object ViewElement {
 
@@ -26,10 +29,15 @@ object ViewElement {
   ): Signal[HtmlElement] =
     logLinesSignal.combineWith(configSignal).map {
       case (string, Right(c)) =>
+        val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
+        val logLineParser = c.formatIn match
+          case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
+          case FormatIn.Logfmt => LogfmtLogLineParser(c)
+
         fs2.Stream
           .emits(string.split("\n"))
           .filter(_.trim.nonEmpty)
-          .through(JsonLogViewerStream.stream(c))
+          .through(LogViewerStream.stream(c, logLineParser))
           .map(Ansi2HtmlWithClasses.apply)
           .toList
           .mkString("<div>", "", "</div>")

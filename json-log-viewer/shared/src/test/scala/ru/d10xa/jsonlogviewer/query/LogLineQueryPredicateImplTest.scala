@@ -7,6 +7,7 @@ import ru.d10xa.jsonlogviewer.ParseResultKeys
 import ru.d10xa.jsonlogviewer.ParsedLine
 import ru.d10xa.jsonlogviewer.TimestampConfig
 import LogLineQueryPredicateImpl.likeContains
+import ru.d10xa.jsonlogviewer.Config.FormatIn
 
 class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
@@ -42,7 +43,8 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
       None
     ),
     List.empty,
-    None
+    None,
+    FormatIn.Json
   )
 
   private val parseResultKeys = new ParseResultKeys(config = config)

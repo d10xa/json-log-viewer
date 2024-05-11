@@ -1,18 +1,12 @@
 package ru.d10xa.jsonlogviewer
 
-import _root_.io.circe.*
-import _root_.io.circe.parser.*
 import cats.effect.*
-import cats.effect.kernel.Sync
-import cats.syntax.all.*
-import fs2.*
-import fs2.io.*
-
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
-
-import java.time.ZonedDateTime
-import scala.util.matching.Regex
+import fs2.*
+import fs2.io.*
+import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 
 object Application
   extends CommandIOApp(
@@ -20,14 +14,22 @@ object Application
     "Print json logs in human-readable form"
   ):
 
-  private val stdinLinesStream: Stream[IO, String] = stdinUtf8[IO](1024 * 1024 * 10)
-    .repartition(s => Chunk.array(s.split("\n", -1)))
-    .filter(_.nonEmpty)
+  private val stdinLinesStream: Stream[IO, String] =
+    stdinUtf8[IO](1024 * 1024 * 10)
+      .repartition(s => Chunk.array(s.split("\n", -1)))
+      .filter(_.nonEmpty)
 
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { c =>
-      stdinLinesStream
-        .through(JsonLogViewerStream.stream[IO](c))
-        .through(text.utf8.encode)
-        .through(io.stdout)
-        .compile.drain.as(ExitCode.Success)
+    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
+    val logLineParser = c.formatIn match
+      case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
+      case FormatIn.Logfmt => LogfmtLogLineParser(c)
+
+    stdinLinesStream
+      .through(LogViewerStream.stream[IO](c, logLineParser))
+      .through(text.utf8.encode)
+      .through(io.stdout)
+      .compile
+      .drain
+      .as(ExitCode.Success)
   }
