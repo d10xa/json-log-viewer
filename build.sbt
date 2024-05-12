@@ -1,9 +1,22 @@
 val scala3Version = "3.4.0"
 
 val commonSettings = Seq(
-  version := "0.2.4",
   scalaVersion := scala3Version
 )
+
+inThisBuild(List(
+  organization := "ru.d10xa",
+  homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
+  licenses := List(("MIT", url("https://opensource.org/licenses/MIT"))),
+  developers := List(
+    Developer(
+      "d10xa",
+      "Andrey Stolyarov",
+      "d10xa@mail.ru",
+      url("https://d10xa.ru")
+    )
+  )
+))
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(test / fork := false)
@@ -11,18 +24,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .settings(
     organization := "ru.d10xa",
     description := "The json-log-viewer converts JSON logs to a human-readable format",
-    licenses := Seq(("MIT", url("https://opensource.org/licenses/MIT"))),
-    homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
     pomIncludeRepository := { _ => false }
-  )
-  .jvmSettings(
-    publishTo := {
-      val nexus = "https://oss.sonatype.org/"
-      if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
-      else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
-    publishMavenStyle := true
   )
   .settings(commonSettings)
   .jvmEnablePlugins(JavaAppPackaging)
@@ -45,6 +47,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     run / connectInput := true
   )
   .jsSettings(
+    publish / skip := true,
     scalaJSUseMainModuleInitializer := true,
 //    scalaJSLinkerConfig ~= {
 //      _.withModuleKind(ModuleKind.ESModule)
@@ -70,6 +73,7 @@ lazy val `frontend-laminar` = project
   .dependsOn(`json-log-viewer`.js)
   .settings(commonSettings)
   .settings(
+    publish / skip := true,
     (installJsdom / version) := "20.0.3",
     (webpack / version) := "5.75.0",
     (startWebpackDevServer / version) := "4.11.1",
