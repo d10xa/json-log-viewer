@@ -6,7 +6,9 @@ class LogFmtDecoderTest extends munit.FunSuite {
 
     val log =
       """some text before key1="some text" key2=text key3="escaped \" quote" some text after"""
-    val Right(ast) = LogFmtCompiler(log)
+    val ast = LogFmtCompiler(log) match
+      case Left(value) => throw new RuntimeException(value.toString)
+      case Right(value) => value
 
     val (res, other) = LogfmtLogLineParser.toMap(ast)
     val List(kv1, kv2, kv3) = res.toList.sortBy(_._1)

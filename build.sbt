@@ -1,4 +1,4 @@
-val scala3Version = "3.4.0"
+val scala3Version = "3.5.0"
 
 val commonSettings = Seq(
   scalaVersion := scala3Version
@@ -18,8 +18,11 @@ inThisBuild(List(
   )
 ))
 
+val circeVersion = "0.14.10"
+val declineVersion = "2.4.1"
+val fs2Version = "3.11.0"
+
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
-  .jsSettings(test / fork := false)
   .in(file("json-log-viewer"))
   .settings(
     organization := "ru.d10xa",
@@ -32,15 +35,15 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     name := "json-log-viewer",
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-effect" % "3.5.4",
-      "co.fs2" %%% "fs2-core" % "3.9.2",
-      "co.fs2" %%% "fs2-io" % "3.9.2",
-      "com.monovore" %%% "decline" % "2.4.1",
-      "com.monovore" %%% "decline-effect" % "2.4.1",
-      "io.circe" %%% "circe-core" % "0.14.6",
-      "io.circe" %%% "circe-literal" % "0.14.6" % Test,
-      "io.circe" %%% "circe-parser" % "0.14.6",
-      "com.lihaoyi" %%% "fansi" % "0.4.0",
-      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.3.0"
+      "co.fs2" %%% "fs2-core" % fs2Version,
+      "co.fs2" %%% "fs2-io" % fs2Version,
+      "com.monovore" %%% "decline" % declineVersion,
+      "com.monovore" %%% "decline-effect" % declineVersion,
+      "io.circe" %%% "circe-core" % circeVersion,
+      "io.circe" %%% "circe-literal" % circeVersion % Test,
+      "io.circe" %%% "circe-parser" % circeVersion,
+      "com.lihaoyi" %%% "fansi" % "0.5.0",
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0"
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
@@ -49,9 +52,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     publish / skip := true,
     scalaJSUseMainModuleInitializer := true,
-//    scalaJSLinkerConfig ~= {
-//      _.withModuleKind(ModuleKind.ESModule)
-//    },
+    fork := false,
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
@@ -64,7 +65,7 @@ lazy val `make-logs` = project
       "ch.qos.logback" % "logback-classic" % "1.5.3",
       "net.logstash.logback" % "logstash-logback-encoder" % "7.4"
     ),
-    libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test)
+    libraryDependencies ++= Seq("org.scalameta" %% "munit" % "1.0.2" % Test)
   )
 
 lazy val `frontend-laminar` = project
