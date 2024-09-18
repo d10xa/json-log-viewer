@@ -66,8 +66,8 @@ plugins:
     args:
       - -c
       - |
-        if [ -n "$CONTAINER" ]; then
-          kubectl logs $POD -n $NAMESPACE --context $CONTEXT -c $CONTAINER -f --tail 500 | json-log-viewer; read -p "Press [Enter] to close..."
+        if [ -n "$POD" ]; then
+          kubectl logs $POD -n $NAMESPACE --context $CONTEXT -c $NAME -f --tail 500 | json-log-viewer; read -p "Press [Enter] to close..."
         else
           kubectl logs $NAME -n $NAMESPACE --context $CONTEXT -f --tail 500 | json-log-viewer; read -p "Press [Enter] to close..."
         fi
