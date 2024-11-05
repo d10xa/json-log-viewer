@@ -17,4 +17,14 @@ class JsonPrefixPostfixTest extends munit.FunSuite {
     assertEquals(postfixOpt, None)
   }
 
+  test(
+    "detectJson should throw StringIndexOutOfBoundsException when jsonDetector returns invalid indices"
+  ) {
+    val jsonDetector = new JsonDetector()
+    val jsonPrefixPostfix = new JsonPrefixPostfix(jsonDetector)
+    val input = "{"
+    val result = jsonPrefixPostfix.detectJson(input)
+    assertEquals(result, (input, None, None))
+  }
+
 }
