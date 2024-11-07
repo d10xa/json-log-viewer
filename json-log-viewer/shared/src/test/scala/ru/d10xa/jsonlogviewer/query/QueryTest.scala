@@ -50,5 +50,39 @@ class QueryTest extends munit.FunSuite {
       )
     )
   }
+  test("and (or) and") {
+    val result = QueryCompiler("a = 'a' AND (b = 'b' OR c = 'c') OR (d = 'd')")
+    val expected = OrExpr(
+      AndExpr(
+        Eq(StrIdentifier("a"), StrLiteral("a")),
+        OrExpr(
+          Eq(StrIdentifier("b"), StrLiteral("b")),
+          Eq(StrIdentifier("c"), StrLiteral("c"))
+        )
+      ),
+      Eq(StrIdentifier("d"), StrLiteral("d"))
+    )
+    assertEquals(
+      result.getOrElse(throw new RuntimeException(s"Result is left")),
+      expected
+    )
+  }
+  test("(or) and (or)") {
+    val result = QueryCompiler("(a = 'a' OR b = 'b') AND (c = 'c' OR d = 'd')")
+    val expected = AndExpr(
+      OrExpr(
+        Eq(StrIdentifier("a"), StrLiteral("a")),
+        Eq(StrIdentifier("b"), StrLiteral("b"))
+      ),
+      OrExpr(
+        Eq(StrIdentifier("c"), StrLiteral("c")),
+        Eq(StrIdentifier("d"), StrLiteral("d"))
+      )
+    )
+    assertEquals(
+      result.getOrElse(throw new RuntimeException(s"Result is left")),
+      expected
+    )
+  }
 
 }

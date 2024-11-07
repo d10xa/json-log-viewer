@@ -1,13 +1,13 @@
 package ru.d10xa.jsonlogviewer.query
 
 import ru.d10xa.jsonlogviewer.Config
+import ru.d10xa.jsonlogviewer.Config.FormatIn
 import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl
+import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl.likeContains
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParseResultKeys
 import ru.d10xa.jsonlogviewer.ParsedLine
 import ru.d10xa.jsonlogviewer.TimestampConfig
-import LogLineQueryPredicateImpl.likeContains
-import ru.d10xa.jsonlogviewer.Config.FormatIn
 
 class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
@@ -35,6 +35,51 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   test("custom field") {
     assert(customFieldLike("custom", false).test(msg("custom")))
   }
+  test("(or) and (or)") {
+    assert(
+      testQ(
+        parseResult(other = Map("a" -> "a", "b" -> "b", "c" -> "c")),
+        "(a = 'a' OR d = '?') AND (b = 'b' OR c = '?')"
+      )
+    )
+  }
+  test("((or) and (or)) or") {
+    assert(
+      testQ(
+        parseResult(other = Map("a" -> "a", "b" -> "b", "c" -> "c")),
+        "((a = '?' OR d = '?') AND (b = '?' OR unknown_field = '?') OR a = 'a')"
+      )
+    )
+  }
+
+  private def testQ(pr: ParseResult, q: String): Boolean = {
+    val e: Either[QueryCompilationError, QueryAST] = QueryCompiler(q)
+    new LogLineQueryPredicateImpl(
+      e.fold(e => throw new RuntimeException(e.toString), identity),
+      parseResultKeys
+    ).test(pr)
+  }
+
+  private def parseResult(
+    message: Option[String] = None,
+    other: Map[String, String] = Map.empty
+  ) = ParseResult(
+    raw = "",
+    parsed = Some(
+      value = ParsedLine(
+        timestamp = Some(value = ""),
+        level = Some(value = ""),
+        message = message,
+        stackTrace = None,
+        loggerName = Some(value = ""),
+        threadName = Some(value = ""),
+        otherAttributes = other
+      )
+    ),
+    middle = "",
+    prefix = None,
+    postfix = None
+  )
 
   private val config: Config = Config(
     TimestampConfig(
@@ -47,17 +92,22 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     FormatIn.Json
   )
 
-  private val parseResultKeys = new ParseResultKeys(config = config)
+  private lazy val parseResultKeys = new ParseResultKeys(config = config)
 
   private def messageLike(s: String): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("message"), StrLiteral(s), false)
     new LogLineQueryPredicateImpl(le, parseResultKeys)
 
-
-  private def stackTraceLike(s: String, negate: Boolean): LogLineQueryPredicateImpl =
+  private def stackTraceLike(
+    s: String,
+    negate: Boolean
+  ): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("stack_trace"), StrLiteral(s), negate)
     new LogLineQueryPredicateImpl(le, parseResultKeys)
-  private def customFieldLike(s: String, negate: Boolean): LogLineQueryPredicateImpl =
+  private def customFieldLike(
+    s: String,
+    negate: Boolean
+  ): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("custom_field"), StrLiteral(s), negate)
     new LogLineQueryPredicateImpl(le, parseResultKeys)
 

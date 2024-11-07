@@ -5,37 +5,61 @@ import scala.util.parsing.combinator.PackratParsers
 object QueryParser extends PackratParsers:
   override type Elem = QueryToken
   private def literal0: Parser[SqlExpr] =
-    accept("literal", { case lit @ LITERAL(name) => StrLiteral(name) })
+    accept(
+      "literal",
+      { case lit @ LITERAL(name) =>
+        StrLiteral(name)
+      }
+    )
 
   private def identifier0: Parser[SqlExpr] =
-    accept("identifier", { case i @ IDENTIFIER(name) => StrIdentifier(name) })
+    accept(
+      "identifier",
+      { case i @ IDENTIFIER(name) =>
+        StrIdentifier(name)
+      }
+    )
 
   def statement: Parser[SqlExpr] = expr
 
-  def expr = compExpr ~ opt(rep(exprRight)) ^^ {
-    case l ~ None => l
-    case l ~ Some(r) =>
-      r.foldLeft(l) { case (left, (expr, right)) =>
-        expr.logicalExpr(left, right)
+  def logicalExpr: Parser[SqlExpr] =
+    (compExpr | LPAREN ~> logicalExpr <~ RPAREN) ~ rep(
+      (AND | OR) ~ (compExpr | LPAREN ~> logicalExpr <~ RPAREN)
+    ) ^^ { case left ~ list =>
+      list.foldLeft(left) { case (acc, op ~ right) =>
+        op.logicalExpr(acc, right)
       }
-  }
+    }
 
-  def compExpr: Parser[Binop] =
-    (atomExpr ~ (EQUAL | NOT_EQUAL | NOTLIKE | LIKE) ~ atomExpr) ^^ { case l ~ op ~ r =>
-      op.compareOp(l, r)
+  def expr: Parser[SqlExpr] =
+    logicalExpr
+
+  def compExpr: Parser[SqlExpr] =
+    atomExpr ~ (EQUAL | NOT_EQUAL | NOTLIKE | LIKE) ~ atomExpr ^^ {
+      case left ~ op ~ right =>
+        op.compareOp(left, right)
     }
 
   def atomExpr: QueryParser.Parser[SqlExpr] =
-    (literal0 | identifier0 | (LPAREN ~> expr <~ RPAREN)) ^^ identity
+    literal0 | identifier0 | (LPAREN ~> expr <~ RPAREN)
 
-  def exprRight: QueryParser.Parser[(QueryToken, Binop)] =
-    (AND | OR) ~ compExpr ^^ { case op ~ e => (op, e) }
-
-  def program: Parser[QueryAST] = phrase(statement)
+  def program: Parser[QueryAST] = phrase(statement) ^^ { stmt =>
+    stmt
+  }
 
   def apply(tokens: Seq[QueryToken]): Either[QueryParserError, QueryAST] =
     val reader = new PackratReader(new QueryTokenReader(tokens))
     program(reader) match {
-      case NoSuccess(msg, next)  => Left(QueryParserError(msg))
-      case Success(result, next) => Right(result)
+      case Success(result, next) =>
+        if (!next.atEnd) {
+          Left(QueryParserError(s"Unexpected token: ${next.first}"))
+        } else {
+          Right(result)
+        }
+      case NoSuccess(msg, next) =>
+        Left(QueryParserError(msg))
+      case Failure(msg, _) =>
+        Left(QueryParserError(msg))
+      case Error(msg, _) =>
+        Left(QueryParserError(msg))
     }

@@ -39,4 +39,6 @@ object QueryLexer extends RegexParsers:
         Left(QueryLexerError(msg))
       case Success(result, next) =>
         Right(result)
+      case Failure(msg, _) => Left(QueryLexerError(msg))
+      case Error(msg, _) => Left(QueryLexerError(msg))
     }
