@@ -8,26 +8,36 @@ val commonSettings = Seq(
 
 enablePlugins(Sonatype)
 
-inThisBuild(List(
-  organization := "ru.d10xa",
-  homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
-  licenses := List(("MIT", url("https://opensource.org/licenses/MIT"))),
-  developers := List(
-    Developer(
-      "d10xa",
-      "Andrey Stolyarov",
-      "d10xa@mail.ru",
-      url("https://d10xa.ru")
+inThisBuild(
+  List(
+    organization := "ru.d10xa",
+    homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
+    licenses := List(("MIT", url("https://opensource.org/licenses/MIT"))),
+    developers := List(
+      Developer(
+        "d10xa",
+        "Andrey Stolyarov",
+        "d10xa@mail.ru",
+        url("https://d10xa.ru")
+      )
+    ),
+    sonatypeCredentialHost := sonatypeCentralHost,
+    sonatypeProfileName := "ru.d10xa",
+    sonatypeProjectHosting := Some(
+      GitHubHosting(
+        user = "ru.d10xa",
+        repository = "json-log-viewer",
+        email = "d10xa@mail.ru"
+      )
+    ),
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      sys.env.getOrElse("SONATYPE_USERNAME", ""),
+      sys.env.getOrElse("SONATYPE_PASSWORD", "")
     )
-  ),
-  sonatypeCredentialHost := sonatypeCentralHost,
-  sonatypeProfileName := "ru.d10xa",
-  credentials += Credentials("Sonatype Nexus Repository Manager",
-    "oss.sonatype.org",
-    sys.env.getOrElse("SONATYPE_USERNAME", ""),
-    sys.env.getOrElse("SONATYPE_PASSWORD", "")
   )
-))
+)
 
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
