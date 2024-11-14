@@ -25,8 +25,7 @@ inThisBuild(List(
     "oss.sonatype.org",
     sys.env.getOrElse("SONATYPE_USERNAME", ""),
     sys.env.getOrElse("SONATYPE_PASSWORD", "")
-  ),
-  publishTo := sonatypePublishToBundle.value
+  )
 ))
 
 val circeVersion = "0.14.10"
@@ -58,7 +57,8 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
-    run / connectInput := true
+    run / connectInput := true,
+    publishTo := sonatypePublishToBundle.value
   )
   .jsSettings(
     publish / skip := true,
