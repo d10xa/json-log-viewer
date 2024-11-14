@@ -15,7 +15,9 @@ inThisBuild(List(
       "d10xa@mail.ru",
       url("https://d10xa.ru")
     )
-  )
+  ),
+  sonatypeCredentialHost := "s01.oss.sonatype.org",
+  sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 ))
 
 val circeVersion = "0.14.10"
