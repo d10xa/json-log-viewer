@@ -22,8 +22,6 @@ jobs:
           rm private.key
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-      - name: Clean SBT cache
-        run: sbt clean
       - name: Run sbt publish
         run: |
           sbt sonatypeOpen "ru.d10xa"
