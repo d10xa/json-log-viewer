@@ -1,11 +1,12 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
-import xerial.sbt.Sonatype.sonatypePublishToBundle
 
 val scala3Version = "3.5.0"
 
 val commonSettings = Seq(
   scalaVersion := scala3Version
 )
+
+enablePlugins(Sonatype)
 
 inThisBuild(List(
   organization := "ru.d10xa",
