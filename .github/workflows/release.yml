@@ -29,7 +29,7 @@ jobs:
           sbt sonatypeOpen "ru.d10xa"
           sbt publishSigned
           sbt sonatypeClose "ru.d10xa"
-          sbt sonatypeRelease "ru.d10xa"
+          sbt sonatypeBundleRelease
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
