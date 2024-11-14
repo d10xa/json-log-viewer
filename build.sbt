@@ -1,4 +1,5 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
+import xerial.sbt.Sonatype.GitHubHosting
 
 val scala3Version = "3.5.0"
 
