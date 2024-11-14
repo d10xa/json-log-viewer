@@ -1,4 +1,4 @@
-import xerial.sbt.Sonatype.sonatypeCentralHost
+import xerial.sbt.Sonatype._
 
 val scala3Version = "3.5.0"
 
