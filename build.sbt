@@ -21,6 +21,7 @@ inThisBuild(List(
     )
   ),
   sonatypeCredentialHost := sonatypeCentralHost,
+  sonatypeProfileName := "ru.d10xa",
   credentials += Credentials("Sonatype Nexus Repository Manager",
     "oss.sonatype.org",
     sys.env.getOrElse("SONATYPE_USERNAME", ""),
