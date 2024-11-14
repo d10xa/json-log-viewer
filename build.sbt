@@ -1,12 +1,10 @@
-import xerial.sbt.Sonatype._
+import xerial.sbt.Sonatype.sonatypeCentralHost
 
 val scala3Version = "3.5.0"
 
 val commonSettings = Seq(
   scalaVersion := scala3Version
 )
-
-enablePlugins(Sonatype)
 
 inThisBuild(
   List(
@@ -68,7 +66,6 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
-    publishTo := sonatypePublishToBundle.value,
     sonatypeCredentialHost := sonatypeCentralHost
   )
   .jsSettings(
