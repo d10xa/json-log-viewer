@@ -1,6 +1,7 @@
-import xerial.sbt.Sonatype.sonatypeCentralHost
-import xerial.sbt.Sonatype.sonatypePublishToBundle
-import xerial.sbt.Sonatype.GitHubHosting
+//import xerial.sbt.Sonatype.sonatypeCentralHost
+//import xerial.sbt.Sonatype.sonatypePublishToBundle
+//import xerial.sbt.Sonatype.GitHubHosting
+import xerial.sbt.Sonatype.autoImport.*
 
 val scala3Version = "3.5.0"
 
