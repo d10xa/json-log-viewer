@@ -23,6 +23,7 @@ inThisBuild(
     ),
     sonatypeCredentialHost := sonatypeCentralHost,
     sonatypeProfileName := "ru.d10xa",
+    sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
     sonatypeProjectHosting := Some(
       GitHubHosting(
         user = "ru.d10xa",
