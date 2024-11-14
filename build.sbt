@@ -29,8 +29,7 @@ inThisBuild(
       )
     ),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
-    sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
-    publishTo := sonatypePublishToBundle.value
+    sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
 //    credentials += Credentials(
 //      "Sonatype Nexus Repository Manager",
 //      "oss.sonatype.org",
@@ -70,7 +69,8 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
-    sonatypeCredentialHost := sonatypeCentralHost
+    sonatypeCredentialHost := sonatypeCentralHost,
+    publishTo := sonatypePublishToBundle.value
   )
   .jsSettings(
     publish / skip := true,
