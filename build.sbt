@@ -21,9 +21,7 @@ inThisBuild(
         url("https://d10xa.ru")
       )
     ),
-    sonatypeCredentialHost := sonatypeCentralHost,
     sonatypeProfileName := "ru.d10xa",
-    sonatypeRepository := sonatypeCentralHost,
     sonatypeProjectHosting := Some(
       GitHubHosting(
         user = "ru.d10xa",
@@ -70,7 +68,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
-    publishTo := Some("Sonatype Central" at "https://central.sonatype.com/api/v1/publisher/upload")
+    publishTo := sonatypePublishToBundle.value
   )
   .jsSettings(
     publish / skip := true,
