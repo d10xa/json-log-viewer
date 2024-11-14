@@ -1,4 +1,5 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
+import xerial.sbt.Sonatype.sonatypePublishToBundle
 import xerial.sbt.Sonatype.GitHubHosting
 
 val scala3Version = "3.5.0"
@@ -29,7 +30,8 @@ inThisBuild(
       )
     ),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
-    sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+    sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
+    publishTo := sonatypePublishToBundle.value
 //    credentials += Credentials(
 //      "Sonatype Nexus Repository Manager",
 //      "oss.sonatype.org",
