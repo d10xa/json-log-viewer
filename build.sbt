@@ -1,3 +1,5 @@
+import xerial.sbt.Sonatype.sonatypeCentralHost
+
 val scala3Version = "3.5.0"
 
 val commonSettings = Seq(
@@ -16,8 +18,13 @@ inThisBuild(List(
       url("https://d10xa.ru")
     )
   ),
-  sonatypeCredentialHost := "s01.oss.sonatype.org",
-  sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
+  sonatypeCredentialHost := sonatypeCentralHost,
+  credentials += Credentials("Sonatype Nexus Repository Manager",
+    "oss.sonatype.org",
+    sys.env.getOrElse("SONATYPE_USERNAME", ""),
+    sys.env.getOrElse("SONATYPE_PASSWORD", "")
+  ),
+  publishTo := sonatypePublishToBundle.value
 ))
 
 val circeVersion = "0.14.10"
