@@ -69,7 +69,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
-    publishTo := sonatypePublishToBundle.value
+    publishTo := Some("Sonatype Central" at "https://central.sonatype.com/api/v1/publisher/upload")
   )
   .jsSettings(
     publish / skip := true,
