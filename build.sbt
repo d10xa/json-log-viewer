@@ -29,7 +29,7 @@ inThisBuild(
       )
     ),
     sonatypeCredentialHost := "central.sonatype.com",
-    sonatypeRepository := "https://central.sonatype.com/api/v1/publish"
+    sonatypeRepository := "https://central.sonatype.com"
 //    credentials += Credentials(
 //      "Sonatype Nexus Repository Manager",
 //      "oss.sonatype.org",
