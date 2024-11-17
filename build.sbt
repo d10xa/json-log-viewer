@@ -28,7 +28,7 @@ inThisBuild(
         email = "d10xa@mail.ru"
       )
     ),
-    sonatypeCredentialHost := "central.sonatype.com"
+    sonatypeCredentialHost := sonatypeCentralHost
 //    sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
     //    credentials += Credentials(
 //      "Sonatype Nexus Repository Manager",
