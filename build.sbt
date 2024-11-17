@@ -70,7 +70,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     fork := true,
     run / connectInput := true,
     sonatypeCredentialHost := sonatypeCentralHost,
-    publishTo := "https://central.sonatype.com/api/v1/publisher"
+    publishTo := Some("Sonatype Central" at "https://central.sonatype.com/api/v1/publish")
   )
   .jsSettings(
     publish / skip := true,
