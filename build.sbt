@@ -28,14 +28,7 @@ inThisBuild(
         email = "d10xa@mail.ru"
       )
     ),
-    sonatypeCredentialHost := sonatypeCentralHost
-//    sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
-    //    credentials += Credentials(
-//      "Sonatype Nexus Repository Manager",
-//      "oss.sonatype.org",
-//      sys.env.getOrElse("SONATYPE_USERNAME", ""),
-//      sys.env.getOrElse("SONATYPE_PASSWORD", "")
-//    )
+    sonatypeCredentialHost := sonatypeCentralHost,
   )
 )
 
@@ -68,15 +61,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     ),
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
-    run / connectInput := true,
-    sonatypeCredentialHost := sonatypeCentralHost
-//    publishTo := {
-//      val nexus = "https://central.sonatype.com/api/v1/publish"
-//      if (isSnapshot.value)
-//        Some("Sonatype Snapshots" at nexus + "/snapshots")
-//      else
-//        Some("Sonatype Releases" at nexus + "/releases")
-//    }
+    run / connectInput := true
   )
   .jsSettings(
     publish / skip := true,
