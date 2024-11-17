@@ -71,11 +71,11 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     run / connectInput := true,
     sonatypeCredentialHost := sonatypeCentralHost,
     publishTo := {
-      val nexus = "https://s01.oss.sonatype.org/"
+      val nexus = "https://central.sonatype.com/api/v1/publish"
       if (isSnapshot.value)
-        Some("snapshots" at nexus + "content/repositories/snapshots")
+        Some("Sonatype Snapshots" at nexus + "/snapshots")
       else
-        Some("releases" at nexus + "service/local/staging/deploy/maven2")
+        Some("Sonatype Releases" at nexus + "/releases")
     }
   )
   .jsSettings(
