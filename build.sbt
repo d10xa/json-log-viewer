@@ -44,10 +44,11 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     ),
     fork := true,
     run / connectInput := true,
-    publish / skip := false
+    publish / skip := true
   )
   .jvmSettings(
-    publishTo := sonatypePublishToBundle.value
+    publishTo := sonatypePublishToBundle.value,
+    publish / skip := false
   )
   .jsSettings(
     publish / skip := true,
