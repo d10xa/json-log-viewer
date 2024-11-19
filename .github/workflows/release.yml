@@ -24,8 +24,7 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
       - name: Run sbt publish
         run: |
-          sbt ++3.5.0 json-log-viewerJVM/publishSigned
-          sbt ++3.5.0 json-log-viewerJVM/sonatypeBundleRelease
+          sbt ++3.5.0 sonatypeBundleRelease
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
