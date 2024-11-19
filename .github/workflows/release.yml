@@ -24,9 +24,7 @@ jobs:
 #          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
       - name: Run sbt publish
         run: |
-#          sbt sonatypeOpen "ru.d10xa"
           sbt publishSigned
-#          sbt sonatypeClose "ru.d10xa"
           sbt sonatypeBundleRelease
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
