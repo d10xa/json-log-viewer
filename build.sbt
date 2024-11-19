@@ -6,29 +6,13 @@ val scala3Version = "3.5.0"
 val commonSettings = Seq(
   scalaVersion := scala3Version
 )
-
+ThisBuild / publishTo := sonatypePublishToBundle.value
 inThisBuild(
   List(
     organization := "ru.d10xa",
     homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
-    licenses := List(("MIT", url("https://opensource.org/licenses/MIT"))),
-    developers := List(
-      Developer(
-        "d10xa",
-        "Andrey Stolyarov",
-        "d10xa@mail.ru",
-        url("https://d10xa.ru")
-      )
-    ),
-    sonatypeProfileName := "ru.d10xa",
-    sonatypeProjectHosting := Some(
-      GitHubHosting(
-        user = "ru.d10xa",
-        repository = "json-log-viewer",
-        email = "d10xa@mail.ru"
-      )
-    ),
     sonatypeCredentialHost := sonatypeCentralHost,
+    versionScheme := Some("early-semver")
   )
 )
 
@@ -62,7 +46,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
-    publishTo := sonatypePublishToBundle.value
+    publish / skip := false
   )
   .jsSettings(
     publish / skip := true,
