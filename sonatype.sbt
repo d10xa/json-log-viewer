@@ -15,7 +15,4 @@ developers := List(
     url("https://d10xa.ru")
   )
 )
-//publishTo := Some(
-//  "Sonatype Central Publisher" at "https://central.sonatype.com/api/v1/publish"
-//)
 ThisBuild / publishTo := sonatypePublishToBundle.value

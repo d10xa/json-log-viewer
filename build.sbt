@@ -22,15 +22,13 @@ val fs2Version = "3.11.0"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
-  .settings(
-    organization := "ru.d10xa",
-    description := "The json-log-viewer converts JSON logs to a human-readable format",
-    pomIncludeRepository := { _ => false }
-  )
-  .settings(commonSettings)
   .jvmEnablePlugins(JavaAppPackaging)
+  .settings(commonSettings)
   .settings(
     name := "json-log-viewer",
+    organization := "ru.d10xa",
+    description := "The json-log-viewer converts JSON logs to a human-readable format",
+    pomIncludeRepository := { _ => false },
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-effect" % "3.5.4",
       "co.fs2" %%% "fs2-core" % fs2Version,
@@ -41,12 +39,15 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
       "io.circe" %%% "circe-literal" % circeVersion % Test,
       "io.circe" %%% "circe-parser" % circeVersion,
       "com.lihaoyi" %%% "fansi" % "0.5.0",
-      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0"
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0",
+      "org.scalameta" %% "munit" % "0.7.29" % Test
     ),
-    libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
     run / connectInput := true,
     publish / skip := false
+  )
+  .jvmSettings(
+    publishTo := sonatypePublishToBundle.value
   )
   .jsSettings(
     publish / skip := true,
