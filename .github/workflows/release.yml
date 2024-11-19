@@ -15,13 +15,13 @@ jobs:
           distribution: temurin
           java-version: 8
           cache: sbt
-#      - name: Set up GPG
-#        run: |
-#          echo "${{ secrets.PGP_SECRET }}" | base64 --decode > private.key
-#          gpg --import --batch private.key
-#          rm private.key
-#        env:
-#          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+      - name: Set up GPG
+        run: |
+          echo "${{ secrets.PGP_SECRET }}" | base64 --decode > private.key
+          gpg --import --batch private.key
+          rm private.key
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
       - name: Run sbt publish
         run: |
           sbt publishSigned
