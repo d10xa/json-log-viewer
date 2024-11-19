@@ -20,6 +20,12 @@ jobs:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      - name: Upload bundle artifact
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: sonatype-bundle
+          path: target/sonatype-staging/0.3.0-bundle/bundle.zip
 #      - name: Set up GPG
 #        run: |
 #          echo "${{ secrets.PGP_SECRET }}" | base64 --decode > private.key
