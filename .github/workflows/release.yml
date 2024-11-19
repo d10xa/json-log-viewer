@@ -1,7 +1,7 @@
 name: Release
 on:
   push:
-    branches: [master, main]
+    branches: [main]
     tags: ["*"]
 jobs:
   publish:
@@ -15,9 +15,18 @@ jobs:
           distribution: temurin
           java-version: 8
           cache: sbt
-      - run: sbt ci-release
+      - name: Set up GPG
+        run: |
+          echo "${{ secrets.PGP_SECRET }}" | base64 --decode > private.key
+          gpg --import --batch private.key
+          rm private.key
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-          PGP_SECRET: ${{ secrets.PGP_SECRET }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+      - name: Run sbt publish
+        run: |
+          sbt publishSigned
+          sbt sonatypeBundleRelease
+        env:
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

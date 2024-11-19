@@ -1,24 +1,20 @@
+enablePlugins(Sonatype)
+import xerial.sbt.Sonatype._
+
 val scala3Version = "3.5.0"
 
 val commonSettings = Seq(
   scalaVersion := scala3Version
 )
-
-inThisBuild(List(
-  organization := "ru.d10xa",
-  homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
-  licenses := List(("MIT", url("https://opensource.org/licenses/MIT"))),
-  developers := List(
-    Developer(
-      "d10xa",
-      "Andrey Stolyarov",
-      "d10xa@mail.ru",
-      url("https://d10xa.ru")
-    )
-  ),
-  sonatypeCredentialHost := "s01.oss.sonatype.org",
-  sonatypeRepository := "https://s01.oss.sonatype.org/service/local"
-))
+ThisBuild / publishTo := sonatypePublishToBundle.value
+inThisBuild(
+  List(
+    organization := "ru.d10xa",
+    homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
+    sonatypeCredentialHost := sonatypeCentralHost,
+    versionScheme := Some("early-semver")
+  )
+)
 
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
@@ -26,15 +22,13 @@ val fs2Version = "3.11.0"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
-  .settings(
-    organization := "ru.d10xa",
-    description := "The json-log-viewer converts JSON logs to a human-readable format",
-    pomIncludeRepository := { _ => false }
-  )
-  .settings(commonSettings)
   .jvmEnablePlugins(JavaAppPackaging)
+  .settings(commonSettings)
   .settings(
     name := "json-log-viewer",
+    organization := "ru.d10xa",
+    description := "The json-log-viewer converts JSON logs to a human-readable format",
+    pomIncludeRepository := { _ => false },
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-effect" % "3.5.4",
       "co.fs2" %%% "fs2-core" % fs2Version,
@@ -45,11 +39,15 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
       "io.circe" %%% "circe-literal" % circeVersion % Test,
       "io.circe" %%% "circe-parser" % circeVersion,
       "com.lihaoyi" %%% "fansi" % "0.5.0",
-      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0"
+      "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0",
+      "org.scalameta" %% "munit" % "0.7.29" % Test
     ),
-    libraryDependencies ++= Seq("org.scalameta" %% "munit" % "0.7.29" % Test),
     fork := true,
-    run / connectInput := true
+    run / connectInput := true,
+    publish / skip := false
+  )
+  .jvmSettings(
+    publishTo := sonatypePublishToBundle.value
   )
   .jsSettings(
     publish / skip := true,
