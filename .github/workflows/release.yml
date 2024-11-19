@@ -1,7 +1,6 @@
 name: Release
 on:
   push:
-    branches: [main]
     tags: ["*"]
 jobs:
   publish:
@@ -24,7 +23,7 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
       - name: Run sbt publish
         run: |
-          sbt ++3.5.0 sonatypeBundleRelease
+          sbt sonatypeBundleRelease
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
