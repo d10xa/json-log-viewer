@@ -4,7 +4,8 @@ on:
     tags: ["*"]
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -12,9 +13,9 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 11
           cache: sbt
-      - run: sbt -Djava.net.debug=all ci-release
+      - run: sbt -Djava.net.debug=all -Dsun.net.client.defaultReadTimeout=120000 -Dsun.net.client.defaultConnectTimeout=120000 -Dhttp.keepAlive=true -Dhttp.maxConnections=5 ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
