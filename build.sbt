@@ -27,7 +27,7 @@ val fs2Version = "3.11.0"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
-  .jvmEnablePlugins(JavaAppPackaging, Sonatype)
+  .jvmEnablePlugins(JavaAppPackaging)
   .settings(commonSettings)
   .settings(
     name := "json-log-viewer",
