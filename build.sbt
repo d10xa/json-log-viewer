@@ -1,11 +1,9 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
 
-val scala3Version = "3.5.0"
-
+ThisBuild / scalaVersion := "3.5.0"
 ThisBuild / licenses := List(("MIT", url("https://opensource.org/licenses/MIT")))
 ThisBuild / homepage := Some(url("https://github.com/d10xa/json-log-viewer"))
 ThisBuild / organization := "ru.d10xa"
-//ThisBuild / versionScheme := Some("early-semver")
 ThisBuild / developers := List(
   Developer(
     "d10xa",
@@ -16,19 +14,13 @@ ThisBuild / developers := List(
 )
 ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
-val commonSettings = Seq(
-  scalaVersion := scala3Version
-)
-//ThisBuild / publishTo := sonatypePublishToBundle.value
-
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
 val fs2Version = "3.11.0"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
-  .jvmEnablePlugins(JavaAppPackaging)
-  .settings(commonSettings)
+//  .jvmEnablePlugins(JavaAppPackaging)
   .settings(
     name := "json-log-viewer",
     organization := "ru.d10xa",
@@ -49,10 +41,8 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     ),
     fork := true,
     run / connectInput := true,
-    publish / skip := true
   )
   .jvmSettings(
-    publishTo := sonatypePublishToBundle.value,
     publish / skip := false
   )
   .jsSettings(
@@ -64,7 +54,6 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
 
 lazy val `make-logs` = project
   .in(file("make-logs"))
-  .settings(commonSettings)
   .settings(
     publish / skip := true,
     libraryDependencies ++= Seq(
@@ -78,7 +67,6 @@ lazy val `frontend-laminar` = project
   .in(file("frontend-laminar"))
   .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .dependsOn(`json-log-viewer`.js)
-  .settings(commonSettings)
   .settings(
     publish / skip := true,
     (installJsdom / version) := "20.0.3",
