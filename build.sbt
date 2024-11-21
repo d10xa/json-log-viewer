@@ -1,19 +1,25 @@
-import xerial.sbt.Sonatype._
+import xerial.sbt.Sonatype.sonatypeCentralHost
 
 val scala3Version = "3.5.0"
+
+ThisBuild / licenses := List(("MIT", url("https://opensource.org/licenses/MIT")))
+ThisBuild / homepage := Some(url("https://github.com/d10xa/json-log-viewer"))
+ThisBuild / organization := "ru.d10xa"
+//ThisBuild / versionScheme := Some("early-semver")
+ThisBuild / developers := List(
+  Developer(
+    "d10xa",
+    "Andrey Stolyarov",
+    "d10xa@mail.ru",
+    url("https://d10xa.ru")
+  )
+)
+ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
 val commonSettings = Seq(
   scalaVersion := scala3Version
 )
-ThisBuild / publishTo := sonatypePublishToBundle.value
-inThisBuild(
-  List(
-    organization := "ru.d10xa",
-    homepage := Some(url("https://github.com/d10xa/json-log-viewer")),
-    sonatypeCredentialHost := sonatypeCentralHost,
-    versionScheme := Some("early-semver")
-  )
-)
+//ThisBuild / publishTo := sonatypePublishToBundle.value
 
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
