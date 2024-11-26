@@ -1,4 +1,4 @@
-package ru.d10xa.jsonlogviewer
+package ru.d10xa.jsonlogviewer.decline
 
 import java.time.ZonedDateTime
 

@@ -35,6 +35,8 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
       "io.circe" %%% "circe-core" % circeVersion,
       "io.circe" %%% "circe-literal" % circeVersion % Test,
       "io.circe" %%% "circe-parser" % circeVersion,
+      "io.circe" %%% "circe-generic" % circeVersion,
+      "io.circe" %%% "circe-yaml-scalayaml" % "0.16.0",
       "com.lihaoyi" %%% "fansi" % "0.5.0",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0",
       "org.scalameta" %% "munit" % "0.7.29" % Test

@@ -3,6 +3,7 @@ package ru.d10xa.jsonlogviewer
 import fansi.ErrorMode.Strip
 import fansi.EscapeAttr
 import fansi.Str
+import ru.d10xa.jsonlogviewer.decline.Config
 
 class ColorLineFormatter(c: Config) extends OutputLineFormatter:
   private val strEmpty: Str = Str("")

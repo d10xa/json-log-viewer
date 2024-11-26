@@ -1,6 +1,7 @@
 package ru.d10xa.jsonlogviewer
 
-import ru.d10xa.jsonlogviewer.Config.ConfigGrep
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 
 class LogLineFilter(config: Config, parseResultKeys: ParseResultKeys) {
 

@@ -9,12 +9,12 @@ import fansi.ErrorMode
 import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
-import ru.d10xa.jsonlogviewer.Config
-import ru.d10xa.jsonlogviewer.Config
-import ru.d10xa.jsonlogviewer.Config.FormatIn
-import ru.d10xa.jsonlogviewer.Config.FormatIn.Json
-import ru.d10xa.jsonlogviewer.Config.FormatIn.Logfmt
-import ru.d10xa.jsonlogviewer.DeclineOpts
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Json
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Logfmt
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.DeclineOpts
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
 
 object App {
