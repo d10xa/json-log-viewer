@@ -27,7 +27,13 @@ object ConfigYamlLoader {
                   jsonValue.as[String] match {
                     case Left(_) => Validated.invalidNel("Invalid 'filter' field format")
                     case Right(filterStr) =>
-                      QueryASTValidator.toValidatedQueryAST(filterStr).map(Some(_))
+                      val trimmedStr = filterStr
+                        .linesIterator
+                        .filterNot(line => line.trim.startsWith("#") || line.trim.startsWith("//"))
+                        .mkString("\n")
+                        .replace("\\n", " ")
+                        .trim
+                      QueryASTValidator.toValidatedQueryAST(trimmedStr).map(Some(_))
                   }
                 case None => Validated.valid(None)
               }
