@@ -26,8 +26,6 @@ object Application
       .repartition(s => Chunk.array(s.split("\n", -1)))
       .filter(_.nonEmpty)
 
-  import cats.effect.unsafe.implicits._
-
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { c =>
     new ConfigInitImpl().initConfig(c).flatMap { updatedConfig =>
       IO {
