@@ -90,7 +90,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     ),
     grep = List.empty,
     filter = None,
-    formatIn = FormatIn.Json
+    formatIn = None
   )
 
   private lazy val parseResultKeys = new ParseResultKeys(config = config)

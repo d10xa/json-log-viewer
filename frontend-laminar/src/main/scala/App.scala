@@ -17,6 +17,8 @@ import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.DeclineOpts
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
 
+import scala.util.matching.Regex
+
 object App {
 
   val jsonLogSample: String =
@@ -48,7 +50,7 @@ object App {
     FormatIn.Json
   )
 
-  val splitPattern = "([^\"]\\S*|\".+?\")\\s*".r
+  val splitPattern: Regex = "([^\"]\\S*|\".+?\")\\s*".r
   def splitArgs(s: String): Seq[String] =
     splitPattern
       .findAllMatchIn(s)
@@ -64,7 +66,7 @@ object App {
       case Right(value) => Some(value)
   } yield DeclineOpts.command
     .parse(splitArgs(cli))
-    .map(cfg => cfg.copy(filter = filter, formatIn = formatIn))
+    .map(cfg => cfg.copy(filter = filter, formatIn = Some(formatIn)))
 
   def main(args: Array[String]): Unit = {
     lazy val container = dom.document.getElementById("app-container")

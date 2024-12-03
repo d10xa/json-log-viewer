@@ -31,8 +31,9 @@ object ViewElement {
       case (string, Right(c)) =>
         val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
         val logLineParser = c.formatIn match
-          case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
-          case FormatIn.Logfmt => LogfmtLogLineParser(c)
+          case Some(FormatIn.Logfmt) => LogfmtLogLineParser(c)
+          case Some(FormatIn.Json) => JsonLogLineParser(c, jsonPrefixPostfix)
+          case other => throw new IllegalStateException(s"Unsupported format-in value: $other")
 
         fs2.Stream
           .emits(string.split("\n"))

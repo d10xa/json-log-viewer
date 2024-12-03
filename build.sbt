@@ -20,7 +20,7 @@ val fs2Version = "3.11.0"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
-//  .jvmEnablePlugins(JavaAppPackaging)
+  .jvmEnablePlugins(JavaAppPackaging)
   .settings(
     name := "json-log-viewer",
     organization := "ru.d10xa",
@@ -49,9 +49,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(
     publish / skip := true,
-    scalaJSUseMainModuleInitializer := true,
     fork := false,
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val `make-logs` = project
@@ -81,8 +79,9 @@ lazy val `frontend-laminar` = project
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.28.4",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided"
     ),
-    Compile / fastOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(false) },
-    Compile / fullOptJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
+    Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
+    Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
+    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
     scalaJSUseMainModuleInitializer := true,
     (Test / requireJsDomEnv) := true,
     useYarn := true

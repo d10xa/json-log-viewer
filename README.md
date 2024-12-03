@@ -44,7 +44,7 @@ cat log.txt | node ./json-log-viewer/js/target/scala-3.3.1/json-log-viewer-opt/m
 
 # frontend-laminar
 
-```~fastOptJS::webpack```
+```~fastLinkJS::webpack```
 
 # k9s plugin
 

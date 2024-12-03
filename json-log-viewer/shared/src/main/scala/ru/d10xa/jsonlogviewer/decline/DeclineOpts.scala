@@ -42,10 +42,10 @@ object DeclineOpts {
     .mapValidated(QueryASTValidator.toValidatedQueryAST)
     .orNone
   
-  val formatIn: Opts[FormatIn] = Opts
+  val formatIn: Opts[Option[FormatIn]] = Opts
     .option[String]("format-in", help = "json, logfmt")
     .mapValidated(FormatInValidator.toValidatedFormatIn)
-    .withDefault(FormatIn.Json)
+    .orNone
 
   def timestampConfig: Opts[TimestampConfig] =
     (timestampField, timestampAfter, timestampBefore)
