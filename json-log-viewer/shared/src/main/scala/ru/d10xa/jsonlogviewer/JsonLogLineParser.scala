@@ -6,6 +6,7 @@ import io.circe.HCursor
 import io.circe.parser.*
 import cats.syntax.all.*
 import HardcodedFieldNames.*
+import ru.d10xa.jsonlogviewer.decline.Config
 
 class JsonLogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) extends LogLineParser {
   given Decoder[ParsedLine] = (c: HCursor) =>

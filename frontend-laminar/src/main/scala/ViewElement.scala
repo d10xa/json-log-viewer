@@ -5,19 +5,19 @@ import com.raquo.laminar.DomApi
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.api.L
 import ru.d10xa.jsonlogviewer.Application
-import ru.d10xa.jsonlogviewer.Config
-import ru.d10xa.jsonlogviewer.TimestampConfig
-import ru.d10xa.jsonlogviewer.Config
 import ru.d10xa.jsonlogviewer.JsonDetector
 import ru.d10xa.jsonlogviewer.JsonPrefixPostfix
 import ru.d10xa.jsonlogviewer.JsonLogLineParser
-import ru.d10xa.jsonlogviewer.TimestampConfig
 import ru.d10xa.jsonlogviewer.TimestampFilter
 import ru.d10xa.jsonlogviewer.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.LogLineFilter
 import fs2.*
-import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.TimestampConfig
+import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -31,8 +31,9 @@ object ViewElement {
       case (string, Right(c)) =>
         val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
         val logLineParser = c.formatIn match
-          case FormatIn.Json => JsonLogLineParser(c, jsonPrefixPostfix)
-          case FormatIn.Logfmt => LogfmtLogLineParser(c)
+          case Some(FormatIn.Logfmt) => LogfmtLogLineParser(c)
+          case Some(FormatIn.Json) => JsonLogLineParser(c, jsonPrefixPostfix)
+          case other => throw new IllegalStateException(s"Unsupported format-in value: $other")
 
         fs2.Stream
           .emits(string.split("\n"))

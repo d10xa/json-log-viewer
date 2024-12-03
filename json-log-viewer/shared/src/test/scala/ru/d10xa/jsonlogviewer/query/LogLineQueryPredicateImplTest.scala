@@ -1,13 +1,13 @@
 package ru.d10xa.jsonlogviewer.query
 
-import ru.d10xa.jsonlogviewer.Config
-import ru.d10xa.jsonlogviewer.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl
 import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl.likeContains
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParseResultKeys
 import ru.d10xa.jsonlogviewer.ParsedLine
-import ru.d10xa.jsonlogviewer.TimestampConfig
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 
 class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
@@ -82,14 +82,15 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   )
 
   private val config: Config = Config(
-    TimestampConfig(
+    configFile = None,
+    timestamp = TimestampConfig(
       fieldName = "@timestamp",
       None,
       None
     ),
-    List.empty,
-    None,
-    FormatIn.Json
+    grep = List.empty,
+    filter = None,
+    formatIn = None
   )
 
   private lazy val parseResultKeys = new ParseResultKeys(config = config)

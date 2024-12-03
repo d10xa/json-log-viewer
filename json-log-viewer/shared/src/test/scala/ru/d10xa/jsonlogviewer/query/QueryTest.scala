@@ -85,4 +85,19 @@ class QueryTest extends munit.FunSuite {
     )
   }
 
+  test("(or) and (not like)") {
+    val result = QueryCompiler("(a = 'a' OR b = 'b') AND (c NOT LIKE '*test*')")
+    val expected = AndExpr(
+      OrExpr(
+        Eq(StrIdentifier("a"), StrLiteral("a")),
+        Eq(StrIdentifier("b"), StrLiteral("b"))
+      ),
+      LikeExpr(StrIdentifier("c"), StrLiteral("*test*"), negate = true)
+    )
+    assertEquals(
+      result.getOrElse(throw new RuntimeException(s"Result is left")),
+      expected
+    )
+  }
+
 }

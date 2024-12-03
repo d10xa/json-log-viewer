@@ -5,6 +5,7 @@ import HardcodedFieldNames.levelFieldName
 import HardcodedFieldNames.loggerNameFieldName
 import HardcodedFieldNames.threadNameFieldName
 import HardcodedFieldNames.stackTraceFieldName
+import ru.d10xa.jsonlogviewer.decline.Config
 class ParseResultKeys(config: Config) {
   def getByKey(
     parseResult: ParseResult,

@@ -2,6 +2,7 @@ package ru.d10xa.jsonlogviewer
 
 import fs2.*
 import fs2.io.*
+import ru.d10xa.jsonlogviewer.decline.Config
 object LogViewerStream {
 
   def stream[F[_]](

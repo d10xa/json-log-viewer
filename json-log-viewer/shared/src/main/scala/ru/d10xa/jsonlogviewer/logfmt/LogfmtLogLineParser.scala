@@ -1,10 +1,10 @@
 package ru.d10xa.jsonlogviewer.logfmt
 
-import ru.d10xa.jsonlogviewer.Config
 import ru.d10xa.jsonlogviewer.HardcodedFieldNames.*
 import ru.d10xa.jsonlogviewer.LogLineParser
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParsedLine
+import ru.d10xa.jsonlogviewer.decline.Config
 
 class LogfmtLogLineParser(config: Config) extends LogLineParser {
 
