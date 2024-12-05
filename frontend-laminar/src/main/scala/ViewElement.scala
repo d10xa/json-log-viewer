@@ -9,7 +9,6 @@ import ru.d10xa.jsonlogviewer.JsonDetector
 import ru.d10xa.jsonlogviewer.JsonPrefixPostfix
 import ru.d10xa.jsonlogviewer.JsonLogLineParser
 import ru.d10xa.jsonlogviewer.TimestampFilter
-import ru.d10xa.jsonlogviewer.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.LogLineFilter
 import fs2.*
@@ -18,6 +17,7 @@ import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
+import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -55,7 +55,7 @@ object ViewElement {
     configSignal: Signal[Either[Help, Config]]
   ): HtmlElement =
     pre(
-      cls := "bg-dark font-monospace",
+      cls := "bg-dark font-monospace text-white",
       child <-- runApp(logLinesSignal, configSignal)
     )
 
