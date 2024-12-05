@@ -51,7 +51,7 @@ cat log.txt | node ./json-log-viewer/js/target/scala-3.3.1/json-log-viewer-opt/m
 Integrate json-log-viewer with k9s to view formatted JSON logs directly within the k9s interface.
 
 Add the following to your k9s plugin file 
-(usually located at ~/.k9s/pluginы.yaml or, on macOS, check the plugin path with `k9s info`):
+(usually located at ~/.k9s/plugins.yaml or, on macOS, check the plugin path with `k9s info`):
 
 ```yaml
 plugins:

@@ -24,5 +24,5 @@ class JsonDetector {
     res match
       case (-1, _) => None
       case (_, -1) => None
-      case (i, j) => Some(i, j)
+      case (i, j)  => Some(i, j)
 }

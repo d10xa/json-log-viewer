@@ -5,4 +5,3 @@ trait TokenCompilationError
 case class TokenLexerError(msg: String) extends TokenCompilationError
 
 case class TokenParserError(msg: String) extends TokenCompilationError
-

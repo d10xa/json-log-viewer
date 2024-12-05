@@ -1,12 +1,10 @@
-
 import fansi.ErrorMode
 import fansi.Str
 
 import scala.scalajs.js.annotation.JSExport
 
-/**
- * https://github.com/com-lihaoyi/fansi/issues/62
- */
+/** https://github.com/com-lihaoyi/fansi/issues/62
+  */
 object Ansi2HtmlWithClasses extends Function1[String, String]:
   private def transition(from: fansi.Attr, to: fansi.Attr) =
     import fansi.*
@@ -16,7 +14,7 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
       case (Bold.Off, Bold.On)             => "<b>"
       case (Bold.On, Bold.Off)             => "</b>"
       case (col1, col2) if color.isDefinedAt(col2) =>
-        val closing   = if color.isDefinedAt(col1) then "</span>" else ""
+        val closing = if color.isDefinedAt(col1) then "</span>" else ""
         val nextColor = color(col2)
         s"$closing<span class='text-break ansi-$nextColor'>"
       case (col1, fansi.Color.Reset) if color.isDefinedAt(col1) =>
@@ -46,7 +44,7 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
 
   @JSExport("ansi_2_html")
   def apply(s: String): String =
-    val colored            = fansi.Str(s, ErrorMode.Strip)
+    val colored = fansi.Str(s, ErrorMode.Strip)
     var current: Str.State = 0L
 
     val categories = fansi.Attr.categories

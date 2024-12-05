@@ -36,12 +36,12 @@ object DeclineOpts {
     .options[String]("grep", "", metavar = "key:value")
     .mapValidated { lines => lines.traverse(validateConfigGrep) }
     .orEmpty
-  
+
   val filterConfig: Opts[Option[QueryAST]] = Opts
     .option[String]("filter", "sql expression")
     .mapValidated(QueryASTValidator.toValidatedQueryAST)
     .orNone
-  
+
   val formatIn: Opts[Option[FormatIn]] = Opts
     .option[String]("format-in", help = "json, logfmt")
     .mapValidated(FormatInValidator.toValidatedFormatIn)

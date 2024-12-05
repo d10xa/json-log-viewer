@@ -45,7 +45,7 @@ class LogfmtLogLineParser(config: Config) extends LogLineParser {
 }
 
 object LogfmtLogLineParser:
-  
+
   // TODO rename
   def toMap(ast: LogFmtAst): (Map[String, String], String) =
     ast match

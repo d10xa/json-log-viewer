@@ -8,7 +8,8 @@ import cats.syntax.all.*
 import HardcodedFieldNames.*
 import ru.d10xa.jsonlogviewer.decline.Config
 
-class JsonLogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix) extends LogLineParser {
+class JsonLogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix)
+  extends LogLineParser {
   given Decoder[ParsedLine] = (c: HCursor) =>
     val timestampFieldName = config.timestamp.fieldName
 

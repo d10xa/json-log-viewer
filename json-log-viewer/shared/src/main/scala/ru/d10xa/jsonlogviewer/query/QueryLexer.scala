@@ -30,15 +30,17 @@ object QueryLexer extends RegexParsers:
 
   def tokens: Parser[List[QueryToken]] =
     phrase(
-      rep1(lparen | rparen | notlike |like | or | and | equal | notEqual | literal | identifier)
+      rep1(
+        lparen | rparen | notlike | like | or | and | equal | notEqual | literal | identifier
+      )
     ) ^^ identity
 
   def apply(code: String): Either[QueryLexerError, List[QueryToken]] =
     parse(tokens, code) match {
-      case NoSuccess(msg, next)  =>
+      case NoSuccess(msg, next) =>
         Left(QueryLexerError(msg))
       case Success(result, next) =>
         Right(result)
       case Failure(msg, _) => Left(QueryLexerError(msg))
-      case Error(msg, _) => Left(QueryLexerError(msg))
+      case Error(msg, _)   => Left(QueryLexerError(msg))
     }

@@ -11,7 +11,10 @@ import java.io.File
 class ConfigInitImpl extends ConfigInit {
 
   override def initConfig(c: Config): IO[Config] = {
-    def findConfigFile(baseName: String, extensions: List[String]): Option[String] = {
+    def findConfigFile(
+      baseName: String,
+      extensions: List[String]
+    ): Option[String] = {
       extensions.collectFirst {
         case ext if new File(s"$baseName.$ext").exists() =>
           s"$baseName.$ext"
@@ -33,7 +36,9 @@ class ConfigInitImpl extends ConfigInit {
             )
         }
       case Some(file) =>
-        IO.raiseError(new IllegalArgumentException(s"Configuration file not found: $file"))
+        IO.raiseError(
+          new IllegalArgumentException(s"Configuration file not found: $file")
+        )
       case None =>
         None.pure[IO]
     }

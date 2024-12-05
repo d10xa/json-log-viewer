@@ -31,6 +31,6 @@ object LogFmtLexer extends RegexParsers {
       case Success(result, next) =>
         Right(result)
       case Failure(msg, _) => Left(TokenLexerError(msg))
-      case Error(msg, _) => Left(TokenLexerError(msg))
+      case Error(msg, _)   => Left(TokenLexerError(msg))
     }
 }

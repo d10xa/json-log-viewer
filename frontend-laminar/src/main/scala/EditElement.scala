@@ -1,4 +1,3 @@
-
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.api.L
 object EditElement {
@@ -8,7 +7,8 @@ object EditElement {
       textArea(
         minHeight := "400px",
         cls := "col-12",
-        typ := "text", mods
+        typ := "text",
+        mods
       )
     )
 }

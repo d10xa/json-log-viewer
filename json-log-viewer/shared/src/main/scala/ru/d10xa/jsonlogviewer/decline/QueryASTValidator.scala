@@ -8,7 +8,7 @@ import ru.d10xa.jsonlogviewer.query.QueryCompiler
 object QueryASTValidator {
   def toValidatedQueryAST(str: String): ValidatedNel[String, QueryAST] =
     QueryCompiler(str) match
-      case Left(value) => Validated.invalidNel(value.toString)
+      case Left(value)  => Validated.invalidNel(value.toString)
       case Right(value) => Validated.validNel(value)
 
 }
