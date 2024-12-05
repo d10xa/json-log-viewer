@@ -10,6 +10,7 @@ import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Json
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Logfmt
 import ru.d10xa.jsonlogviewer.decline.Config
@@ -49,6 +50,9 @@ object App {
   val formatInVar: Var[FormatIn] = Var(
     FormatIn.Json
   )
+ val formatOutVar: Var[FormatOut] = Var(
+    FormatOut.Pretty
+  )
 
   val splitPattern: Regex = "([^\"]\\S*|\".+?\")\\s*".r
   def splitArgs(s: String): Seq[String] =
@@ -61,12 +65,13 @@ object App {
     cli <- cliVar.signal
     filterString <- filterVar.signal
     formatIn <- formatInVar.signal
+    formatOut <- formatOutVar.signal
     filter = QueryCompiler(filterString) match
       case Left(value)  => None
       case Right(value) => Some(value)
   } yield DeclineOpts.command
     .parse(splitArgs(cli))
-    .map(cfg => cfg.copy(filter = filter, formatIn = Some(formatIn)))
+    .map(cfg => cfg.copy(filter = filter, formatIn = Some(formatIn), formatOut = Some(formatOut)))
 
   def main(args: Array[String]): Unit = {
     lazy val container = dom.document.getElementById("app-container")
@@ -125,6 +130,22 @@ object App {
       option(value := "logfmt", "logfmt")
     )
   )
+  def formatOutDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    label("--format-out", cls := "col-2"),
+    select(
+      cls := "col-1",
+      value <-- formatOutVar.signal.map {
+        case FormatOut.Raw   => "raw"
+        case FormatOut.Pretty => "pretty"
+      },
+      onChange.mapToValue.map {
+        case "raw"   => FormatOut.Raw
+        case "pretty" => FormatOut.Pretty
+      } --> formatOutVar,
+      option(value := "pretty", "pretty"),
+      option(value := "raw", "raw")
+    )
+  )
 
   def filterDiv: ReactiveHtmlElement[HTMLDivElement] = div(
     cls := "row-fluid",
@@ -137,7 +158,7 @@ object App {
         onInput.mapToValue --> filterVar
       )
     )
-  )
+)
 
   def additionalArgsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
     cls := "row-fluid",
@@ -174,6 +195,7 @@ object App {
   private def renderLivePage(): HtmlElement = {
     div(
       formatInDiv,
+      formatOutDiv,
       filterDiv,
       additionalArgsDiv,
       buttonGenerateLogs,
@@ -197,6 +219,7 @@ object App {
   private def renderEditPage(): HtmlElement = {
     div(
       formatInDiv,
+      formatOutDiv,
       filterDiv,
       additionalArgsDiv,
       buttonGenerateLogs,

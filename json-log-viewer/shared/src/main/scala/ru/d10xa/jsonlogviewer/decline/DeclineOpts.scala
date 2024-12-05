@@ -9,6 +9,7 @@ import com.monovore.decline.Opts
 import com.monovore.decline.time.*
 import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.query.QueryAST
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
 
@@ -46,6 +47,11 @@ object DeclineOpts {
     .option[String]("format-in", help = "json, logfmt")
     .mapValidated(FormatInValidator.toValidatedFormatIn)
     .orNone
+  
+  val formatOut: Opts[Option[FormatOut]] = Opts
+    .option[String]("format-out", help = "pretty, raw")
+    .mapValidated(FormatOutValidator.toValidatedFormatOut)
+    .orNone
 
   def timestampConfig: Opts[TimestampConfig] =
     (timestampField, timestampAfter, timestampBefore)
@@ -57,7 +63,7 @@ object DeclineOpts {
     .orNone
 
   val config: Opts[Config] =
-    (configFile, timestampConfig, grepConfig, filterConfig, formatIn)
+    (configFile, timestampConfig, grepConfig, filterConfig, formatIn, formatOut)
       .mapN(Config.apply)
 
   val command: Command[Config] = Command(

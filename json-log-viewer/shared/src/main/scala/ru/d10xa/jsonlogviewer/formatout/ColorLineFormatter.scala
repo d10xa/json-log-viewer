@@ -1,8 +1,10 @@
-package ru.d10xa.jsonlogviewer
+package ru.d10xa.jsonlogviewer.formatout
 
 import fansi.ErrorMode.Strip
 import fansi.EscapeAttr
 import fansi.Str
+import ru.d10xa.jsonlogviewer.OutputLineFormatter
+import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.decline.Config
 
 class ColorLineFormatter(c: Config) extends OutputLineFormatter:

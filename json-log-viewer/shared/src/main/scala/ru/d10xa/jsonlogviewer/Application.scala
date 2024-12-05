@@ -12,6 +12,7 @@ import ru.d10xa.jsonlogviewer.decline.DeclineOpts
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import _root_.io.circe.yaml.scalayaml.parser
 import cats.syntax.all.*
+import ru.d10xa.jsonlogviewer.decline.ConfigInit
 import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
 import ru.d10xa.jsonlogviewer.decline.ConfigYaml
 
@@ -26,8 +27,10 @@ object Application
       .repartition(s => Chunk.array(s.split("\n", -1)))
       .filter(_.nonEmpty)
 
+  private val configInit: ConfigInit = new ConfigInitImpl
+
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { c =>
-    new ConfigInitImpl().initConfig(c).flatMap { updatedConfig =>
+    configInit.initConfig(c).flatMap { updatedConfig =>
       IO {
         val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
         val logLineParser = updatedConfig.formatIn match {
