@@ -10,6 +10,7 @@ import scala.util.matching.Regex
 
 final case class Config(
   configFile: Option[ConfigFile],
+  configYaml: Option[ConfigYaml],
   timestamp: TimestampConfig,
   grep: List[ConfigGrep],
   filter: Option[QueryAST],

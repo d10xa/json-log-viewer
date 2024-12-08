@@ -16,7 +16,7 @@ object ConfigYamlLoader {
       .mkString("\n")
       .trim
     if (uncommentedContent.isEmpty) {
-      Validated.valid(ConfigYaml(None, None))
+      Validated.valid(ConfigYaml.empty)
     } else {
       parser.parse(content) match {
         case Left(error) =>
@@ -61,8 +61,20 @@ object ConfigYamlLoader {
                     }
                   case None => Validated.valid(None)
                 }
+              val commandsValidated: ValidatedNel[String, Option[List[String]]] =
+                fields.get("commands") match {
+                  case Some(jsonValue) =>
+                    jsonValue.as[List[String]] match {
+                      case Left(_) =>
+                        Validated.invalidNel("Invalid 'commands' field format")
+                      case Right(cmds) =>
+                        Validated.valid(Some(cmds))
+                    }
+                  case None => Validated.valid(None)
+                }
 
-              (filterValidated, formatInValidated).mapN(ConfigYaml.apply)
+              (filterValidated, formatInValidated, commandsValidated)
+                .mapN(ConfigYaml.apply)
           }
       }
     }
