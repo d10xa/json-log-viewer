@@ -47,7 +47,7 @@ object DeclineOpts {
     .option[String]("format-in", help = "json, logfmt")
     .mapValidated(FormatInValidator.toValidatedFormatIn)
     .orNone
-  
+
   val formatOut: Opts[Option[FormatOut]] = Opts
     .option[String]("format-out", help = "pretty, raw")
     .mapValidated(FormatOutValidator.toValidatedFormatOut)
@@ -64,7 +64,25 @@ object DeclineOpts {
 
   val config: Opts[Config] =
     (configFile, timestampConfig, grepConfig, filterConfig, formatIn, formatOut)
-      .mapN(Config.apply)
+      .mapN {
+        case (
+            configFile,
+            timestampConfig,
+            grepConfig,
+            filterConfig,
+            formatIn,
+            formatOut
+          ) =>
+          Config(
+            configFile = configFile,
+            configYaml = None,
+            timestamp = timestampConfig,
+            grep = grepConfig,
+            filter = filterConfig,
+            formatIn = formatIn,
+            formatOut = formatOut
+          )
+      }
 
   val command: Command[Config] = Command(
     name = "json-log-viewer",

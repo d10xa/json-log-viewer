@@ -15,6 +15,7 @@ import cats.syntax.all.*
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
 import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
 import ru.d10xa.jsonlogviewer.decline.ConfigYaml
+import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object Application
   extends CommandIOApp(
@@ -37,8 +38,14 @@ object Application
           case Some(FormatIn.Logfmt) => LogfmtLogLineParser(updatedConfig)
           case _ => JsonLogLineParser(updatedConfig, jsonPrefixPostfix)
         }
-
-        stdinLinesStream
+        val commandsOpt = updatedConfig.configYaml.flatMap(_.commands).filter(_.nonEmpty)
+        val stream = commandsOpt match {
+          case Some(cmds) if cmds.nonEmpty =>
+            new ShellImpl().mergeCommands(cmds)
+          case _ =>
+            stdinLinesStream
+        }
+        stream
           .through(LogViewerStream.stream[IO](updatedConfig, logLineParser))
           .through(text.utf8.encode)
           .through(io.stdout)

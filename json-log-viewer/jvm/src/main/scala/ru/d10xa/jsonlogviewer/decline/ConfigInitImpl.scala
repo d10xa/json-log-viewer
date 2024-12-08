@@ -47,7 +47,8 @@ class ConfigInitImpl extends ConfigInit {
         c.copy(
           filter = c.filter.orElse(config.filter),
           formatIn =
-            c.formatIn.orElse(config.formatIn).orElse(Some(FormatIn.Json))
+            c.formatIn.orElse(config.formatIn).orElse(Some(FormatIn.Json)),
+          configYaml = Some(config)
         )
       case None => c
     }
