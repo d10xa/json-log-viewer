@@ -92,7 +92,7 @@ object ConfigYamlLoader {
       case None => Validated.valid(None)
     }
 
-  private def parseMandatoryStringField(
+  private def parseString(
     fields: Map[String, Json],
     fieldName: String,
     errorMsg: String
@@ -121,7 +121,7 @@ object ConfigYamlLoader {
     feedJson.asObject.map(_.toMap) match {
       case None => Validated.invalidNel("Feed entry is not a valid JSON object")
       case Some(feedFields) =>
-        val nameValidated = parseMandatoryStringField(
+        val nameValidated = parseString(
           feedFields,
           "name",
           "Invalid 'name' field in feed"
