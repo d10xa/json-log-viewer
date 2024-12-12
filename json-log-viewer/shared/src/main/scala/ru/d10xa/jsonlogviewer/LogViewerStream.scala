@@ -17,38 +17,52 @@ import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
 object LogViewerStream {
 
+  private def makeLogLineParser(optFormatIn: Option[FormatIn], config: Config): LogLineParser = {
+    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
+    optFormatIn match {
+      case Some(FormatIn.Logfmt) => LogfmtLogLineParser(config)
+      case _                     => JsonLogLineParser(config, jsonPrefixPostfix)
+    }
+  }
+
+  private def commandsToStream[F[_]: Async](
+    commands: List[String]
+  ): Stream[F, String] = {
+    new ShellImpl[F]().mergeCommands(commands)
+  }
+
   def stream[F[_]: Async](
     config: Config
   ): Stream[F, String] = {
+    
+    config.configYaml.map(_.feeds)
+
     val stdinLinesStream: Stream[F, String] =
       stdinUtf8[F](1024 * 1024 * 10)
         .repartition(s => Chunk.array(s.split("\n", -1)))
         .filter(_.nonEmpty)
     val timestampFilter = TimestampFilter()
-    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
     val outputLineFormatter = config.formatOut match
       case Some(Config.FormatOut.Raw)           => RawFormatter()
       case Some(Config.FormatOut.Pretty) | None => ColorLineFormatter(config)
 
     val parseResultKeys = ParseResultKeys(config)
     val logLineFilter = LogLineFilter(config, parseResultKeys)
-    val logLineParser = config.formatIn match {
-      case Some(FormatIn.Logfmt) => LogfmtLogLineParser(config)
-      case _                     => JsonLogLineParser(config, jsonPrefixPostfix)
-    }
-    val commandsOpt = config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
+    val logLineParser = makeLogLineParser(config.formatIn, config)
+    val commandsOpt: Option[List[String]] =
+      config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
     val stream: Stream[F, String] = commandsOpt match {
-      case Some(cmds) if cmds.nonEmpty =>
-        new ShellImpl[F]().mergeCommands(cmds)
-      case _ =>
-        stdinLinesStream
+      case Some(cmds) if cmds.nonEmpty => commandsToStream[F](cmds)
+      case _                           => stdinLinesStream
     }
     stream
       .map(logLineParser.parse)
       .filter(logLineFilter.grep)
       .filter(logLineFilter.logLineQueryPredicate)
       .through(timestampFilter.filterTimestampAfter[F](config.timestamp.after))
-      .through(timestampFilter.filterTimestampBefore[F](config.timestamp.before))
+      .through(
+        timestampFilter.filterTimestampBefore[F](config.timestamp.before)
+      )
       .map(outputLineFormatter.formatLine)
       .map(_.toString)
       .intersperse("\n")
