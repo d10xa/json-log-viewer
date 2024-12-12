@@ -43,14 +43,11 @@ object LogViewerStream {
       case _ =>
         stdinLinesStream
     }
-    val s1: Stream[F, ParseResult] = stream
+    stream
       .map(logLineParser.parse)
       .filter(logLineFilter.grep)
       .filter(logLineFilter.logLineQueryPredicate)
-
-    val p: Pipe[F, ParseResult, ParseResult] = timestampFilter.filterTimestampAfter[F](config.timestamp.after)
-    val s2 = s1.through(p)
-    s2
+      .through(timestampFilter.filterTimestampAfter[F](config.timestamp.after))
       .through(timestampFilter.filterTimestampBefore[F](config.timestamp.before))
       .map(outputLineFormatter.formatLine)
       .map(_.toString)
