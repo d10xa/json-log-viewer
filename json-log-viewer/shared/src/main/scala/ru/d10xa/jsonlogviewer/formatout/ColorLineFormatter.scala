@@ -7,7 +7,7 @@ import ru.d10xa.jsonlogviewer.OutputLineFormatter
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.decline.Config
 
-class ColorLineFormatter(c: Config) extends OutputLineFormatter:
+class ColorLineFormatter(c: Config, feedName: Option[String]) extends OutputLineFormatter:
   private val strEmpty: Str = Str("")
   private val strSpace: Str = Str(" ")
   private val strNewLine: Str = Str("\n")
@@ -92,6 +92,12 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
         fansi.Color.White(prefix.ansiStrip) :: strSpace :: Nil
       case None => Nil
 
+  def strFeedName(s: Option[String]): Seq[Str] =
+    s match
+      case Some(feedName) =>
+        fansi.Color.White(feedName.ansiStrip) :: strSpace :: Nil
+      case None => Nil
+
   def strPostfix(s: Option[String]): Seq[Str] =
     s match
       case Some(postfix) =>
@@ -103,6 +109,7 @@ class ColorLineFormatter(c: Config) extends OutputLineFormatter:
       case Some(line) =>
         val color = line.level.map(levelToColor).getOrElse(fansi.Color.White)
         val substrings1 = Seq(
+          strPrefix(feedName),
           strPrefix(p.prefix),
           strTimestamp(line.timestamp, fansi.Color.Green),
           strThreadName(line.threadName, color),

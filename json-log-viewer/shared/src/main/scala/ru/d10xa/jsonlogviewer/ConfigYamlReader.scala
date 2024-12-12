@@ -2,8 +2,8 @@ package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
 import cats.data.ValidatedNel
-import ru.d10xa.jsonlogviewer.decline.ConfigYaml
-import ru.d10xa.jsonlogviewer.decline.ConfigYamlLoader
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoader
 
 import scala.io.Source
 

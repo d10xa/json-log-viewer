@@ -5,8 +5,8 @@ import fs2.*
 
 import java.io.*
 
-class ShellImpl extends Shell {
+class ShellImpl[F[_]] extends Shell[F] {
 
-  def mergeCommands(commands: List[String]): Stream[IO, String] = Stream.empty
+  def mergeCommands(commands: List[String]): Stream[F, String] = Stream.empty
 
 }
