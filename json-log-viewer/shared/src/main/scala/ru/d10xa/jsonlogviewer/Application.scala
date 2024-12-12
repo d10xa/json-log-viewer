@@ -14,7 +14,7 @@ import _root_.io.circe.yaml.scalayaml.parser
 import cats.syntax.all.*
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
 import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
-import ru.d10xa.jsonlogviewer.decline.ConfigYaml
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object Application

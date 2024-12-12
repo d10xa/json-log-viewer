@@ -5,6 +5,7 @@ import cats.effect.IO
 import ru.d10xa.jsonlogviewer.ConfigYamlReader
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import cats.syntax.all.*
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 
 import java.io.File
 
