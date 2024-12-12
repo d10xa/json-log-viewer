@@ -1,37 +1,35 @@
 package ru.d10xa.jsonlogviewer.shell
 
 import cats.effect.*
-import fs2.*
+import cats.syntax.all.*
 
-import java.io.*
+class ShellImpl[F[_]: Async] extends Shell[F] {
 
-class ShellImpl extends Shell {
-
-  def createProcess(command: String): Resource[IO, Process] =
-    Resource.make(IO {
+  def createProcess(command: String): Resource[F, Process] =
+    Resource.make(Async[F].delay {
       new ProcessBuilder("sh", "-c", command)
         .redirectErrorStream(true)
         .start()
-    })(process => IO(process.destroy()).void)
+    })(process => Async[F].delay(process.destroy()))
 
-  def runInfiniteCommand(command: String): Stream[IO, String] =
-    Stream.resource(createProcess(command)).flatMap { process =>
+  def runInfiniteCommand(command: String): fs2.Stream[F, String] =
+    fs2.Stream.resource(createProcess(command)).flatMap { process =>
       fs2.io
         .readInputStream(
-          IO(process.getInputStream),
+          Async[F].delay(process.getInputStream),
           4096,
           closeAfterUse = false
         )
-        .through(text.utf8.decode)
-        .through(text.lines)
-        .onFinalize(IO {
+        .through(fs2.text.utf8.decode)
+        .through(fs2.text.lines)
+        .onFinalize(Async[F].delay {
           process.waitFor()
         }.void)
     }
 
-  def mergeCommands(commands: List[String]): Stream[IO, String] = {
+  def mergeCommands(commands: List[String]): fs2.Stream[F, String] = {
     val streams = commands.map(runInfiniteCommand)
-    Stream.emits(streams).parJoin(math.max(1, commands.length))
+    fs2.Stream.emits(streams).parJoin(math.max(1, commands.length))
   }
 
 }
