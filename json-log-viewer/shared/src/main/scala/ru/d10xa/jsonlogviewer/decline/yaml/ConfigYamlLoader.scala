@@ -104,16 +104,17 @@ object ConfigYamlLoader {
         Validated.invalidNel(s"Missing '$fieldName' field in feed")
     }
 
-  private def parseMandatoryCommands(
-    fields: Map[String, Json]
+  private def parseListString(
+    fields: Map[String, Json],
+    fieldName: String
   ): ValidatedNel[String, List[String]] =
-    fields.get("commands") match {
+    fields.get(fieldName) match {
       case Some(c) =>
         c.as[List[String]]
-          .leftMap(_ => "Invalid 'commands' field in feed")
+          .leftMap(_ => s"Invalid '$fieldName' field in feed")
           .toValidatedNel
       case None =>
-        Validated.invalidNel("Missing 'commands' field in feed")
+        Validated.invalidNel(s"Missing '$fieldName' field in feed")
     }
 
   private def parseFeed(feedJson: Json): ValidatedNel[String, Feed] =
@@ -125,7 +126,7 @@ object ConfigYamlLoader {
           "name",
           "Invalid 'name' field in feed"
         )
-        val commandsValidated = parseMandatoryCommands(feedFields)
+        val commandsValidated = parseListString(feedFields, "commands")
         val filterValidated = parseOptionalQueryAST(feedFields, "filter")
         val formatInValidated
           : Validated[NonEmptyList[String], Option[FormatIn]] =
