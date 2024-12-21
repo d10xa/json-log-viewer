@@ -6,6 +6,7 @@ import ru.d10xa.jsonlogviewer.query.QueryAST
 case class Feed(
   name: String,
   commands: List[String],
+  inlineInput: Option[String],
   filter: Option[QueryAST],
   formatIn: Option[FormatIn]
 )

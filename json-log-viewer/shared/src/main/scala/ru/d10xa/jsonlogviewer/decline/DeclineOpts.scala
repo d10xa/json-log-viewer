@@ -11,7 +11,6 @@ import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.query.QueryAST
-import ru.d10xa.jsonlogviewer.query.QueryCompiler
 
 import java.time.ZonedDateTime
 

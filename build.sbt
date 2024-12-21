@@ -17,6 +17,7 @@ ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
 val fs2Version = "3.11.0"
+val munitVersion = "1.0.3"
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
@@ -36,20 +37,25 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
       "io.circe" %%% "circe-literal" % circeVersion % Test,
       "io.circe" %%% "circe-parser" % circeVersion,
       "io.circe" %%% "circe-generic" % circeVersion,
-      "io.circe" %%% "circe-yaml-scalayaml" % "0.16.0",
       "com.lihaoyi" %%% "fansi" % "0.5.0",
       "org.scala-lang.modules" %%% "scala-parser-combinators" % "2.4.0",
-      "org.scalameta" %% "munit" % "0.7.29" % Test
+      "org.scalameta" %%% "munit" % munitVersion % Test
     ),
     fork := true,
     run / connectInput := true,
   )
   .jvmSettings(
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-yaml-scalayaml" % "0.16.0"
+    ),
     publish / skip := false
   )
   .jsSettings(
     publish / skip := true,
     fork := false,
+//    (Test / requireJsDomEnv) := true,
+//    (Test / scalaJSUseMainModuleInitializer) := false,
+//    (Test / scalaJSLinkerConfig) ~= { _.withModuleKind(ModuleKind.NoModule) }
   )
 
 lazy val `make-logs` = project
@@ -77,11 +83,13 @@ lazy val `frontend-laminar` = project
       "com.raquo" %%% "airstream" % "16.0.0",
       "com.raquo" %%% "waypoint" % "7.0.0",
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.28.4",
-      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided"
+      "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided",
+      "org.scalameta" %% "munit" % munitVersion % Test
     ),
     Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
     Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+
     scalaJSUseMainModuleInitializer := true,
     (Test / requireJsDomEnv) := true,
     useYarn := true

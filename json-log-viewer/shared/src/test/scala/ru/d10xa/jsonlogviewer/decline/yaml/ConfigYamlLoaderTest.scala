@@ -6,6 +6,8 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 class ConfigYamlLoaderTest extends FunSuite {
+  
+  private val configYamlLoader: ConfigYamlLoader = new ConfigYamlLoaderImpl
 
   test("parse valid yaml with feeds") {
     val yaml =
@@ -31,7 +33,7 @@ class ConfigYamlLoaderTest extends FunSuite {
          |    formatIn: logfmt
          |""".stripMargin
 
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isValid, s"Result should be valid: $result")
 
     val config = result.toOption.get
@@ -61,7 +63,7 @@ class ConfigYamlLoaderTest extends FunSuite {
 
   test("parse empty yaml") {
     val yaml = ""
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isValid, s"Result should be valid for empty yaml: $result")
 
     val config = result.toOption.get
@@ -76,7 +78,7 @@ class ConfigYamlLoaderTest extends FunSuite {
       """formatIn:
                   |  - not a string
                   |""".stripMargin
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isInvalid, s"Result should be invalid: $result")
 
     val errors = result.swap.toOption.get

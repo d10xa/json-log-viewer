@@ -1,9 +1,5 @@
 package ru.d10xa.jsonlogviewer.decline
 
-import cats.data.Validated
-import cats.data.Validated
-import cats.effect.IO
-import cats.effect.IO
 import cats.effect.IO
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 

@@ -1,9 +1,6 @@
 package ru.d10xa.jsonlogviewer.decline
 
-import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
-import ru.d10xa.jsonlogviewer.decline.ConfigFile
-import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.query.QueryAST
 

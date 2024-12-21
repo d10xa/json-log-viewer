@@ -6,7 +6,7 @@ import scala.scalajs.js.annotation.JSExport
 /** https://github.com/com-lihaoyi/fansi/issues/62
   */
 object Ansi2HtmlWithClasses extends Function1[String, String]:
-  private def transition(from: fansi.Attr, to: fansi.Attr) =
+  def transition(from: fansi.Attr, to: fansi.Attr) =
     import fansi.*
     (from, to) match
       case (Underlined.Off, Underlined.On) => "<u>"

@@ -1,20 +1,23 @@
 import Router0.*
+import Router0.EditPage
+import Router0.HelpPage
+import Router0.LivePage
+import Router0.Page
+import Router0.ViewPage
+import Router0.navigateTo
 import com.monovore.decline.Help
-import com.raquo.laminar.DomApi
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.raquo.waypoint.*
-import fansi.ErrorMode
 import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
+import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
-import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Json
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Logfmt
-import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.decline.DeclineOpts
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
 
@@ -50,7 +53,7 @@ object App {
   val formatInVar: Var[FormatIn] = Var(
     FormatIn.Json
   )
- val formatOutVar: Var[FormatOut] = Var(
+  val formatOutVar: Var[FormatOut] = Var(
     FormatOut.Pretty
   )
 
@@ -71,7 +74,13 @@ object App {
       case Right(value) => Some(value)
   } yield DeclineOpts.command
     .parse(splitArgs(cli))
-    .map(cfg => cfg.copy(filter = filter, formatIn = Some(formatIn), formatOut = Some(formatOut)))
+    .map(cfg =>
+      cfg.copy(
+        filter = filter,
+        formatIn = Some(formatIn),
+        formatOut = Some(formatOut)
+      )
+    )
 
   def main(args: Array[String]): Unit = {
     lazy val container = dom.document.getElementById("app-container")
@@ -135,11 +144,11 @@ object App {
     select(
       cls := "col-1",
       value <-- formatOutVar.signal.map {
-        case FormatOut.Raw   => "raw"
+        case FormatOut.Raw    => "raw"
         case FormatOut.Pretty => "pretty"
       },
       onChange.mapToValue.map {
-        case "raw"   => FormatOut.Raw
+        case "raw"    => FormatOut.Raw
         case "pretty" => FormatOut.Pretty
       } --> formatOutVar,
       option(value := "pretty", "pretty"),
@@ -158,7 +167,7 @@ object App {
         onInput.mapToValue --> filterVar
       )
     )
-)
+  )
 
   def additionalArgsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
     cls := "row-fluid",
@@ -193,6 +202,7 @@ object App {
     }
   )
   private def renderLivePage(): HtmlElement = {
+    implicit val owner: Owner = new Owner {}
     div(
       formatInDiv,
       formatOutDiv,
@@ -205,6 +215,7 @@ object App {
   }
 
   private def renderViewPage(): HtmlElement = {
+    implicit val owner: Owner = new Owner {}
     div(
       ViewElement.render(textVar.signal, configSignal)
     )
