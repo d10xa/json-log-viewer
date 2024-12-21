@@ -1,9 +1,10 @@
 package ru.d10xa.jsonlogviewer.shell
 
+import cats.effect.IO
 import fs2.*
 
-class ShellImpl[F[_]] extends Shell[F] {
+class ShellImpl extends Shell {
 
-  def mergeCommands(commands: List[String]): Stream[F, String] = Stream.empty
+  def mergeCommands(commands: List[String]): Stream[IO, String] = Stream.empty
 
 }

@@ -16,8 +16,7 @@ class TimestampFilterTest extends FunSuite {
         filter.filterTimestampAfter(
           Some(ZonedDateTime.parse("2023-09-18T19:10:02Z"))
         )
-      )
-      .toList
+      ).compile.toList
     assertEquals(list, List(t2))
   }
 

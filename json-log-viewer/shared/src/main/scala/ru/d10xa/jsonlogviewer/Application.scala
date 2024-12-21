@@ -20,7 +20,7 @@ object Application
     configInit.initConfig(c).flatMap { updatedConfig =>
       IO {
         LogViewerStream
-          .stream[IO](updatedConfig)
+          .stream(updatedConfig)
           .through(text.utf8.encode)
           .through(io.stdout)
           .compile

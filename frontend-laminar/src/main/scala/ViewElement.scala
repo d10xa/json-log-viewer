@@ -46,7 +46,7 @@ object ViewElement {
             ))
           )
           val stream: fs2.Stream[IO, HtmlElement] = LogViewerStream
-            .stream[IO](c)
+            .stream(c)
             .map(Ansi2HtmlWithClasses.apply)
             .map(_.mkString("<div>", "", "</div>"))
             .map(DomApi.unsafeParseHtmlString)
