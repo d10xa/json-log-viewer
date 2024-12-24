@@ -1,6 +1,6 @@
 import xerial.sbt.Sonatype.sonatypeCentralHost
 
-ThisBuild / scalaVersion := "3.5.0"
+ThisBuild / scalaVersion := "3.6.2"
 ThisBuild / licenses := List(("MIT", url("https://opensource.org/licenses/MIT")))
 ThisBuild / homepage := Some(url("https://github.com/d10xa/json-log-viewer"))
 ThisBuild / organization := "ru.d10xa"
@@ -18,6 +18,13 @@ val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
 val fs2Version = "3.11.0"
 val munitVersion = "1.0.3"
+
+lazy val root = project.in(file(".")).
+  aggregate(`json-log-viewer`.js, `json-log-viewer`.jvm, `frontend-laminar`).
+  settings(
+    publish := {},
+    publishLocal := {},
+  )
 
 lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .in(file("json-log-viewer"))
@@ -53,6 +60,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     publish / skip := true,
     fork := false,
+//    scalaJSLinkerConfig ~= { _.withOptimizer(false) }
 //    (Test / requireJsDomEnv) := true,
 //    (Test / scalaJSUseMainModuleInitializer) := false,
 //    (Test / scalaJSLinkerConfig) ~= { _.withModuleKind(ModuleKind.NoModule) }
@@ -92,5 +100,6 @@ lazy val `frontend-laminar` = project
 
     scalaJSUseMainModuleInitializer := true,
     (Test / requireJsDomEnv) := true,
-    useYarn := true
+//    useYarn := true,
+//    scalaJSLinkerConfig ~= { _.withOptimizer(false) }
   )

@@ -1,9 +1,14 @@
 package ru.d10xa.jsonlogviewer
 
+import cats.effect.IO
 import fs2.Stream
+import fs2.io.*
+import cats.effect.syntax.all.*
 import munit.FunSuite
-
+import cats.effect.unsafe.implicits.*
+import scala.concurrent.duration.*
 import java.time.ZonedDateTime
+import scala.concurrent.Await
 
 class TimestampFilterTest extends FunSuite {
   test("filterTimestampAfter") {
@@ -16,8 +21,9 @@ class TimestampFilterTest extends FunSuite {
         filter.filterTimestampAfter(
           Some(ZonedDateTime.parse("2023-09-18T19:10:02Z"))
         )
-      ).compile.toList
-    assertEquals(list, List(t2))
+      ).compile.toList.unsafeToFuture()
+   
+    assertEquals( Await.result(list, 1.second), List(t2))
   }
 
   def pr(ts: String): ParseResult = ParseResult(
