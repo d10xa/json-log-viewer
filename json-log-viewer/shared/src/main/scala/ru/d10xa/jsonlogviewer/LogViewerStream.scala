@@ -4,6 +4,7 @@ import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
 import fs2.io.*
+import ru.d10xa.jsonlogviewer.StdInLinesStreamImpl
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
@@ -36,10 +37,8 @@ object LogViewerStream {
     new ShellImpl().mergeCommands(commands)
   }
 
-  private def stdinLinesStream: Stream[IO, String] =
-    stdinUtf8[IO](1024 * 1024 * 10)
-      .repartition(s => Chunk.array(s.split("\n", -1)))
-      .filter(_.nonEmpty)
+  private val stdinLinesStream: Stream[IO, String] =
+    new StdInLinesStreamImpl().stdinLinesStream
 
   private def processStream(
     baseConfig: Config,
