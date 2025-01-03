@@ -1,3 +1,5 @@
+package ru.d10xa.jsonlogviewer
+
 import fansi.ErrorMode
 import fansi.Str
 

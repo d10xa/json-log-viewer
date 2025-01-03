@@ -31,10 +31,11 @@ object LogViewerStream {
     }
   }
 
-  private def commandsToStream(
-    commands: List[String]
+  private def commandsAndInlineInputToStream(
+    commands: List[String],
+    inlineInput: Option[String]
   ): Stream[IO, String] = {
-    new ShellImpl().mergeCommands(commands)
+    new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
   }
 
   private val stdinLinesStream: Stream[IO, String] =
@@ -64,7 +65,10 @@ object LogViewerStream {
         ColorLineFormatter(effectiveConfig, feedName)
 
     lines
-      .map(logLineParser.parse)
+      .map { it =>
+        println(s"""parse result $it""")
+        logLineParser.parse(it)
+      }
       .filter(logLineFilter.grep)
       .filter(logLineFilter.logLineQueryPredicate)
       .through(
@@ -80,15 +84,19 @@ object LogViewerStream {
   }
 
   def stream(config: Config): Stream[IO, String] = {
+    println("config: " + config)
     val topCommandsOpt: Option[List[String]] =
       config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
+
     val feedsOpt: Option[List[Feed]] =
       config.configYaml.flatMap(_.feeds).filter(_.nonEmpty)
 
     val finalStream = feedsOpt match {
       case Some(feeds) =>
         val feedStreams = feeds.map { feed =>
-          val feedStream = commandsToStream(feed.commands)
+          println(s"""feed = ${feed.toString.replace("\n", " ")}""")
+          val feedStream: Stream[IO, String] =
+            commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
           processStream(
             config,
             feedStream,
@@ -97,12 +105,17 @@ object LogViewerStream {
             feed.name.some
           )
         }
+        println("parjoin")
         Stream.emits(feedStreams).parJoin(feedStreams.size)
 
       case None =>
         val baseStream = topCommandsOpt match {
-          case Some(cmds) => commandsToStream(cmds)
-          case None       => stdinLinesStream
+          case Some(cmds) =>
+            println("commands")
+            commandsAndInlineInputToStream(cmds, None)
+          case None       =>
+            println("none")
+            stdinLinesStream
         }
         processStream(config, baseStream, None, None, None)
     }

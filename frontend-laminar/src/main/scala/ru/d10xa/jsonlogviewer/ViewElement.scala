@@ -1,3 +1,5 @@
+package ru.d10xa.jsonlogviewer
+
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.monovore.decline.Help
@@ -25,28 +27,31 @@ object ViewElement {
       .combineWith(configSignal)
       .foreach {
         case (string, Right(c)) =>
-          c.copy(configYaml =
-            Some(c.configYaml.getOrElse(
-              ConfigYaml(
-                filter = None,
-                formatIn = None,
-                commands = None,
-                feeds = Some(
-                  List(
-                    Feed(
-                      name = "inlineInput",
-                      commands = List.empty,
-                      inlineInput = Some(string),
-                      filter = c.filter,
-                      formatIn = c.formatIn
+          println(s"string = ${string}")
+          val c2 = c.copy(configYaml =
+            Some(
+              c.configYaml.getOrElse(
+                ConfigYaml(
+                  filter = None,
+                  formatIn = None,
+                  commands = None,
+                  feeds = Some(
+                    List(
+                      Feed(
+                        name = "inlineInput",
+                        commands = List.empty,
+                        inlineInput = Some(string),
+                        filter = c.filter,
+                        formatIn = c.formatIn
+                      )
                     )
                   )
                 )
               )
-            ))
+            )
           )
           val stream: fs2.Stream[IO, HtmlElement] = LogViewerStream
-            .stream(c)
+            .stream(c2)
             .map(Ansi2HtmlWithClasses.apply)
             .map(_.mkString("<div>", "", "</div>"))
             .map(DomApi.unsafeParseHtmlString)

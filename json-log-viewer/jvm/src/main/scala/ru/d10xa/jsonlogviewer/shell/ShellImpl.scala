@@ -12,7 +12,7 @@ class ShellImpl extends Shell {
         .start()
     })(process => IO(process.destroy()))
 
-  def runInfiniteCommand(command: String): fs2.Stream[IO, String] =
+  private def runInfiniteCommand(command: String): fs2.Stream[IO, String] =
     fs2.Stream.resource(createProcess(command)).flatMap { process =>
       fs2.io
         .readInputStream(
@@ -22,13 +22,20 @@ class ShellImpl extends Shell {
         )
         .through(fs2.text.utf8.decode)
         .through(fs2.text.lines)
-        .onFinalize(IO{
+        .onFinalize(IO {
           process.waitFor()
         }.void)
     }
 
-  def mergeCommands(commands: List[String]): fs2.Stream[IO, String] = {
-    val streams = commands.map(runInfiniteCommand)
+  private def stringToStream(str: String): fs2.Stream[IO, String] =
+    fs2.Stream.eval(IO.pure(str))
+
+  def mergeCommandsAndInlineInput(
+    commands: List[String],
+    inlineInput: Option[String]
+  ): fs2.Stream[IO, String] = {
+    val streams =
+      commands.map(runInfiniteCommand) ++ inlineInput.map(stringToStream).toList
     fs2.Stream.emits(streams).parJoin(math.max(1, commands.length))
   }
 

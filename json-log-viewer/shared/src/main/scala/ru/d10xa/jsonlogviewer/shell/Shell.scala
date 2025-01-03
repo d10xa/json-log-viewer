@@ -3,5 +3,5 @@ import cats.effect.IO
 import fs2.*
 
 trait Shell {
-  def mergeCommands(commands: List[String]): Stream[IO, String]
+  def mergeCommandsAndInlineInput(commands: List[String], inlineInput: Option[String]): Stream[IO, String]
 }

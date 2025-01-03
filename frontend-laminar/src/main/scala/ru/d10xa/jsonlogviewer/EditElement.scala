@@ -1,3 +1,5 @@
+package ru.d10xa.jsonlogviewer
+
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L.*
 object EditElement {

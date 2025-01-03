@@ -1,10 +1,5 @@
-import Router0.*
-import Router0.EditPage
-import Router0.HelpPage
-import Router0.LivePage
-import Router0.Page
-import Router0.ViewPage
-import Router0.navigateTo
+package ru.d10xa.jsonlogviewer
+
 import com.monovore.decline.Help
 import com.raquo.laminar.api.L
 import com.raquo.laminar.api.L.*
@@ -13,6 +8,23 @@ import com.raquo.waypoint.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
+import ru.d10xa.jsonlogviewer.Router0.*
+import ru.d10xa.jsonlogviewer.Router0.EditPage
+import ru.d10xa.jsonlogviewer.Router0.EditPage
+import ru.d10xa.jsonlogviewer.Router0.EditPage
+import ru.d10xa.jsonlogviewer.Router0.HelpPage
+import ru.d10xa.jsonlogviewer.Router0.HelpPage
+import ru.d10xa.jsonlogviewer.Router0.HelpPage
+import ru.d10xa.jsonlogviewer.Router0.LivePage
+import ru.d10xa.jsonlogviewer.Router0.LivePage
+import ru.d10xa.jsonlogviewer.Router0.LivePage
+import ru.d10xa.jsonlogviewer.Router0.Page
+import ru.d10xa.jsonlogviewer.Router0.Page
+import ru.d10xa.jsonlogviewer.Router0.ViewPage
+import ru.d10xa.jsonlogviewer.Router0.ViewPage
+import ru.d10xa.jsonlogviewer.Router0.ViewPage
+import ru.d10xa.jsonlogviewer.Router0.navigateTo
+import ru.d10xa.jsonlogviewer.Router0.navigateTo
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Json
