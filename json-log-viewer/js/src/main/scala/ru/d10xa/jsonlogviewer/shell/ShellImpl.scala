@@ -10,8 +10,7 @@ class ShellImpl extends Shell {
     inlineInput: Option[String]
   ): Stream[IO, String] = inlineInput match
     case Some(inlineInput) =>
-      println(s"mergeCommandsAndInlineInput.inlineInput = ${inlineInput.length}")
-      Stream.eval(IO(inlineInput.trim))
+      Shell.stringToStream(inlineInput)
     case None              => Stream.empty
 
 }

@@ -66,7 +66,6 @@ object LogViewerStream {
 
     lines
       .map { it =>
-        println(s"""parse result $it""")
         logLineParser.parse(it)
       }
       .filter(logLineFilter.grep)
@@ -84,7 +83,6 @@ object LogViewerStream {
   }
 
   def stream(config: Config): Stream[IO, String] = {
-    println("config: " + config)
     val topCommandsOpt: Option[List[String]] =
       config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
 
@@ -94,7 +92,6 @@ object LogViewerStream {
     val finalStream = feedsOpt match {
       case Some(feeds) =>
         val feedStreams = feeds.map { feed =>
-          println(s"""feed = ${feed.toString.replace("\n", " ")}""")
           val feedStream: Stream[IO, String] =
             commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
           processStream(
@@ -105,16 +102,13 @@ object LogViewerStream {
             feed.name.some
           )
         }
-        println("parjoin")
         Stream.emits(feedStreams).parJoin(feedStreams.size)
 
       case None =>
         val baseStream = topCommandsOpt match {
           case Some(cmds) =>
-            println("commands")
             commandsAndInlineInputToStream(cmds, None)
           case None       =>
-            println("none")
             stdinLinesStream
         }
         processStream(config, baseStream, None, None, None)

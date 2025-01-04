@@ -126,7 +126,7 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           .leftMap(_ => s"Invalid '$fieldName' field in feed")
           .toValidatedNel
       case None =>
-        Validated.invalidNel(s"Missing '$fieldName' field in feed")
+        Validated.valid(None)
     }
 
   private def parseFeed(feedJson: Json): ValidatedNel[String, Feed] =

@@ -27,15 +27,12 @@ class ShellImpl extends Shell {
         }.void)
     }
 
-  private def stringToStream(str: String): fs2.Stream[IO, String] =
-    fs2.Stream.eval(IO.pure(str))
-
   def mergeCommandsAndInlineInput(
     commands: List[String],
     inlineInput: Option[String]
   ): fs2.Stream[IO, String] = {
     val streams =
-      commands.map(runInfiniteCommand) ++ inlineInput.map(stringToStream).toList
+      commands.map(runInfiniteCommand) ++ inlineInput.map(Shell.stringToStream).toList
     fs2.Stream.emits(streams).parJoin(math.max(1, commands.length))
   }
 

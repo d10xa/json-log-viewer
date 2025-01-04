@@ -57,7 +57,6 @@ class JsonLogLineParser(config: Config, jsonPrefixPostfix: JsonPrefixPostfix)
       otherAttributes = attributes
     )
   override def parse(s: String): ParseResult =
-    println(s"""parse ${s.replace("\n", " ")}""")
     val (middle, prefixOpt, postfixOpt) = jsonPrefixPostfix.detectJson(s)
     decode[ParsedLine](middle).toOption
       .map(pl =>
