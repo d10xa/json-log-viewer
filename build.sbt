@@ -59,11 +59,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
   )
   .jsSettings(
     publish / skip := true,
-    fork := false,
-//    scalaJSLinkerConfig ~= { _.withOptimizer(false) }
-//    (Test / requireJsDomEnv) := true,
-//    (Test / scalaJSUseMainModuleInitializer) := false,
-//    (Test / scalaJSLinkerConfig) ~= { _.withModuleKind(ModuleKind.NoModule) }
+    fork := false
   )
 
 lazy val `make-logs` = project
@@ -99,7 +95,5 @@ lazy val `frontend-laminar` = project
     scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
 
     scalaJSUseMainModuleInitializer := true,
-    (Test / requireJsDomEnv) := true,
-//    useYarn := true,
-//    scalaJSLinkerConfig ~= { _.withOptimizer(false) }
+    (Test / requireJsDomEnv) := true
   )
