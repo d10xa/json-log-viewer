@@ -99,7 +99,7 @@ object LogViewerStream {
             feedStream,
             feed.filter,
             feed.formatIn,
-            feed.name.some
+            feed.name
           )
         }
         Stream.emits(feedStreams).parJoin(feedStreams.size)

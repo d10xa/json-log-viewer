@@ -133,10 +133,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     feedJson.asObject.map(_.toMap) match {
       case None => Validated.invalidNel("Feed entry is not a valid JSON object")
       case Some(feedFields) =>
-        val nameValidated = parseString(
+        val nameValidated = parseOptionalString(
           feedFields,
-          "name",
-          "Invalid 'name' field in feed"
+          "name"
         )
         val commandsValidated = parseListString(feedFields, "commands")
         val inlineInputValidated = parseOptionalString(feedFields, "inlineInput")

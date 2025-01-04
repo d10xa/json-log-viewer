@@ -34,7 +34,7 @@ object ViewElement {
                   feeds = Some(
                     List(
                       Feed(
-                        name = "inlineInput",
+                        name = None,
                         commands = List.empty,
                         inlineInput = Some(string),
                         filter = c.filter,
