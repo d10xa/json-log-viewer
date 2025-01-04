@@ -12,9 +12,39 @@ import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 
+import scala.util.chaining.*
 
 object ViewElement {
 
+  def stringsToHtmlElement(strings: List[String]): HtmlElement =
+    strings
+      .map(Ansi2HtmlWithClasses.apply)
+      .mkString("<div>", "", "</div>")
+      .pipe(DomApi.unsafeParseHtmlString)
+      .pipe(foreignHtmlElement)
+
+  def modifyConfigForInlineInput(string: String, config: Config): Config =
+    config.copy(configYaml =
+      Some(
+        ConfigYaml(
+          filter = None,
+          formatIn = None,
+          commands = None,
+          feeds = Some(
+            List(
+              Feed(
+                name = None,
+                commands = List.empty,
+                inlineInput = Some(string),
+                filter = config.filter,
+                formatIn = config.formatIn
+              )
+            )
+          )
+        )
+      )
+    )
+    
   def render(
     logLinesSignal: Signal[String],
     configSignal: Signal[Either[Help, Config]]
@@ -24,38 +54,12 @@ object ViewElement {
       .combineWith(configSignal)
       .foreach {
         case (string, Right(c)) =>
-          val c2 = c.copy(configYaml =
-            Some(
-              c.configYaml.getOrElse(
-                ConfigYaml(
-                  filter = None,
-                  formatIn = None,
-                  commands = None,
-                  feeds = Some(
-                    List(
-                      Feed(
-                        name = None,
-                        commands = List.empty,
-                        inlineInput = Some(string),
-                        filter = c.filter,
-                        formatIn = c.formatIn
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
           LogViewerStream
-            .stream(c2)
+            .stream(modifyConfigForInlineInput(string, c))
             .compile
             .toList
-            .flatMap { strings =>
-              val base = foreignHtmlElement(DomApi.unsafeParseHtmlString(strings
-                .map(Ansi2HtmlWithClasses.apply)
-                .mkString("<div>", "", "</div>")))
-              IO(eventBus.writer.onNext(base))
-            }
+            .map(stringsToHtmlElement)
+            .flatMap(e => IO(eventBus.writer.onNext(e)))
             .unsafeRunAndForget()
 
         case (_, Left(help)) =>
