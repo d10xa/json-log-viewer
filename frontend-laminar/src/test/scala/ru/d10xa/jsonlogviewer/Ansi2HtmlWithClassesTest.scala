@@ -30,7 +30,6 @@ class Ansi2HtmlWithClassesTest extends FunSuite {
         assertEquals(result, "")
     }
 
-    // Тест для функции apply
     test("apply correctly handles a simple ANSI string") {
         val input = "\u001b[1mBold\u001b[0m"
         val result = Ansi2HtmlWithClasses.apply(input)

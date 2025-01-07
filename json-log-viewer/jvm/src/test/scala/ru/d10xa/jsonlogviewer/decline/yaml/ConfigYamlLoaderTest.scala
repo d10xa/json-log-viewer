@@ -3,10 +3,12 @@ package ru.d10xa.jsonlogviewer.decline.yaml
 import cats.data.Validated
 import munit.FunSuite
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoader
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoaderImpl
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 class ConfigYamlLoaderTest extends FunSuite {
-  
+
   private val configYamlLoader: ConfigYamlLoader = new ConfigYamlLoaderImpl
 
   test("parse valid yaml with feeds") {
@@ -48,7 +50,7 @@ class ConfigYamlLoaderTest extends FunSuite {
     assertEquals(feeds.size, 2)
 
     val feed1 = feeds.head
-    assertEquals(feed1.name, "pod-logs")
+    assertEquals(feed1.name, Some("pod-logs"))
     assertEquals(
       feed1.commands,
       List("./mock-logs.sh pod1", "./mock-logs.sh pod2")
@@ -56,7 +58,7 @@ class ConfigYamlLoaderTest extends FunSuite {
     assertEquals(feed1.formatIn, Some(FormatIn.Json))
 
     val feed2 = feeds(1)
-    assertEquals(feed2.name, "service-logs")
+    assertEquals(feed2.name, Some("service-logs"))
     assertEquals(feed2.commands, List("./mock-logs.sh service1"))
     assertEquals(feed2.formatIn, Some(FormatIn.Logfmt))
   }
