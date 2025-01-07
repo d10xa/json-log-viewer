@@ -1,14 +1,14 @@
 package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
-import fs2.Stream
-import fs2.io.*
-import cats.effect.syntax.all.*
-import munit.FunSuite
 import cats.effect.unsafe.implicits.*
-import scala.concurrent.duration.*
+import fs2.Stream
+import munit.FunSuite
+
 import java.time.ZonedDateTime
-import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.Failure
+import scala.util.Success
 
 class TimestampFilterTest extends FunSuite {
   test("filterTimestampAfter") {
@@ -16,14 +16,19 @@ class TimestampFilterTest extends FunSuite {
     val t1 = pr("2023-09-17T19:10:01.132318Z")
     val t2 = pr("2023-09-19T19:10:03.132318Z")
     val stream = Stream.emits(Seq(t1, t2))
-    val list = stream
+    stream
       .through(
         filter.filterTimestampAfter(
           Some(ZonedDateTime.parse("2023-09-18T19:10:02Z"))
         )
-      ).compile.toList.unsafeToFuture()
-   
-    assertEquals( Await.result(list, 1.second), List(t2))
+      )
+      .compile
+      .toList
+      .unsafeToFuture()
+      .onComplete {
+        case Success(list)      => assert(list == t2)
+        case Failure(exception) => fail(exception.getMessage)
+      }
   }
 
   def pr(ts: String): ParseResult = ParseResult(
