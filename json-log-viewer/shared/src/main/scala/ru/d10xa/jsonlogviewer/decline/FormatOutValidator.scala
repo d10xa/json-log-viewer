@@ -8,7 +8,7 @@ object FormatOutValidator {
   def toValidatedFormatOut(
     str: String
   ): Validated[NonEmptyList[String], FormatOut] = str match
-    case "pretty"   => Validated.valid(FormatOut.Pretty)
-    case "raw" => Validated.valid(FormatOut.Raw)
+    case "pretty" => Validated.valid(FormatOut.Pretty)
+    case "raw"    => Validated.valid(FormatOut.Raw)
     case other    => Validated.invalidNel(s"Wrong format: $other")
 }

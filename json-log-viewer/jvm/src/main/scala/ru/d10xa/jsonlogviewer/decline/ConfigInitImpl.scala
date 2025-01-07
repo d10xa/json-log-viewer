@@ -12,7 +12,7 @@ import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader
 import java.io.File
 
 class ConfigInitImpl extends ConfigInit {
-  
+
   override def initConfig(c: Config): IO[Config] = {
     def findConfigFile(
       baseName: String,

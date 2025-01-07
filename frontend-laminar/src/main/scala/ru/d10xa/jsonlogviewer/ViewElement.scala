@@ -44,7 +44,7 @@ object ViewElement {
         )
       )
     )
-    
+
   def render(
     logLinesSignal: Signal[String],
     configSignal: Signal[Either[Help, Config]]

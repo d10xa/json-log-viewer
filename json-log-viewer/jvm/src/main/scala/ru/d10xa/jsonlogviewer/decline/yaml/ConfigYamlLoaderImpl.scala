@@ -23,9 +23,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
       .trim
 
   private def parseOptionalQueryAST(
-                                     fields: Map[String, Json],
-                                     fieldName: String
-                                   ): ValidatedNel[String, Option[QueryAST]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[QueryAST]] =
     parseOptionalStringField(
       fields,
       fieldName,
@@ -38,9 +38,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseOptionalFormatIn(
-                                     fields: Map[String, Json],
-                                     fieldName: String
-                                   ): ValidatedNel[String, Option[FormatIn]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[FormatIn]] =
     parseOptionalStringField(
       fields,
       fieldName,
@@ -52,9 +52,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseOptionalListString(
-                                       fields: Map[String, Json],
-                                       fieldName: String
-                                     ): ValidatedNel[String, Option[List[String]]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[List[String]]] =
     fields.get(fieldName) match {
       case Some(jsonValue) =>
         jsonValue
@@ -66,9 +66,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseOptionalFeeds(
-                                  fields: Map[String, Json],
-                                  fieldName: String
-                                ): ValidatedNel[String, Option[List[Feed]]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[List[Feed]]] =
     fields.get(fieldName) match {
       case Some(jsonValue) =>
         jsonValue
@@ -81,10 +81,10 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseOptionalStringField(
-                                        fields: Map[String, Json],
-                                        fieldName: String,
-                                        errorMsg: String
-                                      ): ValidatedNel[String, Option[String]] =
+    fields: Map[String, Json],
+    fieldName: String,
+    errorMsg: String
+  ): ValidatedNel[String, Option[String]] =
     fields.get(fieldName) match {
       case Some(jsonValue) =>
         jsonValue.as[String].leftMap(_ => errorMsg).toValidatedNel.map(Some(_))
@@ -92,10 +92,10 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseString(
-                           fields: Map[String, Json],
-                           fieldName: String,
-                           errorMsg: String
-                         ): ValidatedNel[String, String] =
+    fields: Map[String, Json],
+    fieldName: String,
+    errorMsg: String
+  ): ValidatedNel[String, String] =
     fields.get(fieldName) match {
       case Some(j) =>
         j.as[String].leftMap(_ => errorMsg).toValidatedNel
@@ -104,9 +104,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseListString(
-                               fields: Map[String, Json],
-                               fieldName: String
-                             ): ValidatedNel[String, List[String]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, List[String]] =
     fields.get(fieldName) match {
       case Some(c) =>
         c.as[List[String]]
@@ -117,9 +117,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
 
   private def parseOptionalString(
-                               fields: Map[String, Json],
-                               fieldName: String
-                             ): ValidatedNel[String, Option[String]] =
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[String]] =
     fields.get(fieldName) match {
       case Some(c) =>
         c.as[Option[String]]
@@ -138,13 +138,20 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           "name"
         )
         val commandsValidated = parseListString(feedFields, "commands")
-        val inlineInputValidated = parseOptionalString(feedFields, "inlineInput")
+        val inlineInputValidated =
+          parseOptionalString(feedFields, "inlineInput")
         val filterValidated = parseOptionalQueryAST(feedFields, "filter")
         val formatInValidated
-        : Validated[NonEmptyList[String], Option[FormatIn]] =
+          : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
 
-        (nameValidated, commandsValidated, inlineInputValidated, filterValidated, formatInValidated)
+        (
+          nameValidated,
+          commandsValidated,
+          inlineInputValidated,
+          filterValidated,
+          formatInValidated
+        )
           .mapN(Feed.apply)
     }
 
@@ -169,7 +176,7 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
               val formatInValidated: ValidatedNel[String, Option[FormatIn]] =
                 parseOptionalFormatIn(fields, "formatIn")
               val commandsValidated
-              : ValidatedNel[String, Option[List[String]]] =
+                : ValidatedNel[String, Option[List[String]]] =
                 parseOptionalListString(fields, "commands")
               val feedsValidated: ValidatedNel[String, Option[List[Feed]]] =
                 parseOptionalFeeds(fields, "feeds")

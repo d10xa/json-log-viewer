@@ -13,7 +13,7 @@ final case class Config(
   grep: List[ConfigGrep],
   filter: Option[QueryAST],
   formatIn: Option[Config.FormatIn],
-  formatOut: Option[Config.FormatOut],
+  formatOut: Option[Config.FormatOut]
 )
 
 object Config:
@@ -21,7 +21,7 @@ object Config:
 
   enum FormatIn:
     case Json, Logfmt
-    
+
   enum FormatOut:
     case Pretty, Raw
 

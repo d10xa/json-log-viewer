@@ -11,6 +11,6 @@ class ShellImpl extends Shell {
   ): Stream[IO, String] = inlineInput match
     case Some(inlineInput) =>
       Shell.stringToStream(inlineInput)
-    case None              => Stream.empty
+    case None => Stream.empty
 
 }

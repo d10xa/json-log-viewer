@@ -108,7 +108,7 @@ object LogViewerStream {
         val baseStream = topCommandsOpt match {
           case Some(cmds) =>
             commandsAndInlineInputToStream(cmds, None)
-          case None       =>
+          case None =>
             stdinLinesStream
         }
         processStream(config, baseStream, None, None, None)

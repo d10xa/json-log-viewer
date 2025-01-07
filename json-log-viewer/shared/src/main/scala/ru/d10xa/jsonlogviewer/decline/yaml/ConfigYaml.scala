@@ -12,4 +12,3 @@ case class ConfigYaml(
 
 object ConfigYaml:
   val empty: ConfigYaml = ConfigYaml(None, None, None, None)
-
