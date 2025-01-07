@@ -4,8 +4,9 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 case class Feed(
-  name: String,
+  name: Option[String],
   commands: List[String],
+  inlineInput: Option[String],
   filter: Option[QueryAST],
   formatIn: Option[FormatIn]
 )

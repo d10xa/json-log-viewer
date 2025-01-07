@@ -1,7 +1,6 @@
 package ru.d10xa.jsonlogviewer.decline.yaml
 
 import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 case class ConfigYaml(
@@ -13,4 +12,3 @@ case class ConfigYaml(
 
 object ConfigYaml:
   val empty: ConfigYaml = ConfigYaml(None, None, None, None)
-

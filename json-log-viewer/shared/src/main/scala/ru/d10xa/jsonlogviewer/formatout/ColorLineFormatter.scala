@@ -7,7 +7,8 @@ import ru.d10xa.jsonlogviewer.OutputLineFormatter
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.decline.Config
 
-class ColorLineFormatter(c: Config, feedName: Option[String]) extends OutputLineFormatter:
+class ColorLineFormatter(c: Config, feedName: Option[String])
+  extends OutputLineFormatter:
   private val strEmpty: Str = Str("")
   private val strSpace: Str = Str(" ")
   private val strNewLine: Str = Str("\n")

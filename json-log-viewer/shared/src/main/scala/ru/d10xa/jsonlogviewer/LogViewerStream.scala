@@ -1,9 +1,10 @@
 package ru.d10xa.jsonlogviewer
 
-import cats.effect.Async
+import cats.effect.IO
 import cats.syntax.all.*
 import fs2.*
 import fs2.io.*
+import ru.d10xa.jsonlogviewer.StdInLinesStreamImpl
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
@@ -30,24 +31,23 @@ object LogViewerStream {
     }
   }
 
-  private def commandsToStream[F[_]: Async](
-    commands: List[String]
-  ): Stream[F, String] = {
-    new ShellImpl[F]().mergeCommands(commands)
+  private def commandsAndInlineInputToStream(
+    commands: List[String],
+    inlineInput: Option[String]
+  ): Stream[IO, String] = {
+    new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
   }
 
-  private def stdinLinesStream[F[_]: Async]: Stream[F, String] =
-    stdinUtf8[F](1024 * 1024 * 10)
-      .repartition(s => Chunk.array(s.split("\n", -1)))
-      .filter(_.nonEmpty)
+  private val stdinLinesStream: Stream[IO, String] =
+    new StdInLinesStreamImpl().stdinLinesStream
 
-  private def processStream[F[_]: Async](
+  private def processStream(
     baseConfig: Config,
-    lines: Stream[F, String],
+    lines: Stream[IO, String],
     feedFilter: Option[QueryAST],
     feedFormatIn: Option[FormatIn],
     feedName: Option[String]
-  ): Stream[F, String] = {
+  ): Stream[IO, String] = {
     val effectiveFormatIn = feedFormatIn.orElse(baseConfig.formatIn)
     val effectiveFilter = feedFilter.orElse(baseConfig.filter)
     val effectiveConfig = baseConfig.copy(
@@ -65,14 +65,16 @@ object LogViewerStream {
         ColorLineFormatter(effectiveConfig, feedName)
 
     lines
-      .map(logLineParser.parse)
+      .map { it =>
+        logLineParser.parse(it)
+      }
       .filter(logLineFilter.grep)
       .filter(logLineFilter.logLineQueryPredicate)
       .through(
-        timestampFilter.filterTimestampAfter[F](effectiveConfig.timestamp.after)
+        timestampFilter.filterTimestampAfter(effectiveConfig.timestamp.after)
       )
       .through(
-        timestampFilter.filterTimestampBefore[F](
+        timestampFilter.filterTimestampBefore(
           effectiveConfig.timestamp.before
         )
       )
@@ -80,30 +82,34 @@ object LogViewerStream {
       .map(_.toString)
   }
 
-  def stream[F[_]: Async](config: Config): Stream[F, String] = {
+  def stream(config: Config): Stream[IO, String] = {
     val topCommandsOpt: Option[List[String]] =
       config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
+
     val feedsOpt: Option[List[Feed]] =
       config.configYaml.flatMap(_.feeds).filter(_.nonEmpty)
 
     val finalStream = feedsOpt match {
       case Some(feeds) =>
         val feedStreams = feeds.map { feed =>
-          val feedStream = commandsToStream[F](feed.commands)
+          val feedStream: Stream[IO, String] =
+            commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
           processStream(
             config,
             feedStream,
             feed.filter,
             feed.formatIn,
-            feed.name.some
+            feed.name
           )
         }
         Stream.emits(feedStreams).parJoin(feedStreams.size)
 
       case None =>
         val baseStream = topCommandsOpt match {
-          case Some(cmds) => commandsToStream[F](cmds)
-          case None       => stdinLinesStream[F]
+          case Some(cmds) =>
+            commandsAndInlineInputToStream(cmds, None)
+          case None =>
+            stdinLinesStream
         }
         processStream(config, baseStream, None, None, None)
     }

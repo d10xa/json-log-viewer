@@ -1,23 +1,24 @@
 package ru.d10xa.jsonlogviewer
 
+import cats.effect.IO
 import fs2.Pipe
 
 import java.time.ZonedDateTime
 
 class TimestampFilter:
 
-  def filterTimestampAfter[F[_]](
+  def filterTimestampAfter(
     t: Option[ZonedDateTime]
-  ): Pipe[F, ParseResult, ParseResult] = filterTimestamp(t, _.isAfter(_))
+  ): Pipe[IO, ParseResult, ParseResult] = filterTimestamp(t, _.isAfter(_))
 
-  def filterTimestampBefore[F[_]](
+  def filterTimestampBefore(
     t: Option[ZonedDateTime]
-  ): Pipe[F, ParseResult, ParseResult] = filterTimestamp(t, _.isBefore(_))
+  ): Pipe[IO, ParseResult, ParseResult] = filterTimestamp(t, _.isBefore(_))
 
-  def filterTimestamp[F[_]](
+  def filterTimestamp(
     t: Option[ZonedDateTime],
     predicate: (ZonedDateTime, ZonedDateTime) => Boolean
-  ): Pipe[F, ParseResult, ParseResult] =
+  ): Pipe[IO, ParseResult, ParseResult] =
     p =>
       t match
         case Some(valueFromRequest) =>

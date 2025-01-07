@@ -1,8 +1,10 @@
-import com.raquo.laminar.api.L.{*, given}
-import com.raquo.waypoint.*
-import org.scalajs.dom
+package ru.d10xa.jsonlogviewer
+
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.raquo.laminar.api.L.*
+import com.raquo.waypoint.*
+import org.scalajs.dom
 
 object Router0 {
 

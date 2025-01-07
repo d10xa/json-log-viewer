@@ -1,14 +1,14 @@
-package ru.d10xa.jsonlogviewer
+package ru.d10xa.jsonlogviewer.decline.yaml
 
-import cats.effect.IO
 import cats.data.ValidatedNel
+import cats.effect.IO
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoader
 
 import scala.io.Source
 
 object ConfigYamlReader {
-
+  val configYamlLoader: ConfigYamlLoader = ConfigYamlLoaderImpl()
   def readFile(filePath: String): IO[String] =
     IO.blocking(Source.fromFile(filePath))
       .bracket { source =>
@@ -18,5 +18,5 @@ object ConfigYamlReader {
       }
 
   def fromYamlFile(filePath: String): IO[ValidatedNel[String, ConfigYaml]] =
-    readFile(filePath).map(ConfigYamlLoader.parseYamlFile)
+    readFile(filePath).map(configYamlLoader.parseYamlFile)
 }

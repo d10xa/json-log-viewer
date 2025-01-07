@@ -10,10 +10,9 @@ import io.circe.yaml.scalayaml.parser
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.FormatInValidator
 import ru.d10xa.jsonlogviewer.decline.QueryASTValidator
-import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
-object ConfigYamlLoader {
+class ConfigYamlLoaderImpl extends ConfigYamlLoader {
   private def trimCommentedLines(str: String): String =
     str.linesIterator
       .filterNot(line =>
@@ -117,22 +116,42 @@ object ConfigYamlLoader {
         Validated.invalidNel(s"Missing '$fieldName' field in feed")
     }
 
+  private def parseOptionalString(
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[String]] =
+    fields.get(fieldName) match {
+      case Some(c) =>
+        c.as[Option[String]]
+          .leftMap(_ => s"Invalid '$fieldName' field in feed")
+          .toValidatedNel
+      case None =>
+        Validated.valid(None)
+    }
+
   private def parseFeed(feedJson: Json): ValidatedNel[String, Feed] =
     feedJson.asObject.map(_.toMap) match {
       case None => Validated.invalidNel("Feed entry is not a valid JSON object")
       case Some(feedFields) =>
-        val nameValidated = parseString(
+        val nameValidated = parseOptionalString(
           feedFields,
-          "name",
-          "Invalid 'name' field in feed"
+          "name"
         )
         val commandsValidated = parseListString(feedFields, "commands")
+        val inlineInputValidated =
+          parseOptionalString(feedFields, "inlineInput")
         val filterValidated = parseOptionalQueryAST(feedFields, "filter")
         val formatInValidated
           : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
 
-        (nameValidated, commandsValidated, filterValidated, formatInValidated)
+        (
+          nameValidated,
+          commandsValidated,
+          inlineInputValidated,
+          filterValidated,
+          formatInValidated
+        )
           .mapN(Feed.apply)
     }
 

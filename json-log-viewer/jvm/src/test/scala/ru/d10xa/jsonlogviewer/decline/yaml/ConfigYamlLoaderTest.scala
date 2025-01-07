@@ -3,9 +3,13 @@ package ru.d10xa.jsonlogviewer.decline.yaml
 import cats.data.Validated
 import munit.FunSuite
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoader
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoaderImpl
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 class ConfigYamlLoaderTest extends FunSuite {
+
+  private val configYamlLoader: ConfigYamlLoader = new ConfigYamlLoaderImpl
 
   test("parse valid yaml with feeds") {
     val yaml =
@@ -31,7 +35,7 @@ class ConfigYamlLoaderTest extends FunSuite {
          |    formatIn: logfmt
          |""".stripMargin
 
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isValid, s"Result should be valid: $result")
 
     val config = result.toOption.get
@@ -46,7 +50,7 @@ class ConfigYamlLoaderTest extends FunSuite {
     assertEquals(feeds.size, 2)
 
     val feed1 = feeds.head
-    assertEquals(feed1.name, "pod-logs")
+    assertEquals(feed1.name, Some("pod-logs"))
     assertEquals(
       feed1.commands,
       List("./mock-logs.sh pod1", "./mock-logs.sh pod2")
@@ -54,14 +58,14 @@ class ConfigYamlLoaderTest extends FunSuite {
     assertEquals(feed1.formatIn, Some(FormatIn.Json))
 
     val feed2 = feeds(1)
-    assertEquals(feed2.name, "service-logs")
+    assertEquals(feed2.name, Some("service-logs"))
     assertEquals(feed2.commands, List("./mock-logs.sh service1"))
     assertEquals(feed2.formatIn, Some(FormatIn.Logfmt))
   }
 
   test("parse empty yaml") {
     val yaml = ""
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isValid, s"Result should be valid for empty yaml: $result")
 
     val config = result.toOption.get
@@ -76,7 +80,7 @@ class ConfigYamlLoaderTest extends FunSuite {
       """formatIn:
                   |  - not a string
                   |""".stripMargin
-    val result = ConfigYamlLoader.parseYamlFile(yaml)
+    val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isInvalid, s"Result should be invalid: $result")
 
     val errors = result.swap.toOption.get

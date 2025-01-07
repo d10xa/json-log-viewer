@@ -1,12 +1,16 @@
 package ru.d10xa.jsonlogviewer.shell
 
-import cats.effect.*
+import cats.effect.IO
 import fs2.*
 
-import java.io.*
+class ShellImpl extends Shell {
 
-class ShellImpl[F[_]] extends Shell[F] {
-
-  def mergeCommands(commands: List[String]): Stream[F, String] = Stream.empty
+  def mergeCommandsAndInlineInput(
+    commands: List[String],
+    inlineInput: Option[String]
+  ): Stream[IO, String] = inlineInput match
+    case Some(inlineInput) =>
+      Shell.stringToStream(inlineInput)
+    case None => Stream.empty
 
 }

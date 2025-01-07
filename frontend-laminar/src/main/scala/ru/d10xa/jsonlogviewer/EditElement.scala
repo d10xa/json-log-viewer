@@ -1,5 +1,7 @@
-import com.raquo.laminar.api.L.{*, given}
+package ru.d10xa.jsonlogviewer
+
 import com.raquo.laminar.api.L
+import com.raquo.laminar.api.L.*
 object EditElement {
 
   def render(mods: Modifier[TextArea]*): HtmlElement =
