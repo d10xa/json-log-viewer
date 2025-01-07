@@ -36,6 +36,7 @@ lazy val `json-log-viewer` = crossProject(JSPlatform, JVMPlatform)
     pomIncludeRepository := { _ => false },
     libraryDependencies ++= Seq(
       "org.typelevel" %%% "cats-effect" % "3.5.4",
+      "org.typelevel" %%% "munit-cats-effect" % "2.0.0" % Test,
       "co.fs2" %%% "fs2-core" % fs2Version,
       "co.fs2" %%% "fs2-io" % fs2Version,
       "com.monovore" %%% "decline" % declineVersion,

@@ -1,16 +1,12 @@
 package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
-import cats.effect.unsafe.implicits.*
 import fs2.Stream
-import munit.FunSuite
+import munit.CatsEffectSuite
 
 import java.time.ZonedDateTime
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Failure
-import scala.util.Success
 
-class TimestampFilterTest extends FunSuite {
+class TimestampFilterTest extends CatsEffectSuite {
   test("filterTimestampAfter") {
     val filter = TimestampFilter()
     val t1 = pr("2023-09-17T19:10:01.132318Z")
@@ -24,11 +20,7 @@ class TimestampFilterTest extends FunSuite {
       )
       .compile
       .toList
-      .unsafeToFuture()
-      .onComplete {
-        case Success(list)      => assert(list == t2)
-        case Failure(exception) => fail(exception.getMessage)
-      }
+      .flatTap(list => IO(assertEquals(list, List(t2))))
   }
 
   def pr(ts: String): ParseResult = ParseResult(
