@@ -8,7 +8,6 @@ import munit.FunSuite
 
 class Ansi2HtmlWithClassesTest extends FunSuite {
 
-    // Тест для функции transition
     test("transition correctly handles Bold.On to Bold.Off") {
         val from = Bold.On
         val to = Bold.Off
