@@ -83,7 +83,6 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
   private val config: Config = Config(
     configFile = None,
-    configYaml = None,
     timestamp = TimestampConfig(
       fieldName = "@timestamp",
       None,

@@ -74,7 +74,6 @@ object DeclineOpts {
           ) =>
           Config(
             configFile = configFile,
-            configYaml = None,
             timestamp = timestampConfig,
             grep = grepConfig,
             filter = filterConfig,

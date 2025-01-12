@@ -1,33 +1,59 @@
 package ru.d10xa.jsonlogviewer
 
-import cats.effect.IO
-import cats.syntax.all.*
+import cats.effect.{IO, Ref}
 import fs2.*
-import fs2.io.*
-import ru.d10xa.jsonlogviewer.StdInLinesStreamImpl
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
-import ru.d10xa.jsonlogviewer.decline.ConfigInit
-import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
-import ru.d10xa.jsonlogviewer.decline.DeclineOpts
-import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
-import ru.d10xa.jsonlogviewer.decline.yaml.Feed
-import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
-import ru.d10xa.jsonlogviewer.formatout.RawFormatter
+import ru.d10xa.jsonlogviewer.decline.yaml.{ConfigYaml, Feed}
+import ru.d10xa.jsonlogviewer.formatout.{ColorLineFormatter, RawFormatter}
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import ru.d10xa.jsonlogviewer.query.QueryAST
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object LogViewerStream {
 
-  private def makeLogLineParser(
+  private val stdinLinesStream: Stream[IO, String] =
+    new StdInLinesStreamImpl().stdinLinesStream
+
+  def stream(
     config: Config,
-    optFormatIn: Option[FormatIn]
-  ): LogLineParser = {
-    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-    optFormatIn match {
-      case Some(FormatIn.Logfmt) => LogfmtLogLineParser(config)
-      case _                     => JsonLogLineParser(config, jsonPrefixPostfix)
+    configYamlRef: Ref[IO, Option[ConfigYaml]]
+  ): Stream[IO, String] = {
+    Stream.eval(configYamlRef.get).flatMap { configYamlOpt =>
+      val topCommandsOpt: Option[List[String]] =
+        configYamlOpt.flatMap(_.commands).filter(_.nonEmpty)
+
+      val feedsOpt: Option[List[Feed]] =
+        configYamlOpt.flatMap(_.feeds).filter(_.nonEmpty)
+
+      val finalStream = feedsOpt match {
+        case Some(feeds) =>
+          val feedStreams = feeds.map { feed =>
+            val feedStream: Stream[IO, String] =
+              commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
+            processStream(
+              config,
+              feedStream,
+              feed.filter,
+              feed.formatIn,
+              feed.name
+            )
+          }
+          Stream.emits(feedStreams).parJoin(feedStreams.size)
+
+        case None =>
+          val baseStream = topCommandsOpt match {
+            case Some(cmds) =>
+              commandsAndInlineInputToStream(cmds, None)
+            case None =>
+              stdinLinesStream
+          }
+          processStream(config, baseStream, None, None, None)
+      }
+
+      finalStream
+        .intersperse("\n")
+        .append(Stream.emit("\n"))
     }
   }
 
@@ -37,9 +63,6 @@ object LogViewerStream {
   ): Stream[IO, String] = {
     new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
   }
-
-  private val stdinLinesStream: Stream[IO, String] =
-    new StdInLinesStreamImpl().stdinLinesStream
 
   private def processStream(
     baseConfig: Config,
@@ -82,40 +105,14 @@ object LogViewerStream {
       .map(_.toString)
   }
 
-  def stream(config: Config): Stream[IO, String] = {
-    val topCommandsOpt: Option[List[String]] =
-      config.configYaml.flatMap(_.commands).filter(_.nonEmpty)
-
-    val feedsOpt: Option[List[Feed]] =
-      config.configYaml.flatMap(_.feeds).filter(_.nonEmpty)
-
-    val finalStream = feedsOpt match {
-      case Some(feeds) =>
-        val feedStreams = feeds.map { feed =>
-          val feedStream: Stream[IO, String] =
-            commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
-          processStream(
-            config,
-            feedStream,
-            feed.filter,
-            feed.formatIn,
-            feed.name
-          )
-        }
-        Stream.emits(feedStreams).parJoin(feedStreams.size)
-
-      case None =>
-        val baseStream = topCommandsOpt match {
-          case Some(cmds) =>
-            commandsAndInlineInputToStream(cmds, None)
-          case None =>
-            stdinLinesStream
-        }
-        processStream(config, baseStream, None, None, None)
+  private def makeLogLineParser(
+    config: Config,
+    optFormatIn: Option[FormatIn]
+  ): LogLineParser = {
+    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
+    optFormatIn match {
+      case Some(FormatIn.Logfmt) => LogfmtLogLineParser(config)
+      case _                     => JsonLogLineParser(config, jsonPrefixPostfix)
     }
-
-    finalStream
-      .intersperse("\n")
-      .append(Stream.emit("\n"))
   }
 }

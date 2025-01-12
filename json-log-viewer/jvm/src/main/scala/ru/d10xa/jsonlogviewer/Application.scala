@@ -16,16 +16,15 @@ object Application
 
   private val configInit: ConfigInit = new ConfigInitImpl
 
-  def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { c =>
-    configInit.initConfig(c).flatMap { updatedConfig =>
-      IO {
-        LogViewerStream
-          .stream(updatedConfig)
-          .through(text.utf8.encode)
-          .through(io.stdout)
-          .compile
-          .drain
-          .as(ExitCode.Success)
-      }.flatten
+  def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { config =>
+    configInit.initConfigYaml(config).use { configRef =>
+      LogViewerStream
+        .stream(config, configRef)
+        .through(text.utf8.encode)
+        .through(fs2.io.stdout)
+        .compile
+        .drain
+        .as(ExitCode.Success)
     }
+
   }
