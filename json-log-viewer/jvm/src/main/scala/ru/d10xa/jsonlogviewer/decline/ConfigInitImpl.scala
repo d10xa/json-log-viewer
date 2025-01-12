@@ -1,9 +1,14 @@
 package ru.d10xa.jsonlogviewer.decline
 
 import cats.effect.std.Supervisor
-import cats.effect.{IO, Ref, Resource}
-import fs2.io.file.{Files, Path, Watcher}
-import ru.d10xa.jsonlogviewer.decline.yaml.{ConfigYaml, ConfigYamlReader}
+import cats.effect.IO
+import cats.effect.Ref
+import cats.effect.Resource
+import fs2.io.file.Files
+import fs2.io.file.Path
+import fs2.io.file.Watcher
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader
 
 import java.io.File
 

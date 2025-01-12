@@ -20,9 +20,6 @@ object LogViewerStream {
     configYamlRef: Ref[IO, Option[ConfigYaml]]
   ): Stream[IO, String] = {
     Stream.eval(configYamlRef.get).flatMap { configYamlOpt =>
-      val topCommandsOpt: Option[List[String]] =
-        configYamlOpt.flatMap(_.commands).filter(_.nonEmpty)
-
       val feedsOpt: Option[List[Feed]] =
         configYamlOpt.flatMap(_.feeds).filter(_.nonEmpty)
 
@@ -40,15 +37,8 @@ object LogViewerStream {
             )
           }
           Stream.emits(feedStreams).parJoin(feedStreams.size)
-
         case None =>
-          val baseStream = topCommandsOpt match {
-            case Some(cmds) =>
-              commandsAndInlineInputToStream(cmds, None)
-            case None =>
-              stdinLinesStream
-          }
-          processStream(config, baseStream, None, None, None)
+          processStream(config, stdinLinesStream, None, None, None)
       }
 
       finalStream
