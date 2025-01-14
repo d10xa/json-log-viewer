@@ -1,11 +1,14 @@
 package ru.d10xa.jsonlogviewer
 
-import cats.effect.{IO, Ref}
+import cats.effect.IO
+import cats.effect.Ref
 import fs2.*
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
-import ru.d10xa.jsonlogviewer.decline.yaml.{ConfigYaml, Feed}
-import ru.d10xa.jsonlogviewer.formatout.{ColorLineFormatter, RawFormatter}
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
+import ru.d10xa.jsonlogviewer.decline.yaml.Feed
+import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
+import ru.d10xa.jsonlogviewer.formatout.RawFormatter
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import ru.d10xa.jsonlogviewer.query.QueryAST
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
@@ -25,20 +28,19 @@ object LogViewerStream {
 
       val finalStream = feedsOpt match {
         case Some(feeds) =>
-          val feedStreams = feeds.map { feed =>
+          val feedStreams = feeds.zipWithIndex.map { (feed, index) =>
             val feedStream: Stream[IO, String] =
               commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
             processStream(
               config,
               feedStream,
-              feed.filter,
-              feed.formatIn,
-              feed.name
+              configYamlRef,
+              index
             )
           }
           Stream.emits(feedStreams).parJoin(feedStreams.size)
         case None =>
-          processStream(config, stdinLinesStream, None, None, None)
+          processStream(config, stdinLinesStream, configYamlRef, -1)
       }
 
       finalStream
@@ -54,48 +56,7 @@ object LogViewerStream {
     new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
   }
 
-  private def processStream(
-    baseConfig: Config,
-    lines: Stream[IO, String],
-    feedFilter: Option[QueryAST],
-    feedFormatIn: Option[FormatIn],
-    feedName: Option[String]
-  ): Stream[IO, String] = {
-    val effectiveFormatIn = feedFormatIn.orElse(baseConfig.formatIn)
-    val effectiveFilter = feedFilter.orElse(baseConfig.filter)
-    val effectiveConfig = baseConfig.copy(
-      filter = effectiveFilter,
-      formatIn = effectiveFormatIn
-    )
-
-    val timestampFilter = TimestampFilter()
-    val parseResultKeys = ParseResultKeys(effectiveConfig)
-    val logLineFilter = LogLineFilter(effectiveConfig, parseResultKeys)
-    val logLineParser = makeLogLineParser(effectiveConfig, effectiveFormatIn)
-    val outputLineFormatter = effectiveConfig.formatOut match
-      case Some(Config.FormatOut.Raw) => RawFormatter()
-      case Some(Config.FormatOut.Pretty) | None =>
-        ColorLineFormatter(effectiveConfig, feedName)
-
-    lines
-      .map { it =>
-        logLineParser.parse(it)
-      }
-      .filter(logLineFilter.grep)
-      .filter(logLineFilter.logLineQueryPredicate)
-      .through(
-        timestampFilter.filterTimestampAfter(effectiveConfig.timestamp.after)
-      )
-      .through(
-        timestampFilter.filterTimestampBefore(
-          effectiveConfig.timestamp.before
-        )
-      )
-      .map(outputLineFormatter.formatLine)
-      .map(_.toString)
-  }
-
-  private def makeLogLineParser(
+  def makeLogLineParser(
     config: Config,
     optFormatIn: Option[FormatIn]
   ): LogLineParser = {
@@ -105,4 +66,56 @@ object LogViewerStream {
       case _                     => JsonLogLineParser(config, jsonPrefixPostfix)
     }
   }
+
+  private def processStream(
+    baseConfig: Config,
+    lines: Stream[IO, String],
+    configYamlRef: Ref[IO, Option[ConfigYaml]],
+    index: Int
+  ): Stream[IO, String] = {
+    for {
+      line <- lines
+      optConfigYaml <- Stream.eval(configYamlRef.get)
+      formatIn = optConfigYaml
+        .flatMap(_.feeds)
+        .flatMap(_.lift(index).flatMap(_.formatIn))
+        .orElse(baseConfig.formatIn)
+      filter = optConfigYaml
+        .flatMap(_.feeds)
+        .flatMap(_.lift(index).flatMap(_.filter))
+        .orElse(baseConfig.filter)
+      feedName = optConfigYaml
+        .flatMap(_.feeds)
+        .flatMap(_.lift(index).flatMap(_.name))
+      effectiveConfig = baseConfig.copy(
+        filter = filter,
+        formatIn = formatIn
+      )
+      timestampFilter = TimestampFilter()
+      parseResultKeys = ParseResultKeys(effectiveConfig)
+      logLineFilter = LogLineFilter(effectiveConfig, parseResultKeys)
+      logLineParser = makeLogLineParser(effectiveConfig, formatIn)
+      outputLineFormatter = effectiveConfig.formatOut match
+        case Some(Config.FormatOut.Raw) => RawFormatter()
+        case Some(Config.FormatOut.Pretty) | None =>
+          ColorLineFormatter(effectiveConfig, feedName)
+
+      evaluatedLine <- Stream
+        .emit(logLineParser.parse(line))
+        .filter(logLineFilter.grep)
+        .filter(logLineFilter.logLineQueryPredicate)
+        .through(
+          timestampFilter.filterTimestampAfter(effectiveConfig.timestamp.after)
+        )
+        .through(
+          timestampFilter.filterTimestampBefore(
+            effectiveConfig.timestamp.before
+          )
+        )
+        .map(outputLineFormatter.formatLine)
+        .map(_.toString)
+    } yield evaluatedLine
+
+  }
+
 }

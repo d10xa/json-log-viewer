@@ -1,8 +1,9 @@
 package ru.d10xa.jsonlogviewer
 
 import cats.effect.*
-import com.monovore.decline.Opts
+import cats.effect.std.Supervisor
 import com.monovore.decline.effect.CommandIOApp
+import com.monovore.decline.Opts
 import fs2.*
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
 import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
@@ -17,14 +18,17 @@ object Application
   private val configInit: ConfigInit = new ConfigInitImpl
 
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { config =>
-    configInit.initConfigYaml(config).use { configRef =>
-      LogViewerStream
-        .stream(config, configRef)
-        .through(text.utf8.encode)
-        .through(fs2.io.stdout)
-        .compile
-        .drain
-        .as(ExitCode.Success)
+    Supervisor[IO].use { supervisor =>
+      configInit.initConfigYaml(config, supervisor).use { configRef =>
+        LogViewerStream
+          .stream(config, configRef)
+          .through(text.utf8.encode)
+          .through(fs2.io.stdout)
+          .compile
+          .drain
+          .as(ExitCode.Success)
+      }
     }
+    
 
   }
