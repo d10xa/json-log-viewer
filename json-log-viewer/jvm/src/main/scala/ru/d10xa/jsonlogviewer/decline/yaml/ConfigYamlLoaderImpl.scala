@@ -144,13 +144,18 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
         val formatInValidated
           : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
-
+        val rawIncludeValidated =
+          parseOptionalListString(feedFields, "rawInclude")
+        val rawExcludeValidated =
+          parseOptionalListString(feedFields, "rawExclude")
         (
           nameValidated,
           commandsValidated,
           inlineInputValidated,
           filterValidated,
-          formatInValidated
+          formatInValidated,
+          rawIncludeValidated,
+          rawExcludeValidated
         )
           .mapN(Feed.apply)
     }
