@@ -66,4 +66,6 @@ object LogFmtTokenParser extends PackratParsers:
     program(reader) match {
       case NoSuccess(msg, next)  => Left(TokenParserError(msg))
       case Success(result, next) => Right(result)
+      case Failure(msg, _)       => Left(TokenParserError(msg))
+      case Error(msg, _)         => Left(TokenParserError(msg))
     }

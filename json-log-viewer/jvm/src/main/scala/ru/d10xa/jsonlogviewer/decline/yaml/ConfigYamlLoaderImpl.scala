@@ -170,23 +170,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           json.asObject.map(_.toMap) match {
             case None => Validated.invalidNel("YAML is not a valid JSON object")
             case Some(fields) =>
-              val filterValidated: ValidatedNel[String, Option[QueryAST]] =
-                parseOptionalQueryAST(fields, "filter")
-
-              val formatInValidated: ValidatedNel[String, Option[FormatIn]] =
-                parseOptionalFormatIn(fields, "formatIn")
-              val commandsValidated
-                : ValidatedNel[String, Option[List[String]]] =
-                parseOptionalListString(fields, "commands")
               val feedsValidated: ValidatedNel[String, Option[List[Feed]]] =
                 parseOptionalFeeds(fields, "feeds")
-
-              (
-                filterValidated,
-                formatInValidated,
-                commandsValidated,
-                feedsValidated
-              ).mapN(ConfigYaml.apply)
+              feedsValidated.map(ConfigYaml.apply)
           }
       }
     }

@@ -13,13 +13,7 @@ class ConfigYamlLoaderTest extends FunSuite {
 
   test("parse valid yaml with feeds") {
     val yaml =
-      """|commands:
-         |  - ./mock-logs.sh pod1
-         |  - ./mock-logs.sh pod2
-         |filter: |
-         |  message = 'first line'
-         |formatIn: json
-         |feeds:
+      """|feeds:
          |  - name: "pod-logs"
          |    commands:
          |      - "./mock-logs.sh pod1"
@@ -39,12 +33,6 @@ class ConfigYamlLoaderTest extends FunSuite {
     assert(result.isValid, s"Result should be valid: $result")
 
     val config = result.toOption.get
-    assertEquals(config.formatIn, Some(FormatIn.Json))
-    assertEquals(
-      config.commands.get,
-      List("./mock-logs.sh pod1", "./mock-logs.sh pod2")
-    )
-    assert(config.filter.isDefined)
 
     val feeds = config.feeds.get
     assertEquals(feeds.size, 2)
@@ -69,21 +57,17 @@ class ConfigYamlLoaderTest extends FunSuite {
     assert(result.isValid, s"Result should be valid for empty yaml: $result")
 
     val config = result.toOption.get
-    assert(config.filter.isEmpty)
-    assert(config.formatIn.isEmpty)
-    assert(config.commands.isEmpty)
     assert(config.feeds.isEmpty)
   }
 
   test("parse invalid yaml") {
     val yaml =
-      """formatIn:
-                  |  - not a string
-                  |""".stripMargin
+      """feeds: ""
+        |""".stripMargin
     val result = configYamlLoader.parseYamlFile(yaml)
     assert(result.isInvalid, s"Result should be invalid: $result")
 
     val errors = result.swap.toOption.get
-    assert(errors.exists(_.contains("Invalid 'formatIn' field format")))
+    assert(errors.exists(_.contains("Invalid 'feeds' field format, should be a list")))
   }
 }

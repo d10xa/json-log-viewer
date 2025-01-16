@@ -1,16 +1,17 @@
 package ru.d10xa.jsonlogviewer
 
-import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import cats.effect.IO
+import cats.effect.Ref
 import com.monovore.decline.Help
 import com.raquo.airstream.core.Signal
 import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.ownership.Owner
-import com.raquo.laminar.DomApi
 import com.raquo.laminar.api.L.*
-import ru.d10xa.jsonlogviewer.decline.Config
+import com.raquo.laminar.DomApi
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
+import ru.d10xa.jsonlogviewer.decline.Config
 
 import scala.util.chaining.*
 
@@ -23,23 +24,16 @@ object ViewElement {
       .pipe(DomApi.unsafeParseHtmlString)
       .pipe(foreignHtmlElement)
 
-  def modifyConfigForInlineInput(string: String, config: Config): Config =
-    config.copy(configYaml =
-      Some(
-        ConfigYaml(
-          filter = None,
-          formatIn = None,
-          commands = None,
-          feeds = Some(
-            List(
-              Feed(
-                name = None,
-                commands = List.empty,
-                inlineInput = Some(string),
-                filter = config.filter,
-                formatIn = config.formatIn
-              )
-            )
+  def makeConfigYamlForInlineInput(string: String, config: Config): ConfigYaml =
+    ConfigYaml(
+      feeds = Some(
+        List(
+          Feed(
+            name = None,
+            commands = List.empty,
+            inlineInput = Some(string),
+            filter = config.filter,
+            formatIn = config.formatIn
           )
         )
       )
@@ -54,8 +48,13 @@ object ViewElement {
       .combineWith(configSignal)
       .foreach {
         case (string, Right(c)) =>
-          LogViewerStream
-            .stream(modifyConfigForInlineInput(string, c))
+          val configYamlRefIO =
+            Ref.of[IO, Option[ConfigYaml]](
+              Some(makeConfigYamlForInlineInput(string, c))
+            )
+          fs2.Stream
+            .eval(configYamlRefIO)
+            .flatMap(configYamlRef => LogViewerStream.stream(c, configYamlRef))
             .compile
             .toList
             .map(stringsToHtmlElement)
