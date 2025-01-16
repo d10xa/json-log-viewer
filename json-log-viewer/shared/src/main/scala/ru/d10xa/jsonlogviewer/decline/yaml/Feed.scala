@@ -8,5 +8,7 @@ case class Feed(
   commands: List[String],
   inlineInput: Option[String],
   filter: Option[QueryAST],
-  formatIn: Option[FormatIn]
+  formatIn: Option[FormatIn],
+  rawInclude: Option[List[String]],
+  rawExclude: Option[List[String]]
 )

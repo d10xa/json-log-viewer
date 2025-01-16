@@ -33,7 +33,9 @@ object ViewElement {
             commands = List.empty,
             inlineInput = Some(string),
             filter = config.filter,
-            formatIn = config.formatIn
+            formatIn = config.formatIn,
+            rawInclude = None,
+            rawExclude = None
           )
         )
       )

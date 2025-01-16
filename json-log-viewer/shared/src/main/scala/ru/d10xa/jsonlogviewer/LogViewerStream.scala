@@ -3,15 +3,16 @@ package ru.d10xa.jsonlogviewer
 import cats.effect.IO
 import cats.effect.Ref
 import fs2.*
-import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
+import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.formatout.RawFormatter
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
-import ru.d10xa.jsonlogviewer.query.QueryAST
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
+
+import scala.util.matching.Regex
 
 object LogViewerStream {
 
@@ -21,7 +22,7 @@ object LogViewerStream {
   def stream(
     config: Config,
     configYamlRef: Ref[IO, Option[ConfigYaml]]
-  ): Stream[IO, String] = {
+  ): Stream[IO, String] =
     Stream.eval(configYamlRef.get).flatMap { configYamlOpt =>
       val feedsOpt: Option[List[Feed]] =
         configYamlOpt.flatMap(_.feeds).filter(_.nonEmpty)
@@ -47,14 +48,12 @@ object LogViewerStream {
         .intersperse("\n")
         .append(Stream.emit("\n"))
     }
-  }
 
   private def commandsAndInlineInputToStream(
     commands: List[String],
     inlineInput: Option[String]
-  ): Stream[IO, String] = {
+  ): Stream[IO, String] =
     new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
-  }
 
   def makeLogLineParser(
     config: Config,
@@ -72,7 +71,7 @@ object LogViewerStream {
     lines: Stream[IO, String],
     configYamlRef: Ref[IO, Option[ConfigYaml]],
     index: Int
-  ): Stream[IO, String] = {
+  ): Stream[IO, String] =
     for {
       line <- lines
       optConfigYaml <- Stream.eval(configYamlRef.get)
@@ -84,6 +83,12 @@ object LogViewerStream {
         .flatMap(_.feeds)
         .flatMap(_.lift(index).flatMap(_.filter))
         .orElse(baseConfig.filter)
+      rawInclude = optConfigYaml
+        .flatMap(_.feeds)
+        .flatMap(_.lift(index).flatMap(_.rawInclude))
+      rawExclude = optConfigYaml
+        .flatMap(_.feeds)
+        .flatMap(_.lift(index).flatMap(_.rawExclude))
       feedName = optConfigYaml
         .flatMap(_.feeds)
         .flatMap(_.lift(index).flatMap(_.name))
@@ -99,9 +104,10 @@ object LogViewerStream {
         case Some(Config.FormatOut.Raw) => RawFormatter()
         case Some(Config.FormatOut.Pretty) | None =>
           ColorLineFormatter(effectiveConfig, feedName)
-
       evaluatedLine <- Stream
-        .emit(logLineParser.parse(line))
+        .emit(line)
+        .filter(rawFilter(_, rawInclude, rawExclude))
+        .map(logLineParser.parse)
         .filter(logLineFilter.grep)
         .filter(logLineFilter.logLineQueryPredicate)
         .through(
@@ -116,6 +122,18 @@ object LogViewerStream {
         .map(_.toString)
     } yield evaluatedLine
 
+  def rawFilter(
+    str: String,
+    include: Option[List[String]],
+    exclude: Option[List[String]]
+  ): Boolean = {
+    val includeRegexes: List[Regex] = include.getOrElse(Nil).map(_.r)
+    val excludeRegexes: List[Regex] = exclude.getOrElse(Nil).map(_.r)
+    val includeMatches = includeRegexes.isEmpty || includeRegexes.exists(
+      _.findFirstIn(str).isDefined
+    )
+    val excludeMatches = excludeRegexes.forall(_.findFirstIn(str).isEmpty)
+    includeMatches && excludeMatches
   }
 
 }
