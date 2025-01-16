@@ -1,16 +1,17 @@
 package ru.d10xa.jsonlogviewer.decline
 
+import cats.effect.std.Supervisor
 import cats.effect.IO
+import cats.effect.Ref
+import cats.effect.Resource
+import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 
 class ConfigInitImpl extends ConfigInit {
 
-  override def initConfig(c: Config): IO[Config] = {
-    IO.pure(
-      c.copy(
-        formatIn = c.formatIn.orElse(Some(FormatIn.Json)),
-        filter = c.filter
-      )
-    )
-  }
+  override def initConfigYaml(
+    c: Config,
+    supervisor: Supervisor[IO]
+  ): Resource[IO, Ref[IO, Option[ConfigYaml]]] =
+    Resource.eval(Ref.of(None))
 }
