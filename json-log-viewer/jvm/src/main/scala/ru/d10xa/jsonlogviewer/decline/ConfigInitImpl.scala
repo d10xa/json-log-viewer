@@ -21,13 +21,8 @@ class ConfigInitImpl extends ConfigInit {
     val configFileOpt: Option[Path] =
       c.configFile
         .map(file => Path(file.file))
-        .orElse(findDefaultFile())
     loadConfigRef(configFileOpt, supervisor)
   }
-
-  private def findDefaultFile(): Option[Path] =
-    findConfigFile("json-log-viewer", List("yml", "yaml", "YML", "YAML"))
-      .map(Path.apply)
 
   private def loadConfigRef(
     configFileOpt: Option[Path],
@@ -81,15 +76,6 @@ class ConfigInitImpl extends ConfigInit {
       case cats.data.Validated.Invalid(errors) =>
         IO.println(s"Failed to parse config: ${errors.toList.mkString(", ")}")
           .as(None)
-    }
-
-  private def findConfigFile(
-    baseName: String,
-    extensions: List[String]
-  ): Option[String] =
-    extensions.collectFirst {
-      case ext if new File(s"$baseName.$ext").exists() =>
-        s"$baseName.$ext"
     }
 
 }
