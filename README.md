@@ -203,36 +203,7 @@ JSON Log Viewer also supports direct configuration via command-line arguments:
   json-log-viewer --timestamp-field time
   ```
 
-
-## build jvm version
-
-```
-sbt stage
-```
-
-## run jvm version
-
-```
-cat log.txt | ./json-log-viewer/jvm/target/universal/stage/bin/json-log-viewer
-```
-
-## build js version
-
-```
-sbt fullLinkJS
-```
-
-## run js version
-
-```
-cat log.txt | node ./json-log-viewer/js/target/scala-3.3.1/json-log-viewer-opt/main.js
-```
-
-# frontend-laminar
-
-```~fastLinkJS::webpack```
-
-# k9s plugin
+## k9s Plugin
 
 Integrate json-log-viewer with k9s to view formatted JSON logs directly within the k9s interface.
 
@@ -242,7 +213,7 @@ For the plugin to work correctly, the following must be installed on your system
 2. **json-log-viewer** (optional) - If already installed, the plugin will use it directly; otherwise, it will fall back to using `coursier` to launch it.
 
 ### Installation
-Add the following to your k9s plugin file 
+Add the following to your k9s plugin file
 (usually located at ~/.k9s/plugins.yaml or, on macOS, check the plugin path with `k9s info`):
 
 ```yaml
@@ -271,9 +242,64 @@ plugins:
         fi
 ```
 
-##  k9s plugin usage
+###  k9s plugin usage
 
 1. Install json-log-viewer
 2. Launch k9s
 3. Select a Pod or Container
 4. Press Ctrl+L to view logs formatted by json-log-viewer
+
+
+## Development
+
+This section provides instructions for building and running 
+both the JVM and JavaScript versions of JSON Log Viewer.
+It also includes notes for working on the `frontend-laminar` module.
+
+### Prerequisites
+Ensure you have the following installed on your system:
+- Java 11+ (for building the JVM version)
+- Node.js 23+ (for building the JS version)
+- sbt (Scala Build Tool)
+
+### Building the JVM Version
+To build the JVM version of the project, use the command: 
+
+```bash
+sbt stage
+```
+
+This compiles the code and prepares the executable under the `jvm/target/universal/stage/bin/` directory.
+
+### Running the JVM Version
+Run the application with: 
+```bash
+cat log.txt | ./json-log-viewer/jvm/target/universal/stage/bin/json-log-viewer
+```
+
+Replace `log.txt` with the path to your JSON log file. The output will be displayed in a human-readable format.
+
+### Building the JavaScript Version
+
+To build the JavaScript version, you can use one of the following options:
+
+1. **Optimized Build**: Use the command:
+   ```bash
+   sbt fullLinkJS  
+   ```
+   This generates a production-ready JavaScript file located at:  
+   `frontend-laminar/target/scala-3.6.2/frontend-laminar-opt/main.js`
+2. **Fast Development Build**: Use the command: 
+   ```bash
+   sbt fastLinkJS 
+   ```
+   This generates a faster, less optimized build located at:  
+   `frontend-laminar/target/scala-3.6.2/frontend-laminar-fastopt/main.js`
+
+Choose the appropriate option based on your needs:
+- Use `fullLinkJS` for production or when you need a fully optimized bundle.
+- Use `fastLinkJS` for local development with faster build times.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
