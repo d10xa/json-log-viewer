@@ -4,12 +4,12 @@
 
 ## Introduction
 
-JSON Log Viewer is a versatile tool designed to simplify the analysis
+`json-log-viewer` is a versatile tool designed to simplify the analysis
 of JSON logs for developers and system administrators.
 Whether you work in the command line or prefer a browser-based interface,
-JSON Log Viewer provides powerful features for filtering, combining, and visualizing log streams.
+`json-log-viewer` provides powerful features for filtering, combining, and visualizing log streams.
 
-The primary goal of JSON Log Viewer is to transform raw JSON logs into a human-readable format,
+The primary goal of `json-log-viewer` is to transform raw JSON logs into a human-readable format,
 making them significantly easier to interpret and process.
 With support for advanced filtering, dynamic configuration updates, multi-source input,
 and streamlined configuration management,
@@ -57,7 +57,7 @@ Below is an example of formatted JSON logs in the command-line interface:
 
 ### Install with Coursier
 
-Install JSON Log Viewer globally using `coursier`:
+Install `json-log-viewer` globally using `coursier`:
 
 ```bash
 coursier install json-log-viewer --channel https://git.io/JvV0g
@@ -84,7 +84,8 @@ json-log-viewer --help
 
 ### SQL Filtering
 
-JSON Log Viewer supports SQL-like filtering for JSON fields, allowing precise log analysis. You can use comparison and logical operations.
+`json-log-viewer` supports SQL-like filtering for JSON fields, allowing precise log analysis.
+You can use comparison and logical operations.
 
 #### Supported Syntax
 - **Comparison operators**:
@@ -125,7 +126,7 @@ JSON Log Viewer supports SQL-like filtering for JSON fields, allowing precise lo
 
 ## Configuration
 
-JSON Log Viewer supports defining input streams, filters, and other settings using a YAML configuration file.
+`json-log-viewer` supports defining input streams, filters, and other settings using a YAML configuration file.
 
 ### YAML Configuration Structure
 
@@ -172,7 +173,7 @@ json-log-viewer --config-file json-log-viewer.yml
 
 ## Command-Line Arguments
 
-JSON Log Viewer also supports direct configuration via command-line arguments:
+`json-log-viewer` also supports direct configuration via command-line arguments:
 
 ### Supported Options
 
@@ -256,7 +257,7 @@ plugins:
 ## Development
 
 This section provides instructions for building and running 
-both the JVM and JavaScript versions of JSON Log Viewer.
+both the JVM and JavaScript versions of `json-log-viewer`.
 It also includes notes for working on the `frontend-laminar` module.
 
 ### Prerequisites
