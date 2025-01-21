@@ -157,6 +157,51 @@ feeds:
     filter: |
       message NOT LIKE '%heartbeat%'
     formatIn: logfmt
+```
+
+#### Running with a Configuration File
+
+To use a YAML configuration file, pass its path with the --config-file option:
+
+```bash
+json-log-viewer --config-file json-log-viewer.yml
+```
+
+## Command-Line Arguments
+
+JSON Log Viewer also supports direct configuration via command-line arguments:
+
+### Supported Options
+
+- **--filter**: Apply SQL-like filters directly to logs.
+  ```bash
+  cat log.txt | json-log-viewer --filter "level = 'ERROR'"
+  ```
+
+- **--config-file**: Specify the path to a YAML configuration file.
+  ```bash
+  cat log.txt | json-log-viewer --config-file json-log-viewer.yml
+  ```
+  
+- **--format-in**: Specify the input log format (supported formats: json, logfmt).
+  ```bash
+  cat log.txt | json-log-viewer --format-in logfmt
+  ```
+  
+- **--format-out**: Specify the output format (supported formats: pretty, raw).
+  ```bash
+  cat log.txt | json-log-viewer --format-out raw
+  ```
+  
+- **--timestamp-after** and **--timestamp-before**: Filter logs by a specific time range.
+  ```bash
+  cat log.txt | json-log-viewer --timestamp-after 2024-01-01T00:00:00Z --timestamp-before 2024-01-31T23:59:59Z
+  ```
+  
+- **--timestamp-field**: Specify the field name for timestamps (default: @timestamp).
+  ```bash
+  json-log-viewer --timestamp-field time
+  ```
 
 
 ## build jvm version
