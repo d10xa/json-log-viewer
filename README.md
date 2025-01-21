@@ -15,6 +15,13 @@ With support for advanced filtering, dynamic configuration updates, multi-source
 and streamlined configuration management,
 this tool offers a comprehensive solution for log analysis across various environments.
 
+You can also try the browser-based version online: [DEMO](https://your-demo-url.com).
+
+### Example Output
+Below is an example of formatted JSON logs in the command-line interface:
+
+![Example Output](screenshot.png)
+
 ## Key Features
 
 - **Human-Readable Log Output**  
@@ -41,10 +48,6 @@ this tool offers a comprehensive solution for log analysis across various enviro
 
 - **Integration with k9s**  
   Seamlessly integrate with the k9s Kubernetes CLI tool to visualize logs directly within k9s.
-
-[DEMO](https://d10xa.ru/json-log-viewer/)
-
-![screenshot.png](screenshot.png)
 
 ## Installation
 
