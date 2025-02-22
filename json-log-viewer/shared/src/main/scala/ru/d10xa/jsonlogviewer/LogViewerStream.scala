@@ -13,6 +13,9 @@ import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 import scala.util.matching.Regex
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 object LogViewerStream {
 
@@ -118,7 +121,12 @@ object LogViewerStream {
             effectiveConfig.timestamp.before
           )
         )
-        .map(outputLineFormatter.formatLine)
+        .map(pr =>
+          Try(outputLineFormatter.formatLine(pr)) match {
+            case Success(formatted) => formatted.toString
+            case Failure(_)         => pr.raw
+          }
+        )
         .map(_.toString)
     } yield evaluatedLine
 
