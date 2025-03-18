@@ -35,7 +35,8 @@ object ViewElement {
             filter = config.filter,
             formatIn = config.formatIn,
             rawInclude = None,
-            rawExclude = None
+            rawExclude = None,
+            excludeFields = None
           )
         )
       )
