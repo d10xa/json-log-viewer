@@ -38,32 +38,23 @@ object LogViewerStream {
             val feedStream: Stream[IO, String] =
               commandsAndInlineInputToStream(feed.commands, feed.inlineInput)
 
-            // First line of csv is header
-            val formatIn = feed.formatIn.orElse(config.formatIn)
-            if (formatIn.contains(FormatIn.Csv)) {
-              processStreamWithCsvHeader(
-                config,
-                feedStream,
-                configYamlRef,
-                index
-              )
-            } else {
-              processStream(config, feedStream, configYamlRef, index)
-            }
+            createProcessStream(
+              config = config,
+              lines = feedStream,
+              configYamlRef = configYamlRef,
+              index = index,
+              initialFormatIn = feed.formatIn.orElse(config.formatIn)
+            )
           }
           Stream.emits(feedStreams).parJoin(feedStreams.size)
         case None =>
-          // First line of csv is header
-          if (config.formatIn.contains(FormatIn.Csv)) {
-            processStreamWithCsvHeader(
-              config,
-              stdinLinesStream,
-              configYamlRef,
-              -1
-            )
-          } else {
-            processStream(config, stdinLinesStream, configYamlRef, -1)
-          }
+          createProcessStream(
+            config = config,
+            lines = stdinLinesStream,
+            configYamlRef = configYamlRef,
+            index = -1,
+            initialFormatIn = config.formatIn
+          )
       }
 
       finalStream
@@ -71,124 +62,73 @@ object LogViewerStream {
         .append(Stream.emit("\n"))
     }
 
-  private def processStreamWithCsvHeader(
-    config: Config,
-    lines: Stream[IO, String],
-    configYamlRef: Ref[IO, Option[ConfigYaml]],
-    index: Int
-  ): Stream[IO, String] =
-    lines.pull.uncons1.flatMap {
-      case Some((headerLine, rest)) =>
-        val csvHeaderParser = CsvLogLineParser(config, headerLine)
-        Stream
-          .emit(csvHeaderParser)
-          .flatMap { parser =>
-            processStreamWithParser(config, rest, configYamlRef, index, parser)
-          }
-          .pull
-          .echo
-      case None =>
-        Pull.done
-    }.stream
-
-  private def processStreamWithParser(
+  private def createProcessStream(
     config: Config,
     lines: Stream[IO, String],
     configYamlRef: Ref[IO, Option[ConfigYaml]],
     index: Int,
-    logLineParser: LogLineParser
+    initialFormatIn: Option[FormatIn]
   ): Stream[IO, String] =
-    for {
-      line <- lines
-      optConfigYaml <- Stream.eval(configYamlRef.get)
-      filter = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.filter))
-        .orElse(config.filter)
-      rawInclude = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.rawInclude))
-      rawExclude = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.rawExclude))
-      feedName = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.name))
-      effectiveConfig = config.copy(
-        filter = filter
+    // Обрабатываем CSV отдельно, так как для него нужна строка заголовка
+    if (initialFormatIn.contains(FormatIn.Csv)) {
+      lines.pull.uncons1.flatMap {
+        case Some((headerLine, rest)) =>
+          val csvHeaderParser = CsvLogLineParser(config, headerLine)
+          processStreamWithEffectiveConfig(
+            config = config,
+            lines = rest,
+            configYamlRef = configYamlRef,
+            index = index,
+            parser = Some(csvHeaderParser)
+          ).pull.echo
+        case None =>
+          Pull.done
+      }.stream
+    } else {
+      processStreamWithEffectiveConfig(
+        config = config,
+        lines = lines,
+        configYamlRef = configYamlRef,
+        index = index,
+        parser = None
       )
-      timestampFilter = TimestampFilter()
-      parseResultKeys = ParseResultKeys(effectiveConfig)
-      logLineFilter = LogLineFilter(effectiveConfig, parseResultKeys)
-      outputLineFormatter = effectiveConfig.formatOut match
-        case Some(Config.FormatOut.Raw) => RawFormatter()
-        case Some(Config.FormatOut.Pretty) | None =>
-          ColorLineFormatter(effectiveConfig, feedName)
-      evaluatedLine <- Stream
-        .emit(line)
-        .filter(rawFilter(_, rawInclude, rawExclude))
-        .map(logLineParser.parse)
-        .filter(logLineFilter.grep)
-        .filter(logLineFilter.logLineQueryPredicate)
-        .through(
-          timestampFilter.filterTimestampAfter(effectiveConfig.timestamp.after)
-        )
-        .through(
-          timestampFilter.filterTimestampBefore(
-            effectiveConfig.timestamp.before
-          )
-        )
-        .map(pr =>
-          Try(outputLineFormatter.formatLine(pr)) match {
-            case Success(formatted) => formatted.toString
-            case Failure(_)         => pr.raw
-          }
-        )
-    } yield evaluatedLine
+    }
 
-  /** Processing for non-csv files
-    */
-  private def processStream(
+  private def processStreamWithEffectiveConfig(
     config: Config,
     lines: Stream[IO, String],
     configYamlRef: Ref[IO, Option[ConfigYaml]],
-    index: Int
+    index: Int,
+    parser: Option[LogLineParser]
   ): Stream[IO, String] =
     for {
       line <- lines
       optConfigYaml <- Stream.eval(configYamlRef.get)
-      formatIn = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.formatIn))
-        .orElse(config.formatIn)
-      filter = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.filter))
-        .orElse(config.filter)
-      rawInclude = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.rawInclude))
-      rawExclude = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.rawExclude))
-      feedName = optConfigYaml
-        .flatMap(_.feeds)
-        .flatMap(_.lift(index).flatMap(_.name))
+
+      feedConfig = extractFeedConfig(optConfigYaml, index)
+
       effectiveConfig = config.copy(
-        filter = filter,
-        formatIn = formatIn
+        filter = feedConfig.filter.orElse(config.filter),
+        formatIn = feedConfig.formatIn.orElse(config.formatIn)
       )
+
       timestampFilter = TimestampFilter()
       parseResultKeys = ParseResultKeys(effectiveConfig)
       logLineFilter = LogLineFilter(effectiveConfig, parseResultKeys)
-      logLineParser = makeNonCsvLogLineParser(effectiveConfig, formatIn)
-      outputLineFormatter = effectiveConfig.formatOut match
+
+      logLineParser = parser.getOrElse(
+        makeNonCsvLogLineParser(effectiveConfig, feedConfig.formatIn)
+      )
+
+      outputLineFormatter = effectiveConfig.formatOut match {
         case Some(Config.FormatOut.Raw) => RawFormatter()
         case Some(Config.FormatOut.Pretty) | None =>
-          ColorLineFormatter(effectiveConfig, feedName)
+          ColorLineFormatter(effectiveConfig, feedConfig.feedName)
+      }
+
       evaluatedLine <- Stream
         .emit(line)
-        .filter(rawFilter(_, rawInclude, rawExclude))
+        .filter(rawFilter(_, feedConfig.rawInclude, feedConfig.rawExclude))
         .map(logLineParser.parse)
         .filter(logLineFilter.grep)
         .filter(logLineFilter.logLineQueryPredicate)
@@ -200,13 +140,42 @@ object LogViewerStream {
             effectiveConfig.timestamp.before
           )
         )
-        .map(pr =>
-          Try(outputLineFormatter.formatLine(pr)) match {
-            case Success(formatted) => formatted.toString
-            case Failure(_)         => pr.raw
-          }
-        )
+        .map(formatWithSafety(_, outputLineFormatter))
     } yield evaluatedLine
+
+  private def formatWithSafety(
+    parseResult: ParseResult,
+    formatter: OutputLineFormatter
+  ): String =
+    Try(formatter.formatLine(parseResult)) match {
+      case Success(formatted) => formatted.toString
+      case Failure(_)         => parseResult.raw
+    }
+
+  private case class FeedConfig(
+    feedName: Option[String],
+    filter: Option[ru.d10xa.jsonlogviewer.query.QueryAST],
+    formatIn: Option[FormatIn],
+    rawInclude: Option[List[String]],
+    rawExclude: Option[List[String]]
+  )
+
+  private def extractFeedConfig(
+    optConfigYaml: Option[ConfigYaml],
+    index: Int
+  ): FeedConfig = {
+    val feedOpt = optConfigYaml
+      .flatMap(_.feeds)
+      .flatMap(_.lift(index))
+
+    FeedConfig(
+      feedName = feedOpt.flatMap(_.name),
+      filter = feedOpt.flatMap(_.filter),
+      formatIn = feedOpt.flatMap(_.formatIn),
+      rawInclude = feedOpt.flatMap(_.rawInclude),
+      rawExclude = feedOpt.flatMap(_.rawExclude)
+    )
+  }
 
   private def commandsAndInlineInputToStream(
     commands: List[String],
@@ -223,7 +192,7 @@ object LogViewerStream {
       case Some(FormatIn.Logfmt) => LogfmtLogLineParser(config)
       case Some(FormatIn.Csv) =>
         throw new IllegalStateException(
-          "method makeNonCsvLogLineParserCSV not support csv"
+          "method makeNonCsvLogLineParser does not support csv"
         )
       case _ => JsonLogLineParser(config, jsonPrefixPostfix)
     }
