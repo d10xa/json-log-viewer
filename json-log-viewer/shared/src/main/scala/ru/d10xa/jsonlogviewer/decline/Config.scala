@@ -18,9 +18,7 @@ object Config:
   final case class ConfigGrep(key: String, value: Regex)
 
   enum FormatIn:
-    case Json, Logfmt
+    case Json, Logfmt, Csv
 
   enum FormatOut:
     case Pretty, Raw
-
-end Config

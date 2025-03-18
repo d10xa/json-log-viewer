@@ -43,7 +43,7 @@ object DeclineOpts {
     .orNone
 
   val formatIn: Opts[Option[FormatIn]] = Opts
-    .option[String]("format-in", help = "json, logfmt")
+    .option[String]("format-in", help = "json, logfmt, csv")
     .mapValidated(FormatInValidator.toValidatedFormatIn)
     .orNone
 
