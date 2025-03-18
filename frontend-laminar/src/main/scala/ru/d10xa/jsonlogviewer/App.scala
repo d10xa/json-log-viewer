@@ -17,6 +17,7 @@ import ru.d10xa.jsonlogviewer.Router0.ViewPage
 import ru.d10xa.jsonlogviewer.Router0.navigateTo
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Csv
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Json
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Logfmt
 import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
@@ -42,6 +43,16 @@ object App {
     """
       |@timestamp=2023-09-18T19:10:10.123456Z thread_name=main logger_name=MakeLogs first line custom_field=custom
       |@timestamp=2023-09-18T19:10:10.123456Z second line {"level":"INFO"}
+      |""".stripMargin
+
+  val csvSample: String =
+    """@timestamp,level,logger_name,thread_name,message
+      |2023-09-18T19:10:10.123456Z,INFO,MakeLogs,main,"first line, with comma"
+      |2023-09-18T19:11:20.132318Z,INFO,MakeLogs,main,test
+      |2023-09-18T19:12:30.132319Z,DEBUG,MakeLogs,main,debug msg
+      |2023-09-18T19:13:42.132321Z,WARN,MakeLogs,main,warn msg
+      |2023-09-18T19:14:42.137207Z,ERROR,MakeLogs,main,"error message,error details"
+      |2023-09-18T19:15:42.137207Z,INFO,MakeLogs,main,last line
       |""".stripMargin
 
   val textVar: Var[String] = Var("")
@@ -132,13 +143,16 @@ object App {
       value <-- formatInVar.signal.map {
         case FormatIn.Json   => "json"
         case FormatIn.Logfmt => "logfmt"
+        case FormatIn.Csv    => "csv"
       },
       onChange.mapToValue.map {
         case "json"   => FormatIn.Json
         case "logfmt" => FormatIn.Logfmt
+        case "csv"    => FormatIn.Csv
       } --> formatInVar,
       option(value := "json", "json"),
-      option(value := "logfmt", "logfmt")
+      option(value := "logfmt", "logfmt"),
+      option(value := "csv", "csv")
     )
   )
   def formatOutDiv: ReactiveHtmlElement[HTMLDivElement] = div(
@@ -196,11 +210,13 @@ object App {
     child.text <-- formatInVar.signal.map {
       case Logfmt => "Generate logfmt logs"
       case Json   => "Generate json logs"
+      case Csv    => "Generate csv logs"
     },
     onClick --> { _ =>
       formatInVar.now() match
         case Config.FormatIn.Json   => textVar.set(jsonLogSample)
         case Config.FormatIn.Logfmt => textVar.set(logfmtSample)
+        case Config.FormatIn.Csv => textVar.set(csvSample)
     }
   )
   private def renderLivePage(): HtmlElement = {

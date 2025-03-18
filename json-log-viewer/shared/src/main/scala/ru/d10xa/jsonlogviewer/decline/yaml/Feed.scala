@@ -10,5 +10,6 @@ case class Feed(
   filter: Option[QueryAST],
   formatIn: Option[FormatIn],
   rawInclude: Option[List[String]],
-  rawExclude: Option[List[String]]
+  rawExclude: Option[List[String]],
+  excludeFields: Option[List[String]]
 )

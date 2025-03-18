@@ -5,7 +5,6 @@ import cats.data.Validated
 import cats.data.ValidatedNel
 import cats.syntax.all.*
 import io.circe.*
-import io.circe.generic.auto.*
 import io.circe.yaml.scalayaml.parser
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.FormatInValidator
@@ -148,6 +147,11 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           parseOptionalListString(feedFields, "rawInclude")
         val rawExcludeValidated =
           parseOptionalListString(feedFields, "rawExclude")
+        val excludeFieldsValidated =
+          parseOptionalListString(
+            feedFields,
+            "excludeFields"
+          )
         (
           nameValidated,
           commandsValidated,
@@ -155,7 +159,8 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           filterValidated,
           formatInValidated,
           rawIncludeValidated,
-          rawExcludeValidated
+          rawExcludeValidated,
+          excludeFieldsValidated
         )
           .mapN(Feed.apply)
     }
