@@ -69,7 +69,6 @@ object LogViewerStream {
     index: Int,
     initialFormatIn: Option[FormatIn]
   ): Stream[IO, String] =
-    // Обрабатываем CSV отдельно, так как для него нужна строка заголовка
     if (initialFormatIn.contains(FormatIn.Csv)) {
       lines.pull.uncons1.flatMap {
         case Some((headerLine, rest)) =>
@@ -123,7 +122,7 @@ object LogViewerStream {
       outputLineFormatter = effectiveConfig.formatOut match {
         case Some(Config.FormatOut.Raw) => RawFormatter()
         case Some(Config.FormatOut.Pretty) | None =>
-          ColorLineFormatter(effectiveConfig, feedConfig.feedName)
+          ColorLineFormatter(effectiveConfig, feedConfig.feedName, feedConfig.excludeFields)
       }
 
       evaluatedLine <- Stream
@@ -152,18 +151,20 @@ object LogViewerStream {
       case Failure(_)         => parseResult.raw
     }
 
+  // TODO
   private case class FeedConfig(
     feedName: Option[String],
     filter: Option[ru.d10xa.jsonlogviewer.query.QueryAST],
     formatIn: Option[FormatIn],
     rawInclude: Option[List[String]],
-    rawExclude: Option[List[String]]
+    rawExclude: Option[List[String]],
+    excludeFields: Option[List[String]]
   )
 
   private def extractFeedConfig(
-    optConfigYaml: Option[ConfigYaml],
-    index: Int
-  ): FeedConfig = {
+                                 optConfigYaml: Option[ConfigYaml],
+                                 index: Int
+                               ): FeedConfig = {
     val feedOpt = optConfigYaml
       .flatMap(_.feeds)
       .flatMap(_.lift(index))
@@ -173,7 +174,8 @@ object LogViewerStream {
       filter = feedOpt.flatMap(_.filter),
       formatIn = feedOpt.flatMap(_.formatIn),
       rawInclude = feedOpt.flatMap(_.rawInclude),
-      rawExclude = feedOpt.flatMap(_.rawExclude)
+      rawExclude = feedOpt.flatMap(_.rawExclude),
+      excludeFields = feedOpt.flatMap(_.excludeFields)
     )
   }
 

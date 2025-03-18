@@ -59,13 +59,6 @@ class CsvLogLineParser(config: Config, headers: List[String]) extends LogLinePar
 }
 
 object CsvLogLineParser {
-  /**
-   * Создает CSV парсер логов на основе строки заголовков.
-   *
-   * @param config конфигурация
-   * @param headerLine строка заголовков CSV
-   * @return парсер логов CSV
-   */
   def apply(config: Config, headerLine: String): CsvLogLineParser = {
     val csvParser = new CsvParser()
     val headers = csvParser.parseLine(headerLine)
