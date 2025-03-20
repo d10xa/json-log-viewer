@@ -128,6 +128,42 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
         Validated.valid(None)
     }
 
+  private def parseOptionalFieldNames(
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[FieldNames]] =
+    fields.get(fieldName) match {
+      case Some(jsonValue) =>
+        jsonValue.asObject.map(_.toMap) match {
+          case None =>
+            Validated.invalidNel(
+              s"Invalid '$fieldName' field format, should be an object"
+            )
+          case Some(fieldNamesFields) =>
+            val timestampValidated =
+              parseOptionalString(fieldNamesFields, "timestamp")
+            val levelValidated = parseOptionalString(fieldNamesFields, "level")
+            val messageValidated =
+              parseOptionalString(fieldNamesFields, "message")
+            val stackTraceValidated =
+              parseOptionalString(fieldNamesFields, "stackTrace")
+            val loggerNameValidated =
+              parseOptionalString(fieldNamesFields, "loggerName")
+            val threadNameValidated =
+              parseOptionalString(fieldNamesFields, "threadName")
+
+            (
+              timestampValidated,
+              levelValidated,
+              messageValidated,
+              stackTraceValidated,
+              loggerNameValidated,
+              threadNameValidated
+            ).mapN(FieldNames.apply).map(Some(_))
+        }
+      case None => Validated.valid(None)
+    }
+
   private def parseFeed(feedJson: Json): ValidatedNel[String, Feed] =
     feedJson.asObject.map(_.toMap) match {
       case None => Validated.invalidNel("Feed entry is not a valid JSON object")
@@ -143,6 +179,8 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
         val formatInValidated
           : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
+        val fieldNamesValidated =
+          parseOptionalFieldNames(feedFields, "fieldNames")
         val rawIncludeValidated =
           parseOptionalListString(feedFields, "rawInclude")
         val rawExcludeValidated =
@@ -158,6 +196,7 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           inlineInputValidated,
           filterValidated,
           formatInValidated,
+          fieldNamesValidated,
           rawIncludeValidated,
           rawExcludeValidated,
           excludeFieldsValidated
@@ -182,7 +221,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
             case Some(fields) =>
               val feedsValidated: ValidatedNel[String, Option[List[Feed]]] =
                 parseOptionalFeeds(fields, "feeds")
-              feedsValidated.map(ConfigYaml.apply)
+              val fieldNamesValidated =
+                parseOptionalFieldNames(fields, "fieldNames")
+              (fieldNamesValidated, feedsValidated).mapN(ConfigYaml.apply)
           }
       }
     }

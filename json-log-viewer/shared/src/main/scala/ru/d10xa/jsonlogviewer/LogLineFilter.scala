@@ -1,9 +1,8 @@
 package ru.d10xa.jsonlogviewer
 
-import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 
-class LogLineFilter(config: Config, parseResultKeys: ParseResultKeys) {
+class LogLineFilter(config: ResolvedConfig, parseResultKeys: ParseResultKeys) {
 
   def logLineQueryPredicate(line: ParseResult): Boolean =
     config.filter match
@@ -15,10 +14,11 @@ class LogLineFilter(config: Config, parseResultKeys: ParseResultKeys) {
     parseResult: ParseResult
   ): Boolean =
     config.grep
-      .map { case ConfigGrep(grepKey, regex) =>
-        parseResultKeys.getByKey(parseResult, grepKey).exists(regex.matches)
+      .map { grepConfig =>
+        parseResultKeys
+          .getByKey(parseResult, grepConfig.key)
+          .exists(grepConfig.value.matches)
       } match
       case Nil  => true
       case list => list.reduce(_ || _)
-
 }

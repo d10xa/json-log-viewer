@@ -3,13 +3,15 @@ package ru.d10xa.jsonlogviewer.formatout
 import fansi.ErrorMode.Strip
 import fansi.EscapeAttr
 import fansi.Str
-import ru.d10xa.jsonlogviewer.HardcodedFieldNames._
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.OutputLineFormatter
 import ru.d10xa.jsonlogviewer.ParseResult
-import ru.d10xa.jsonlogviewer.decline.Config
 
-class ColorLineFormatter(c: Config, feedName: Option[String], excludeFields: Option[List[String]])
-  extends OutputLineFormatter:
+class ColorLineFormatter(
+  config: ResolvedConfig,
+  feedName: Option[String],
+  excludeFields: Option[List[String]]
+) extends OutputLineFormatter:
   private val strEmpty: Str = Str("")
   private val strSpace: Str = Str(" ")
   private val strNewLine: Str = Str("\n")
@@ -26,55 +28,62 @@ class ColorLineFormatter(c: Config, feedName: Option[String], excludeFields: Opt
       case _                  => fansi.Color.White
 
   def strLevel(levelOpt: Option[String], colorAttr: EscapeAttr): Seq[Str] =
-    if (shouldExcludeField(levelFieldName)) Nil
-    else levelOpt match
-      case Some(level) => strSpace :: colorAttr(s"[${level.ansiStrip}]") :: Nil
-      case None        => Nil
+    if (shouldExcludeField(config.fieldNames.levelFieldName)) Nil
+    else
+      levelOpt match
+        case Some(level) =>
+          strSpace :: colorAttr(s"[${level.ansiStrip}]") :: Nil
+        case None => Nil
 
   def strMessage(messageOpt: Option[String], colorAttr: EscapeAttr): Seq[Str] =
-    if (shouldExcludeField(messageFieldName)) Nil
-    else messageOpt match
-      case Some(message) => strSpace :: colorAttr(message.ansiStrip) :: Nil
-      case None          => Nil
+    if (shouldExcludeField(config.fieldNames.messageFieldName)) Nil
+    else
+      messageOpt match
+        case Some(message) => strSpace :: colorAttr(message.ansiStrip) :: Nil
+        case None          => Nil
 
   def strStackTrace(
     stackTraceOpt: Option[String],
     colorAttr: EscapeAttr
   ): Seq[Str] =
-    if (shouldExcludeField(stackTraceFieldName)) Nil
-    else stackTraceOpt match
-      case Some(s) => strNewLine :: colorAttr(s.ansiStrip) :: Nil
-      case None    => Nil
+    if (shouldExcludeField(config.fieldNames.stackTraceFieldName)) Nil
+    else
+      stackTraceOpt match
+        case Some(s) => strNewLine :: colorAttr(s.ansiStrip) :: Nil
+        case None    => Nil
 
   def strLoggerName(
     loggerNameOpt: Option[String],
     colorAttr: EscapeAttr
   ): Seq[Str] =
-    if (shouldExcludeField(loggerNameFieldName)) Nil
-    else loggerNameOpt match
-      case Some(loggerName) =>
-        strSpace :: colorAttr(loggerName.ansiStrip) :: Nil
-      case None => Nil
+    if (shouldExcludeField(config.fieldNames.loggerNameFieldName)) Nil
+    else
+      loggerNameOpt match
+        case Some(loggerName) =>
+          strSpace :: colorAttr(loggerName.ansiStrip) :: Nil
+        case None => Nil
 
   def strTimestamp(
     timestampOpt: Option[String],
     colorAttr: EscapeAttr
   ): Seq[Str] =
-    if (shouldExcludeField(c.timestamp.fieldName)) Nil
-    else timestampOpt match
-      case Some(timestamp) =>
-        strSpace :: colorAttr(timestamp.ansiStrip) :: Nil
-      case None => Nil
+    if (shouldExcludeField(config.fieldNames.timestampFieldName)) Nil
+    else
+      timestampOpt match
+        case Some(timestamp) =>
+          strSpace :: colorAttr(timestamp.ansiStrip) :: Nil
+        case None => Nil
 
   def strThreadName(
     threadNameOpt: Option[String],
     colorAttr: EscapeAttr
   ): Seq[Str] =
-    if (shouldExcludeField(threadNameFieldName)) Nil
-    else threadNameOpt match
-      case Some(threadName) =>
-        strSpace :: colorAttr(s"[${threadName.ansiStrip}]") :: Nil
-      case None => Nil
+    if (shouldExcludeField(config.fieldNames.threadNameFieldName)) Nil
+    else
+      threadNameOpt match
+        case Some(threadName) =>
+          strSpace :: colorAttr(s"[${threadName.ansiStrip}]") :: Nil
+        case None => Nil
 
   def strOtherAttributes(
     otherAttributes: Map[String, String],
@@ -83,7 +92,7 @@ class ColorLineFormatter(c: Config, feedName: Option[String], excludeFields: Opt
     val filteredAttributes = otherAttributes.filterNot { case (key, _) =>
       shouldExcludeField(key)
     }
-    
+
     filteredAttributes match
       case m if m.isEmpty => Nil
       case m =>
@@ -103,24 +112,28 @@ class ColorLineFormatter(c: Config, feedName: Option[String], excludeFields: Opt
 
   def strPrefix(s: Option[String]): Seq[Str] =
     if (shouldExcludeField("prefix")) Nil
-    else s match
-      case Some(prefix) =>
-        fansi.Color.White(prefix.ansiStrip) :: strSpace :: Nil
-      case None => Nil
+    else
+      s match
+        case Some(prefix) =>
+          fansi.Color.White(prefix.ansiStrip) :: strSpace :: Nil
+        case None => Nil
 
+  // TODO fix unused
   def strFeedName(s: Option[String]): Seq[Str] =
     if (shouldExcludeField("feed_name")) Nil
-    else s match
-      case Some(feedName) =>
-        fansi.Color.White(feedName.ansiStrip) :: strSpace :: Nil
-      case None => Nil
+    else
+      s match
+        case Some(feedName) =>
+          fansi.Color.White(feedName.ansiStrip) :: strSpace :: Nil
+        case None => Nil
 
   def strPostfix(s: Option[String]): Seq[Str] =
     if (shouldExcludeField("postfix")) Nil
-    else s match
-      case Some(postfix) =>
-        strSpace :: fansi.Color.White(postfix.ansiStrip) :: Nil
-      case None => Nil
+    else
+      s match
+        case Some(postfix) =>
+          strSpace :: fansi.Color.White(postfix.ansiStrip) :: Nil
+        case None => Nil
 
   override def formatLine(p: ParseResult): Str =
     p.parsed match

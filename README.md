@@ -33,9 +33,15 @@ Below is an example of formatted JSON logs in the command-line interface:
 - **Multi-Source Input**  
   Combine the outputs of multiple commands into a single unified log stream.
 
+- **Multiple Input Formats**
+    - **JSON** (default): Process standard JSON log formats
+    - **Logfmt**: Support for key-value pair log formats
+    - **CSV**: Parse and analyze CSV-formatted logs with headers
+
 - **Advanced Filtering**
     - Apply regular expressions to extract relevant log entries.
     - Use SQL-like queries to filter and query JSON fields.
+    - Filter logs by timestamp ranges.
 
 - **YAML Configuration**  
   Define input streams and configurations using YAML files.
@@ -48,6 +54,9 @@ Below is an example of formatted JSON logs in the command-line interface:
 
 - **Integration with k9s**  
   Seamlessly integrate with the k9s Kubernetes CLI tool to visualize logs directly within k9s.
+
+- **Custom Field Mapping**  
+  Configure custom field names mapping to work with non-standard log formats.
 
 ## Installation
 
@@ -81,6 +90,28 @@ json-log-viewer --help
    ```bash
    cat log.txt | json-log-viewer --filter "level = 'ERROR'"
    ```
+
+### Working with Different Log Formats
+
+#### JSON (Default)
+For standard JSON logs:
+```bash
+cat json-logs.txt | json-log-viewer
+```
+
+#### Logfmt
+For logs in logfmt format:
+```bash
+cat logfmt-logs.txt | json-log-viewer --format-in logfmt
+```
+
+#### CSV
+For CSV-formatted logs (requires header row):
+```bash
+cat csv-logs.csv | json-log-viewer --format-in csv
+```
+
+Note: CSV format requires a header row with column names. The tool will map these column names to standard log fields.
 
 ### SQL Filtering
 
@@ -124,6 +155,20 @@ You can use comparison and logical operations.
    cat log.txt | json-log-viewer --filter "(level = 'ERROR' OR level = 'WARN') AND message LIKE '%connection%'"
    ```
 
+### Timestamp Filtering
+
+Filter logs by timestamp range:
+
+```bash
+cat log.txt | json-log-viewer --timestamp-after 2024-01-01T00:00:00Z --timestamp-before 2024-01-31T23:59:59Z
+```
+
+You can also specify a custom timestamp field:
+
+```bash
+cat log.txt | json-log-viewer --timestamp-field time
+```
+
 ## Configuration
 
 `json-log-viewer` supports defining input streams, filters, and other settings using a YAML configuration file.
@@ -139,7 +184,34 @@ Each feed represents a log source and can have the following attributes:
 - **formatIn** (optional): Input log format. Supported values:
     - `json` (default).
     - `logfmt`.
+    - `csv`.
 - **rawInclude** and **rawExclude** (optional): Lists of regular expressions to include or exclude from processing.
+- **excludeFields** (optional): List of fields to exclude from output.
+- **fieldNames** (optional): Custom mapping for field names, helpful when working with non-standard log formats.
+
+### Custom Field Mapping
+
+You can define custom field name mappings either globally or per feed:
+
+```yaml
+# Global field mapping
+fieldNames:
+  timestamp: "ts"
+  level: "severity"
+  message: "msg"
+  stackTrace: "error"
+  loggerName: "logger"
+  threadName: "thread"
+
+feeds:
+  - name: "application-logs"
+    commands:
+      - cat log1.txt
+    # Feed-specific field mapping (overrides global mapping)
+    fieldNames:
+      timestamp: "time"
+      level: "priority"
+```
 
 ### Example Configuration File
 
@@ -155,12 +227,21 @@ feeds:
       - "ERROR"
     rawExclude:
       - "DEBUG"
+    excludeFields:
+      - "thread_name"
   - name: "application-2-logs"
     commands:
       - cat log2.txt
     filter: |
       message NOT LIKE '%heartbeat%'
     formatIn: logfmt
+  - name: "csv-logs"
+    commands:
+      - cat logs.csv
+    formatIn: csv
+    fieldNames:
+      timestamp: "time"
+      level: "severity"
 ```
 
 #### Running with a Configuration File
@@ -186,25 +267,54 @@ json-log-viewer --config-file json-log-viewer.yml
   ```bash
   cat log.txt | json-log-viewer --config-file json-log-viewer.yml
   ```
-  
-- **--format-in**: Specify the input log format (supported formats: json, logfmt).
+
+- **--format-in**: Specify the input log format (supported formats: json, logfmt, csv).
   ```bash
   cat log.txt | json-log-viewer --format-in logfmt
   ```
-  
+
 - **--format-out**: Specify the output format (supported formats: pretty, raw).
   ```bash
   cat log.txt | json-log-viewer --format-out raw
   ```
-  
+
 - **--timestamp-after** and **--timestamp-before**: Filter logs by a specific time range.
   ```bash
   cat log.txt | json-log-viewer --timestamp-after 2024-01-01T00:00:00Z --timestamp-before 2024-01-31T23:59:59Z
   ```
-  
+
 - **--timestamp-field**: Specify the field name for timestamps (default: @timestamp).
   ```bash
   json-log-viewer --timestamp-field time
+  ```
+
+#### Field Name Options
+
+You can override the default field names to work with non-standard log formats:
+
+- **--level-field**: Override default level field name (default: level).
+  ```bash
+  json-log-viewer --level-field severity
+  ```
+
+- **--message-field**: Override default message field name (default: message).
+  ```bash
+  json-log-viewer --message-field msg
+  ```
+
+- **--stack-trace-field**: Override default stack trace field name (default: stack_trace).
+  ```bash
+  json-log-viewer --stack-trace-field exception
+  ```
+
+- **--logger-name-field**: Override default logger name field name (default: logger_name).
+  ```bash
+  json-log-viewer --logger-name-field logger
+  ```
+
+- **--thread-name-field**: Override default thread name field name (default: thread_name).
+  ```bash
+  json-log-viewer --thread-name-field thread
   ```
 
 ## k9s Plugin
@@ -256,7 +366,7 @@ plugins:
 
 ## Development
 
-This section provides instructions for building and running 
+This section provides instructions for building and running
 both the JVM and JavaScript versions of `json-log-viewer`.
 It also includes notes for working on the `frontend-laminar` module.
 
@@ -267,7 +377,7 @@ Ensure you have the following installed on your system:
 - sbt (Scala Build Tool)
 
 ### Building the JVM Version
-To build the JVM version of the project, use the command: 
+To build the JVM version of the project, use the command:
 
 ```bash
 sbt stage
@@ -276,7 +386,7 @@ sbt stage
 This compiles the code and prepares the executable under the `jvm/target/universal/stage/bin/` directory.
 
 ### Running the JVM Version
-Run the application with: 
+Run the application with:
 ```bash
 cat log.txt | ./json-log-viewer/jvm/target/universal/stage/bin/json-log-viewer
 ```
@@ -293,7 +403,7 @@ To build the JavaScript version, you can use one of the following options:
    ```
    This generates a production-ready JavaScript file located at:  
    `frontend-laminar/target/scala-3.6.2/frontend-laminar-opt/main.js`
-2. **Fast Development Build**: Use the command: 
+2. **Fast Development Build**: Use the command:
    ```bash
    sbt fastLinkJS 
    ```

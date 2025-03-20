@@ -3,12 +3,16 @@ package ru.d10xa.jsonlogviewer.csv
 import ru.d10xa.jsonlogviewer.LogLineParser
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParsedLine
-import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.HardcodedFieldNames.*
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 
-class CsvLogLineParser(config: Config, headers: List[String]) extends LogLineParser {
+class CsvLogLineParser(config: ResolvedConfig, headers: List[String]) extends LogLineParser {
   private val csvParser = new CsvParser()
-  private val timestampFieldName: String = config.timestamp.fieldName
+  private val timestampFieldName: String = config.fieldNames.timestampFieldName
+  private val levelFieldName: String = config.fieldNames.levelFieldName
+  private val messageFieldName: String = config.fieldNames.messageFieldName
+  private val stackTraceFieldName: String = config.fieldNames.stackTraceFieldName
+  private val loggerNameFieldName: String = config.fieldNames.loggerNameFieldName
+  private val threadNameFieldName: String = config.fieldNames.threadNameFieldName
 
   private val knownFieldNames: Seq[String] = Seq(
     timestampFieldName,
@@ -59,7 +63,7 @@ class CsvLogLineParser(config: Config, headers: List[String]) extends LogLinePar
 }
 
 object CsvLogLineParser {
-  def apply(config: Config, headerLine: String): CsvLogLineParser = {
+  def apply(config: ResolvedConfig, headerLine: String): CsvLogLineParser = {
     val csvParser = new CsvParser()
     val headers = csvParser.parseLine(headerLine)
     new CsvLogLineParser(config, headers)

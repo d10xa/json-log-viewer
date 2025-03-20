@@ -1,14 +1,18 @@
 package ru.d10xa.jsonlogviewer.logfmt
 
-import ru.d10xa.jsonlogviewer.HardcodedFieldNames.*
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.LogLineParser
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParsedLine
-import ru.d10xa.jsonlogviewer.decline.Config
 
-class LogfmtLogLineParser(config: Config) extends LogLineParser {
+class LogfmtLogLineParser(config: ResolvedConfig) extends LogLineParser {
 
-  val timestampFieldName: String = config.timestamp.fieldName
+  val timestampFieldName: String = config.fieldNames.timestampFieldName
+  val levelFieldName: String = config.fieldNames.levelFieldName
+  val messageFieldName: String = config.fieldNames.messageFieldName
+  val stackTraceFieldName: String = config.fieldNames.stackTraceFieldName
+  val loggerNameFieldName: String = config.fieldNames.loggerNameFieldName
+  val threadNameFieldName: String = config.fieldNames.threadNameFieldName
 
   val knownFieldNames: Seq[String] = Seq(
     timestampFieldName,
@@ -28,7 +32,7 @@ class LogfmtLogLineParser(config: Config) extends LogLineParser {
       raw = s,
       parsed = Some(
         ParsedLine(
-          timestamp = res.get(config.timestamp.fieldName),
+          timestamp = res.get(timestampFieldName),
           level = res.get(levelFieldName),
           message = if other.nonEmpty then Some(other) else None,
           stackTrace = res.get(stackTraceFieldName),
@@ -41,12 +45,10 @@ class LogfmtLogLineParser(config: Config) extends LogLineParser {
       prefix = None,
       postfix = None
     )
-
 }
 
 object LogfmtLogLineParser:
 
-  // TODO rename
   def toMap(ast: LogFmtAst): (Map[String, String], String) =
     ast match
       case StatementsAst(asts) =>

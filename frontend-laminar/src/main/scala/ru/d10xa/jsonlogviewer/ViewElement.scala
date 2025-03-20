@@ -36,7 +36,8 @@ object ViewElement {
             formatIn = config.formatIn,
             rawInclude = None,
             rawExclude = None,
-            excludeFields = None
+            excludeFields = None,
+            fieldNames = None
           )
         )
       )
