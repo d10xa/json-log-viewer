@@ -83,6 +83,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   )
 
   private val resolvedConfig: ResolvedConfig = ResolvedConfig(
+    showEmptyFields = false,
     feedName = None,
     commands = List.empty,
     inlineInput = None,

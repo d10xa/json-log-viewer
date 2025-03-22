@@ -89,9 +89,13 @@ class ColorLineFormatter(
     otherAttributes: Map[String, String],
     needNewLine: Boolean
   ): Seq[Str] =
-    val filteredAttributes = otherAttributes.filterNot { case (key, _) =>
-      shouldExcludeField(key)
-    }
+    val filteredAttributes = otherAttributes
+      .filterNot { case (key, _) =>
+        shouldExcludeField(key)
+      }
+      .filterNot { case (_, value) =>
+        !config.showEmptyFields && isEmptyValue(value)
+      }
 
     filteredAttributes match
       case m if m.isEmpty => Nil
@@ -109,6 +113,9 @@ class ColorLineFormatter(
           fansi.Color.LightMagenta("\n")
         )
         (if (needNewLine) strNewLine else strEmpty) :: s :: Nil
+
+  private def isEmptyValue(value: String): Boolean =
+    value.isEmpty || value == "null" || value == "\"\"" || value == "{}" || value == "[]"
 
   def strPrefix(s: Option[String]): Seq[Str] =
     if (shouldExcludeField("prefix")) Nil

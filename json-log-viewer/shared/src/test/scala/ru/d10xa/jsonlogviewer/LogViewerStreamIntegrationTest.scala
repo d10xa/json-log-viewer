@@ -40,13 +40,15 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
     grep = List.empty,
     filter = None,
     formatIn = Some(Config.FormatIn.Json),
-    formatOut = Some(Config.FormatOut.Raw)
+    formatOut = Some(Config.FormatOut.Raw),
+    showEmptyFields = false
   )
 
   test("config filters should update during live reload") {
     // Create config with INFO filter
     val infoFilter = QueryCompiler("level = 'INFO'").toOption
     val initialConfig = ConfigYaml(
+      showEmptyFields = None,
       fieldNames = None,
       feeds = Some(
         List(
@@ -59,7 +61,8 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
             fieldNames = None,
             rawInclude = None,
             rawExclude = None,
-            excludeFields = None
+            excludeFields = None,
+            showEmptyFields = None
           )
         )
       )
@@ -155,6 +158,7 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
   test("field mappings should update during live reload") {
     // Initial configuration with standard field names
     val initialConfig = ConfigYaml(
+      showEmptyFields = None,
       fieldNames = None,
       feeds = Some(
         List(
@@ -167,7 +171,8 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
             fieldNames = None,
             rawInclude = None,
             rawExclude = None,
-            excludeFields = None
+            excludeFields = None,
+            showEmptyFields = None
           )
         )
       )
@@ -180,6 +185,7 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
     // Updated config with custom field names mapping
     val updatedConfig = ConfigYaml(
+      showEmptyFields = None,
       fieldNames = Some(
         FieldNames(
           timestamp = Some("ts"),

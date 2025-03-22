@@ -37,7 +37,8 @@ final case class ResolvedConfig(
   timestampBefore: Option[ZonedDateTime],
 
   // Other settings
-  grep: List[ConfigGrep]
+  grep: List[ConfigGrep],
+  showEmptyFields: Boolean
 )
 
 /** Resolves configuration by merging global and feed-specific settings into a
@@ -75,7 +76,9 @@ object ConfigResolver {
               // For each feed, merge its field names with global field names
               val feedFieldNames =
                 mergeFieldNames(globalFieldNames, feed.fieldNames)
-
+              val feedShowEmptyFields = feed.showEmptyFields
+                .orElse(yaml.showEmptyFields)
+                .getOrElse(config.showEmptyFields)
               ResolvedConfig(
                 feedName = feed.name,
                 commands = feed.commands,
@@ -89,7 +92,8 @@ object ConfigResolver {
                 excludeFields = feed.excludeFields,
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
-                grep = config.grep
+                grep = config.grep,
+                showEmptyFields = feedShowEmptyFields
               )
             }
           case _ =>
@@ -108,7 +112,8 @@ object ConfigResolver {
                 excludeFields = None,
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
-                grep = config.grep
+                grep = config.grep,
+                showEmptyFields = config.showEmptyFields
               )
             )
         }
@@ -128,7 +133,8 @@ object ConfigResolver {
             excludeFields = None,
             timestampAfter = config.timestamp.after,
             timestampBefore = config.timestamp.before,
-            grep = config.grep
+            grep = config.grep,
+            showEmptyFields = config.showEmptyFields
           )
         )
     }

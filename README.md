@@ -216,6 +216,7 @@ feeds:
 ### Example Configuration File
 
 ```yaml
+showEmptyFields: true
 feeds:
   - name: "application-1-logs"
     commands:
@@ -229,6 +230,7 @@ feeds:
       - "DEBUG"
     excludeFields:
       - "thread_name"
+    showEmptyFields: false
   - name: "application-2-logs"
     commands:
       - cat log2.txt
@@ -287,6 +289,12 @@ json-log-viewer --config-file json-log-viewer.yml
   ```bash
   json-log-viewer --timestamp-field time
   ```
+
+- **--show-empty-fields**: Display fields with empty values (null, empty strings, etc.) in output.
+  ```bash
+  cat log.txt | json-log-viewer --show-empty-fields
+  ```
+
 
 #### Field Name Options
 

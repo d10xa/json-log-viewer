@@ -12,5 +12,6 @@ case class Feed(
   fieldNames: Option[FieldNames],
   rawInclude: Option[List[String]],
   rawExclude: Option[List[String]],
-  excludeFields: Option[List[String]]
+  excludeFields: Option[List[String]],
+  showEmptyFields: Option[Boolean]
 )

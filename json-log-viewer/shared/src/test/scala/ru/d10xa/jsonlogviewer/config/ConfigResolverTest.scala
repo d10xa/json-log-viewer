@@ -24,7 +24,8 @@ class ConfigResolverTest extends FunSuite {
     grep = List.empty,
     filter = None,
     formatIn = None,
-    formatOut = None
+    formatOut = None,
+    showEmptyFields = false
   )
 
   test("resolve returns single config when no ConfigYaml provided") {
@@ -43,6 +44,7 @@ class ConfigResolverTest extends FunSuite {
 
   test("resolve merges global fieldNames from ConfigYaml") {
     val configYaml = ConfigYaml(
+      showEmptyFields = None,
       fieldNames = Some(
         FieldNames(
           timestamp = Some("ts"),
@@ -72,6 +74,7 @@ class ConfigResolverTest extends FunSuite {
 
   test("resolve correctly handles multiple feeds") {
     val configYaml = ConfigYaml(
+      showEmptyFields = None,
       fieldNames = Some(
         FieldNames(
           timestamp = Some("ts"),
@@ -102,7 +105,8 @@ class ConfigResolverTest extends FunSuite {
             ),
             rawInclude = None,
             rawExclude = None,
-            excludeFields = None
+            excludeFields = None,
+            showEmptyFields = None
           ),
           Feed(
             name = Some("feed2"),
@@ -113,7 +117,8 @@ class ConfigResolverTest extends FunSuite {
             fieldNames = None,
             rawInclude = None,
             rawExclude = None,
-            excludeFields = None
+            excludeFields = None,
+            showEmptyFields = None
           )
         )
       )

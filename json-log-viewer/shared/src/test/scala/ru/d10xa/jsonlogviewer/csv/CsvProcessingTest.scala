@@ -33,7 +33,8 @@ class CsvProcessingTest extends CatsEffectSuite {
       grep = List.empty,
       filter = None,
       formatIn = Some(Config.FormatIn.Csv),
-      formatOut = Some(Config.FormatOut.Raw)
+      formatOut = Some(Config.FormatOut.Raw),
+      showEmptyFields = false
     )
 
     for {
@@ -84,7 +85,8 @@ class CsvProcessingTest extends CatsEffectSuite {
       grep = List.empty,
       filter = None,
       formatIn = Some(Config.FormatIn.Csv),
-      formatOut = Some(Config.FormatOut.Raw)
+      formatOut = Some(Config.FormatOut.Raw),
+      showEmptyFields = false
     )
 
     for {
