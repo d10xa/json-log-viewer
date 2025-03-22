@@ -115,7 +115,7 @@ class ColorLineFormatter(
         (if (needNewLine) strNewLine else strEmpty) :: s :: Nil
 
   private def isEmptyValue(value: String): Boolean =
-    value.isEmpty || value == "null" || value == "\"\"" || value == "{}" || value == "[]"
+    value.trim.isEmpty || value == "null" || value == "\"\"" || value == "{}" || value == "[]"
 
   def strPrefix(s: Option[String]): Seq[Str] =
     if (shouldExcludeField("prefix")) Nil
