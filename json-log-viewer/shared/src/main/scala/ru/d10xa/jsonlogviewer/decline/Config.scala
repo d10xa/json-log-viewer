@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 
 final case class Config(
   configFile: Option[ConfigFile],
+  fieldNames: FieldNamesConfig,
   timestamp: TimestampConfig,
   grep: List[ConfigGrep],
   filter: Option[QueryAST],

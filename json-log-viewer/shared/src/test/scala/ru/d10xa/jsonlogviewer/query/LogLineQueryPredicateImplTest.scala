@@ -1,13 +1,14 @@
 package ru.d10xa.jsonlogviewer.query
 
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
+import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl
 import ru.d10xa.jsonlogviewer.LogLineQueryPredicateImpl.likeContains
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParseResultKeys
 import ru.d10xa.jsonlogviewer.ParsedLine
-import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 
 class LogLineQueryPredicateImplTest extends munit.FunSuite {
 
@@ -81,20 +82,30 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     postfix = None
   )
 
-  private val config: Config = Config(
-    configFile = None,
-    timestamp = TimestampConfig(
-      fieldName = "@timestamp",
-      None,
-      None
+  private val resolvedConfig: ResolvedConfig = ResolvedConfig(
+    feedName = None,
+    commands = List.empty,
+    inlineInput = None,
+    fieldNames = FieldNamesConfig(
+      timestampFieldName = "@timestamp",
+      levelFieldName = "level",
+      messageFieldName = "message",
+      stackTraceFieldName = "stack_trace",
+      loggerNameFieldName = "logger_name",
+      threadNameFieldName = "thread_name"
     ),
-    grep = List.empty,
     filter = None,
     formatIn = None,
-    formatOut = None
+    formatOut = None,
+    rawInclude = None,
+    rawExclude = None,
+    excludeFields = None,
+    timestampAfter = None,
+    timestampBefore = None,
+    grep = List.empty
   )
 
-  private lazy val parseResultKeys = new ParseResultKeys(config = config)
+  private lazy val parseResultKeys = new ParseResultKeys(resolvedConfig)
 
   private def messageLike(s: String): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("message"), StrLiteral(s), false)
@@ -106,6 +117,7 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
   ): LogLineQueryPredicateImpl =
     val le = LikeExpr(StrIdentifier("stack_trace"), StrLiteral(s), negate)
     new LogLineQueryPredicateImpl(le, parseResultKeys)
+
   private def customFieldLike(
     s: String,
     negate: Boolean
