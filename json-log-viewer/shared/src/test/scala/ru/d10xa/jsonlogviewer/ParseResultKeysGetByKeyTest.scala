@@ -26,7 +26,8 @@ class ParseResultKeysGetByKeyTest extends FunSuite {
     excludeFields = None,
     timestampAfter = None,
     timestampBefore = None,
-    grep = List.empty
+    grep = List.empty,
+    showEmptyFields = false,
   )
 
   private val parseResult = ParseResult(

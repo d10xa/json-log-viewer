@@ -12,7 +12,8 @@ final case class Config(
   grep: List[ConfigGrep],
   filter: Option[QueryAST],
   formatIn: Option[Config.FormatIn],
-  formatOut: Option[Config.FormatOut]
+  formatOut: Option[Config.FormatOut],
+  showEmptyFields: Boolean
 )
 
 object Config:

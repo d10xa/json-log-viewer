@@ -29,7 +29,8 @@ class ParseResultKeysTest extends FunSuite {
       excludeFields = None,
       timestampAfter = None,
       timestampBefore = None,
-      grep = List.empty
+      grep = List.empty,
+      showEmptyFields = false
     )
 
     val customConfig = ResolvedConfig(
@@ -52,7 +53,8 @@ class ParseResultKeysTest extends FunSuite {
       excludeFields = None,
       timestampAfter = None,
       timestampBefore = None,
-      grep = List.empty
+      grep = List.empty,
+      showEmptyFields = false
     )
 
     val parseResult = ParseResult(

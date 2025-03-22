@@ -26,6 +26,7 @@ object ViewElement {
 
   def makeConfigYamlForInlineInput(string: String, config: Config): ConfigYaml =
     ConfigYaml(
+      showEmptyFields = None,
       fieldNames = None,
       feeds = Some(
         List(
@@ -38,7 +39,8 @@ object ViewElement {
             rawInclude = None,
             rawExclude = None,
             excludeFields = None,
-            fieldNames = None
+            fieldNames = None,
+            showEmptyFields = None
           )
         )
       )

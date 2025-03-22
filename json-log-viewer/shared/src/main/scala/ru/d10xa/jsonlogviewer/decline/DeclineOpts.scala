@@ -114,6 +114,10 @@ object DeclineOpts {
     .map(ConfigFile.apply)
     .orNone
 
+  val showEmptyFields: Opts[Boolean] = Opts
+    .flag("show-empty-fields", help = "Show fields with empty values in output")
+    .orFalse
+
   val config: Opts[Config] =
     (
       configFile,
@@ -122,17 +126,19 @@ object DeclineOpts {
       grepConfig,
       filterConfig,
       formatIn,
-      formatOut
+      formatOut,
+      showEmptyFields
     ).mapN {
       case (
-            configFile,
-            fieldNamesConfig,
-            timestampConfig,
-            grepConfig,
-            filterConfig,
-            formatIn,
-            formatOut
-          ) =>
+        configFile,
+        fieldNamesConfig,
+        timestampConfig,
+        grepConfig,
+        filterConfig,
+        formatIn,
+        formatOut,
+        showEmptyFields
+        ) =>
         Config(
           configFile = configFile,
           fieldNames = fieldNamesConfig,
@@ -140,7 +146,8 @@ object DeclineOpts {
           grep = grepConfig,
           filter = filterConfig,
           formatIn = formatIn,
-          formatOut = formatOut
+          formatOut = formatOut,
+          showEmptyFields = showEmptyFields
         )
     }
 

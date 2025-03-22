@@ -164,6 +164,22 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
       case None => Validated.valid(None)
     }
 
+  private def parseOptionalBoolean(
+    fields: Map[String, Json],
+    fieldName: String
+  ): ValidatedNel[String, Option[Boolean]] =
+    fields.get(fieldName) match {
+      case Some(jsonValue) =>
+        jsonValue
+          .as[Boolean]
+          .leftMap(_ =>
+            s"Invalid '$fieldName' field format, should be a boolean"
+          )
+          .toValidatedNel
+          .map(Some(_))
+      case None => Validated.valid(None)
+    }
+
   private def parseFeed(feedJson: Json): ValidatedNel[String, Feed] =
     feedJson.asObject.map(_.toMap) match {
       case None => Validated.invalidNel("Feed entry is not a valid JSON object")
@@ -177,7 +193,7 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           parseOptionalString(feedFields, "inlineInput")
         val filterValidated = parseOptionalQueryAST(feedFields, "filter")
         val formatInValidated
-          : Validated[NonEmptyList[String], Option[FormatIn]] =
+        : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
         val fieldNamesValidated =
           parseOptionalFieldNames(feedFields, "fieldNames")
@@ -190,6 +206,9 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
             feedFields,
             "excludeFields"
           )
+        val showEmptyFieldsValidated =
+          parseOptionalBoolean(feedFields, "showEmptyFields")
+
         (
           nameValidated,
           commandsValidated,
@@ -199,7 +218,8 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           fieldNamesValidated,
           rawIncludeValidated,
           rawExcludeValidated,
-          excludeFieldsValidated
+          excludeFieldsValidated,
+          showEmptyFieldsValidated
         )
           .mapN(Feed.apply)
     }
@@ -223,7 +243,10 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
                 parseOptionalFeeds(fields, "feeds")
               val fieldNamesValidated =
                 parseOptionalFieldNames(fields, "fieldNames")
-              (fieldNamesValidated, feedsValidated).mapN(ConfigYaml.apply)
+              val showEmptyFieldsValidated =
+                parseOptionalBoolean(fields, "showEmptyFields")
+
+              (fieldNamesValidated, feedsValidated, showEmptyFieldsValidated).mapN(ConfigYaml.apply)
           }
       }
     }
