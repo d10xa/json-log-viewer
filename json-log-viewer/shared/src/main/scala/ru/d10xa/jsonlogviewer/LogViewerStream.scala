@@ -66,7 +66,16 @@ object LogViewerStream {
         }
         Stream.emits(feedStreams).parJoin(feedStreams.size)
       } else {
-        processStreamWithConfig(stdinLinesStream, resolvedConfigs.head)
+        val resolvedConfig = resolvedConfigs.head
+        val inputStream = if (resolvedConfig.inlineInput.isDefined) {
+          commandsAndInlineInputToStream(
+            resolvedConfig.commands,
+            resolvedConfig.inlineInput
+          )
+        } else {
+          stdinLinesStream
+        }
+        processStreamWithConfig(inputStream, resolvedConfig)
       }
 
       finalStream.intersperse("\n").append(Stream.emit("\n"))
