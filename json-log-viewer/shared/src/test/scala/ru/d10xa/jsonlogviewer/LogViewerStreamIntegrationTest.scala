@@ -100,12 +100,13 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
         .start
 
       // Wait for stream initialization
-      _ <- IO.sleep(100.millis)
+      _ <- IO.sleep(500.millis)
 
       // Phase 1: Test initial INFO filter
       _ <- logInputChannel.send(infoLog)
+      _ <- IO.sleep(100.millis)
       _ <- logInputChannel.send(errorLog)
-      _ <- IO.sleep(200.millis)
+      _ <- IO.sleep(500.millis)
 
       // Collect results and clear buffer
       initialResults = results.toList
@@ -113,12 +114,13 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
       // Phase 2: Update configuration to ERROR filter
       _ <- configRef.set(Some(updatedConfig))
-      _ <- IO.sleep(100.millis)
+      _ <- IO.sleep(500.millis)
 
       // Send same logs with updated filter
       _ <- logInputChannel.send(infoLog)
+      _ <- IO.sleep(100.millis)
       _ <- logInputChannel.send(errorLog)
-      _ <- IO.sleep(200.millis)
+      _ <- IO.sleep(500.millis)
 
       // Collect results after filter update
       updatedResults = results.toList
