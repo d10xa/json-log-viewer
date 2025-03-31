@@ -13,8 +13,8 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
 import ru.d10xa.jsonlogviewer.formatout.RawFormatter
 import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
+import ru.d10xa.jsonlogviewer.shell.Shell
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
-
 import scala.util.matching.Regex
 import scala.util.Failure
 import scala.util.Success
@@ -22,20 +22,11 @@ import scala.util.Try
 
 object LogViewerStream {
 
-  private var stdInLinesStreamImpl: StdInLinesStream =
-    new StdInLinesStreamImpl()
-
-  def getStdInLinesStreamImpl: StdInLinesStream = stdInLinesStreamImpl
-
-  def setStdInLinesStreamImpl(impl: StdInLinesStream): Unit =
-    stdInLinesStreamImpl = impl
-
-  private def stdinLinesStream: Stream[IO, String] =
-    stdInLinesStreamImpl.stdinLinesStream
-
   def stream(
     config: Config,
-    configYamlRef: Ref[IO, Option[ConfigYaml]]
+    configYamlRef: Ref[IO, Option[ConfigYaml]],
+    stdinStream: StdInLinesStream,
+    shell: Shell
   ): Stream[IO, String] = {
     def processStreamWithConfig(
       inputStream: Stream[IO, String],
@@ -58,7 +49,7 @@ object LogViewerStream {
         Stream.empty
       } else if (resolvedConfigs.length > 1) {
         val feedStreams = resolvedConfigs.map { resolvedConfig =>
-          val feedStream = commandsAndInlineInputToStream(
+          val feedStream = shell.mergeCommandsAndInlineInput(
             resolvedConfig.commands,
             resolvedConfig.inlineInput
           )
@@ -67,14 +58,17 @@ object LogViewerStream {
         Stream.emits(feedStreams).parJoin(feedStreams.size)
       } else {
         val resolvedConfig = resolvedConfigs.head
-        val inputStream = if (resolvedConfig.inlineInput.isDefined) {
-          commandsAndInlineInputToStream(
-            resolvedConfig.commands,
-            resolvedConfig.inlineInput
-          )
-        } else {
-          stdinLinesStream
-        }
+        val inputStream =
+          if (
+            resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty
+          ) {
+            shell.mergeCommandsAndInlineInput(
+              resolvedConfig.commands,
+              resolvedConfig.inlineInput
+            )
+          } else {
+            stdinStream.stdinLinesStream
+          }
         processStreamWithConfig(inputStream, resolvedConfig)
       }
 
@@ -212,12 +206,6 @@ object LogViewerStream {
       case Success(formatted) => formatted.toString
       case Failure(_)         => parseResult.raw
     }
-
-  private def commandsAndInlineInputToStream(
-    commands: List[String],
-    inlineInput: Option[String]
-  ): Stream[IO, String] =
-    new ShellImpl().mergeCommandsAndInlineInput(commands, inlineInput)
 
   def makeNonCsvLogLineParser(
     resolvedConfig: ResolvedConfig

@@ -12,6 +12,7 @@ import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
+import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 import scala.concurrent.duration.*
 
@@ -90,13 +91,9 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
           logInputChannel.stream
       }
 
-      // Save original implementation and use test implementation
-      originalImpl = LogViewerStream.getStdInLinesStreamImpl
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(testStreamImpl))
-
       // Start stream processing in background
       streamFiber <- LogViewerStream
-        .stream(baseConfig, configRef)
+        .stream(baseConfig, configRef, testStreamImpl, new ShellImpl)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain
@@ -130,7 +127,6 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
       // Cleanup
       _ <- streamFiber.cancel
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(originalImpl))
 
     } yield {
       // Verify initial INFO filter
@@ -215,13 +211,9 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
           logInputChannel.stream
       }
 
-      // Save original implementation and use test implementation
-      originalImpl = LogViewerStream.getStdInLinesStreamImpl
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(testStreamImpl))
-
       // Start stream processing in background
       streamFiber <- LogViewerStream
-        .stream(errorFilterConfig, configRef)
+        .stream(errorFilterConfig, configRef, testStreamImpl, new ShellImpl)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain
@@ -255,7 +247,6 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
       // Cleanup
       _ <- streamFiber.cancel
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(originalImpl))
 
     } yield {
       // Verify initial field name mapping
