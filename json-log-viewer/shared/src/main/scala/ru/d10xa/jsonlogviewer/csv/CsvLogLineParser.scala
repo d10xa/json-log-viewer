@@ -1,18 +1,22 @@
 package ru.d10xa.jsonlogviewer.csv
 
+import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.LogLineParser
 import ru.d10xa.jsonlogviewer.ParseResult
 import ru.d10xa.jsonlogviewer.ParsedLine
-import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 
-class CsvLogLineParser(config: ResolvedConfig, headers: List[String]) extends LogLineParser {
+class CsvLogLineParser(config: ResolvedConfig, headers: List[String])
+  extends LogLineParser {
   private val csvParser = new CsvParser()
   private val timestampFieldName: String = config.fieldNames.timestampFieldName
   private val levelFieldName: String = config.fieldNames.levelFieldName
   private val messageFieldName: String = config.fieldNames.messageFieldName
-  private val stackTraceFieldName: String = config.fieldNames.stackTraceFieldName
-  private val loggerNameFieldName: String = config.fieldNames.loggerNameFieldName
-  private val threadNameFieldName: String = config.fieldNames.threadNameFieldName
+  private val stackTraceFieldName: String =
+    config.fieldNames.stackTraceFieldName
+  private val loggerNameFieldName: String =
+    config.fieldNames.loggerNameFieldName
+  private val threadNameFieldName: String =
+    config.fieldNames.threadNameFieldName
 
   private val knownFieldNames: Seq[String] = Seq(
     timestampFieldName,
@@ -40,7 +44,8 @@ class CsvLogLineParser(config: ResolvedConfig, headers: List[String]) extends Lo
     val loggerName = fieldsMap.get(loggerNameFieldName)
     val threadName = fieldsMap.get(threadNameFieldName)
 
-    val otherAttributes = fieldsMap.view.filterKeys(!knownFieldNames.contains(_)).toMap
+    val otherAttributes =
+      fieldsMap.view.filterKeys(!knownFieldNames.contains(_)).toMap
 
     ParseResult(
       raw = s,

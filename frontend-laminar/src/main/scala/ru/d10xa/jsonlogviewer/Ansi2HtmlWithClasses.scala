@@ -2,7 +2,6 @@ package ru.d10xa.jsonlogviewer
 
 import fansi.ErrorMode
 import fansi.Str
-
 import scala.scalajs.js.annotation.JSExport
 
 /** https://github.com/com-lihaoyi/fansi/issues/62

@@ -3,11 +3,11 @@ package ru.d10xa.jsonlogviewer
 import ru.d10xa.jsonlogviewer.query.AndExpr
 import ru.d10xa.jsonlogviewer.query.Eq
 import ru.d10xa.jsonlogviewer.query.LikeExpr
+import ru.d10xa.jsonlogviewer.query.Neq
 import ru.d10xa.jsonlogviewer.query.OrExpr
 import ru.d10xa.jsonlogviewer.query.QueryAST
 import ru.d10xa.jsonlogviewer.query.StrIdentifier
 import ru.d10xa.jsonlogviewer.query.StrLiteral
-import ru.d10xa.jsonlogviewer.query.Neq
 
 class LogLineQueryPredicateImpl(q: QueryAST, parseResultKeys: ParseResultKeys) {
   import LogLineQueryPredicateImpl.*

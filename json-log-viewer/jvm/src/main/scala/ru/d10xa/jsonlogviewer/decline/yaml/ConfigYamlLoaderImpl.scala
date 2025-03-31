@@ -193,7 +193,7 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           parseOptionalString(feedFields, "inlineInput")
         val filterValidated = parseOptionalQueryAST(feedFields, "filter")
         val formatInValidated
-        : Validated[NonEmptyList[String], Option[FormatIn]] =
+          : Validated[NonEmptyList[String], Option[FormatIn]] =
           parseOptionalFormatIn(feedFields, "formatIn")
         val fieldNamesValidated =
           parseOptionalFieldNames(feedFields, "fieldNames")
@@ -246,7 +246,8 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
               val showEmptyFieldsValidated =
                 parseOptionalBoolean(fields, "showEmptyFields")
 
-              (fieldNamesValidated, feedsValidated, showEmptyFieldsValidated).mapN(ConfigYaml.apply)
+              (fieldNamesValidated, feedsValidated, showEmptyFieldsValidated)
+                .mapN(ConfigYaml.apply)
           }
       }
     }

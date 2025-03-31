@@ -7,8 +7,10 @@ import io.circe.HCursor
 import io.circe.Json
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 
-class JsonLogLineParser(config: ResolvedConfig, jsonPrefixPostfix: JsonPrefixPostfix)
-  extends LogLineParser:
+class JsonLogLineParser(
+  config: ResolvedConfig,
+  jsonPrefixPostfix: JsonPrefixPostfix
+) extends LogLineParser:
   given Decoder[ParsedLine] = (c: HCursor) =>
     val timestampFieldName = config.fieldNames.timestampFieldName
     val levelFieldName = config.fieldNames.levelFieldName
@@ -18,12 +20,18 @@ class JsonLogLineParser(config: ResolvedConfig, jsonPrefixPostfix: JsonPrefixPos
     val threadNameFieldName = config.fieldNames.threadNameFieldName
 
     val knownFieldNames = Set(
-      timestampFieldName, "@timestamp",
-      levelFieldName, "level",
-      messageFieldName, "message",
-      stackTraceFieldName, "stack_trace",
-      loggerNameFieldName, "logger_name",
-      threadNameFieldName, "thread_name"
+      timestampFieldName,
+      "@timestamp",
+      levelFieldName,
+      "level",
+      messageFieldName,
+      "message",
+      stackTraceFieldName,
+      "stack_trace",
+      loggerNameFieldName,
+      "logger_name",
+      threadNameFieldName,
+      "thread_name"
     )
 
     // Function to find value by multiple possible keys
@@ -49,12 +57,20 @@ class JsonLogLineParser(config: ResolvedConfig, jsonPrefixPostfix: JsonPrefixPos
 
     for
       // Check both standard and configured field names
-      timestampOpt <- Either.right(findByKeys("@timestamp", "timestamp", timestampFieldName))
+      timestampOpt <- Either.right(
+        findByKeys("@timestamp", "timestamp", timestampFieldName)
+      )
       levelOpt <- Either.right(findByKeys("level", levelFieldName))
       messageOpt <- Either.right(findByKeys("message", messageFieldName))
-      stackTraceOpt <- Either.right(findByKeys("stack_trace", stackTraceFieldName))
-      loggerNameOpt <- Either.right(findByKeys("logger_name", loggerNameFieldName))
-      threadNameOpt <- Either.right(findByKeys("thread_name", threadNameFieldName))
+      stackTraceOpt <- Either.right(
+        findByKeys("stack_trace", stackTraceFieldName)
+      )
+      loggerNameOpt <- Either.right(
+        findByKeys("logger_name", loggerNameFieldName)
+      )
+      threadNameOpt <- Either.right(
+        findByKeys("thread_name", threadNameFieldName)
+      )
       attributes <- c
         .as[Map[String, Json]]
         .map(mapOtherAttributes)

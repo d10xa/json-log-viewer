@@ -4,7 +4,6 @@ import cats.data.ValidatedNel
 import cats.effect.IO
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlLoader
-
 import scala.io.Source
 
 object ConfigYamlReader {

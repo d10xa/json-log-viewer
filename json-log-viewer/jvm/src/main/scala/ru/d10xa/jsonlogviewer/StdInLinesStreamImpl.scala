@@ -1,8 +1,8 @@
 package ru.d10xa.jsonlogviewer
 import cats.effect.IO
+import fs2.io.stdinUtf8
 import fs2.Chunk
 import fs2.Stream
-import fs2.io.stdinUtf8
 
 class StdInLinesStreamImpl extends StdInLinesStream {
 

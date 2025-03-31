@@ -7,7 +7,6 @@ import cats.effect.Resource
 import fs2.io.file.Files
 import fs2.io.file.Path
 import fs2.io.file.Watcher
-
 import java.io.File
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader

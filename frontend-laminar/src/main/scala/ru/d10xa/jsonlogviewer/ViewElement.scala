@@ -13,7 +13,6 @@ import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
-
 import scala.util.chaining.*
 
 object ViewElement {

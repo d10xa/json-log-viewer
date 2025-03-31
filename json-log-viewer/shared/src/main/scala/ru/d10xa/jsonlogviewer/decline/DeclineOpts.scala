@@ -7,7 +7,6 @@ import cats.syntax.all.*
 import com.monovore.decline.*
 import com.monovore.decline.time.*
 import com.monovore.decline.Opts
-
 import java.time.ZonedDateTime
 import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
@@ -130,15 +129,15 @@ object DeclineOpts {
       showEmptyFields
     ).mapN {
       case (
-        configFile,
-        fieldNamesConfig,
-        timestampConfig,
-        grepConfig,
-        filterConfig,
-        formatIn,
-        formatOut,
-        showEmptyFields
-        ) =>
+            configFile,
+            fieldNamesConfig,
+            timestampConfig,
+            grepConfig,
+            filterConfig,
+            formatIn,
+            formatOut,
+            showEmptyFields
+          ) =>
         Config(
           configFile = configFile,
           fieldNames = fieldNamesConfig,

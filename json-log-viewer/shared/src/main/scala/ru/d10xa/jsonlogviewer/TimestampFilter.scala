@@ -2,7 +2,6 @@ package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
 import fs2.Pipe
-
 import java.time.ZonedDateTime
 
 class TimestampFilter:
@@ -22,9 +21,9 @@ class TimestampFilter:
     p =>
       t match
         case Some(valueFromRequest) =>
-          p.filter(p0 => {
+          p.filter(p0 =>
             p0.parsed
               .flatMap(_.timestampAsZonedDateTime)
               .forall(l => predicate(l, valueFromRequest))
-          })
+          )
         case None => p

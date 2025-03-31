@@ -2,7 +2,6 @@ package ru.d10xa.jsonlogviewer.decline
 
 import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 import ru.d10xa.jsonlogviewer.query.QueryAST
-
 import scala.util.matching.Regex
 
 final case class Config(

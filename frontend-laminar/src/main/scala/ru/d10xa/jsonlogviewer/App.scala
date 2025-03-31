@@ -8,13 +8,6 @@ import com.raquo.waypoint.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
-import ru.d10xa.jsonlogviewer.Router0.*
-import ru.d10xa.jsonlogviewer.Router0.EditPage
-import ru.d10xa.jsonlogviewer.Router0.HelpPage
-import ru.d10xa.jsonlogviewer.Router0.LivePage
-import ru.d10xa.jsonlogviewer.Router0.Page
-import ru.d10xa.jsonlogviewer.Router0.ViewPage
-import ru.d10xa.jsonlogviewer.Router0.navigateTo
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Csv
@@ -23,7 +16,13 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Logfmt
 import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 import ru.d10xa.jsonlogviewer.decline.DeclineOpts
 import ru.d10xa.jsonlogviewer.query.QueryCompiler
-
+import ru.d10xa.jsonlogviewer.Router0.*
+import ru.d10xa.jsonlogviewer.Router0.navigateTo
+import ru.d10xa.jsonlogviewer.Router0.EditPage
+import ru.d10xa.jsonlogviewer.Router0.HelpPage
+import ru.d10xa.jsonlogviewer.Router0.LivePage
+import ru.d10xa.jsonlogviewer.Router0.Page
+import ru.d10xa.jsonlogviewer.Router0.ViewPage
 import scala.util.matching.Regex
 
 object App {
@@ -98,7 +97,7 @@ object App {
   def main(args: Array[String]): Unit = {
     lazy val container = dom.document.getElementById("app-container")
 
-    lazy val appElement = {
+    lazy val appElement =
       div(
         cls := "container-fluid",
         ul(
@@ -124,7 +123,6 @@ object App {
           child <-- selectedAppSignal
         )
       )
-    }
     renderOnDomContentLoaded(container, appElement)
   }
 
@@ -216,7 +214,7 @@ object App {
       formatInVar.now() match
         case Config.FormatIn.Json   => textVar.set(jsonLogSample)
         case Config.FormatIn.Logfmt => textVar.set(logfmtSample)
-        case Config.FormatIn.Csv => textVar.set(csvSample)
+        case Config.FormatIn.Csv    => textVar.set(csvSample)
     }
   )
   private def renderLivePage(): HtmlElement = {
@@ -245,7 +243,7 @@ object App {
       Help.fromCommand(DeclineOpts.command).toString
     )
 
-  private def renderEditPage(): HtmlElement = {
+  private def renderEditPage(): HtmlElement =
     div(
       formatInDiv,
       formatOutDiv,
@@ -254,7 +252,6 @@ object App {
       buttonGenerateLogs,
       editElementDiv
     )
-  }
 
   val linkPages: List[Page] = List(
     LivePage,
