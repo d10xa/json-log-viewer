@@ -12,6 +12,7 @@ import com.raquo.laminar.DomApi
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.Config
+import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 import scala.util.chaining.*
 
@@ -61,7 +62,14 @@ object ViewElement {
             )
           fs2.Stream
             .eval(configYamlRefIO)
-            .flatMap(configYamlRef => LogViewerStream.stream(c, configYamlRef))
+            .flatMap(configYamlRef =>
+              LogViewerStream.stream(
+                c,
+                configYamlRef,
+                new StdInLinesStreamImpl,
+                new ShellImpl
+              )
+            )
             .compile
             .toList
             .map(stringsToHtmlElement)

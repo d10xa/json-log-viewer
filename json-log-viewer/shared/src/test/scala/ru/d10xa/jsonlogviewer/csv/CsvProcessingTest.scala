@@ -1,6 +1,5 @@
 package ru.d10xa.jsonlogviewer.csv
 
-import cats.effect.unsafe.implicits.global
 import cats.effect.IO
 import cats.effect.Ref
 import fs2.Stream
@@ -9,6 +8,7 @@ import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
+import ru.d10xa.jsonlogviewer.shell.ShellImpl
 import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.StdInLinesStream
 
@@ -45,9 +45,15 @@ class CsvProcessingTest extends CatsEffectSuite {
           Stream.emits(List(csvHeader, csvLine1, csvLine2))
       }
 
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(testStreamImpl))
-
-      results <- LogViewerStream.stream(csvConfig, configRef).compile.toList
+      results <- LogViewerStream
+        .stream(
+          config = csvConfig,
+          configYamlRef = configRef,
+          stdinStream = testStreamImpl,
+          shell = new ShellImpl
+        )
+        .compile
+        .toList
 
     } yield {
       assert(results.nonEmpty, "Results should not be empty")
@@ -97,9 +103,15 @@ class CsvProcessingTest extends CatsEffectSuite {
           Stream.emits(List(csvHeader, csvLine))
       }
 
-      _ <- IO(LogViewerStream.setStdInLinesStreamImpl(testStreamImpl))
-
-      results <- LogViewerStream.stream(csvConfig, configRef).compile.toList
+      results <- LogViewerStream
+        .stream(
+          config = csvConfig,
+          configYamlRef = configRef,
+          stdinStream = testStreamImpl,
+          shell = new ShellImpl
+        )
+        .compile
+        .toList
 
     } yield {
       assert(results.nonEmpty, "Results should not be empty")

@@ -8,6 +8,7 @@ import fs2.*
 import ru.d10xa.jsonlogviewer.decline.ConfigInit
 import ru.d10xa.jsonlogviewer.decline.ConfigInitImpl
 import ru.d10xa.jsonlogviewer.decline.DeclineOpts
+import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object Application
   extends CommandIOApp(
@@ -21,7 +22,12 @@ object Application
     Supervisor[IO].use { supervisor =>
       configInit.initConfigYaml(config, supervisor).use { configRef =>
         LogViewerStream
-          .stream(config, configRef)
+          .stream(
+            config = config,
+            configYamlRef = configRef,
+            stdinStream = new StdInLinesStreamImpl,
+            shell = new ShellImpl
+          )
           .through(text.utf8.encode)
           .through(fs2.io.stdout)
           .compile
@@ -29,6 +35,5 @@ object Application
           .as(ExitCode.Success)
       }
     }
-    
 
   }
