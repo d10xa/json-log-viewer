@@ -11,6 +11,10 @@ import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
 import ru.d10xa.jsonlogviewer.shell.Shell
 
+/** Tests to verify the proper command execution behavior based on YAML
+  * configuration. Ensures that commands from YAML are executed when present and
+  * stdin is used when no commands are available.
+  */
 class YamlCommandExecutionTest extends CatsEffectSuite {
 
   private val basicConfig = Config(
@@ -32,7 +36,6 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
   )
 
   test("should use commands from YAML when inlineInput is absent") {
-    // Arrange: Test implementations with unique output
     val testStdinStream = new StdInLinesStream {
       override def stdinLinesStream: Stream[IO, String] =
         Stream.emit("FROM_STDIN")
@@ -46,7 +49,6 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
         Stream.emit(s"FROM_COMMAND:${commands.mkString(",")}")
     }
 
-    // YAML configuration with command but without inlineInput
     val configYaml = ConfigYaml(
       fieldNames = None,
       feeds = Some(
@@ -68,27 +70,28 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
       showEmptyFields = None
     )
 
-    val yamlRef = Ref.unsafe[IO, Option[ConfigYaml]](Some(configYaml))
-
-    val result = LogViewerStream
-      .stream(
-        basicConfig,
-        yamlRef,
-        testStdinStream,
-        testShell
-      )
-      .compile
-      .toList
-      .unsafeRunSync()
-
-    assert(
-      result.exists(_.contains("FROM_COMMAND")),
-      "Should use output from commands in YAML"
-    )
-    assert(
-      !result.exists(_.contains("FROM_STDIN")),
-      "Should not use stdin"
-    )
+    for {
+      yamlRef <- Ref.of[IO, Option[ConfigYaml]](Some(configYaml))
+      output <- LogViewerStream
+        .stream(
+          basicConfig,
+          yamlRef,
+          testStdinStream,
+          testShell
+        )
+        .compile
+        .toList
+      _ <- IO {
+        assert(
+          output.exists(_.contains("FROM_COMMAND")),
+          "Should use output from commands in YAML"
+        )
+        assert(
+          !output.exists(_.contains("FROM_STDIN")),
+          "Should not use stdin"
+        )
+      }
+    } yield ()
   }
 
   test("should use stdin when no commands or inlineInput are present") {
@@ -126,26 +129,27 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
       showEmptyFields = None
     )
 
-    val yamlRef = Ref.unsafe[IO, Option[ConfigYaml]](Some(configYaml))
-
-    val result = LogViewerStream
-      .stream(
-        basicConfig,
-        yamlRef,
-        testStdinStream,
-        testShell
-      )
-      .compile
-      .toList
-      .unsafeRunSync()
-
-    assert(
-      result.exists(_.contains("FROM_STDIN")),
-      "Should use stdin"
-    )
-    assert(
-      !result.exists(_.contains("FROM_COMMAND")),
-      "Should not use command output when no commands are present"
-    )
+    for {
+      yamlRef <- Ref.of[IO, Option[ConfigYaml]](Some(configYaml))
+      output <- LogViewerStream
+        .stream(
+          basicConfig,
+          yamlRef,
+          testStdinStream,
+          testShell
+        )
+        .compile
+        .toList
+      _ <- IO {
+        assert(
+          output.exists(_.contains("FROM_STDIN")),
+          "Should use stdin"
+        )
+        assert(
+          !output.exists(_.contains("FROM_COMMAND")),
+          "Should not use command output when no commands are present"
+        )
+      }
+    } yield ()
   }
 }
