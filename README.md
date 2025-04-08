@@ -15,7 +15,7 @@ With support for advanced filtering, dynamic configuration updates, multi-source
 and streamlined configuration management,
 this tool offers a comprehensive solution for log analysis across various environments.
 
-You can also try the browser-based version online: [DEMO](https://your-demo-url.com).
+You can also try the browser-based version online: [DEMO](https://d10xa.ru/json-log-viewer/).
 
 ### Example Output
 Below is an example of formatted JSON logs in the command-line interface:
