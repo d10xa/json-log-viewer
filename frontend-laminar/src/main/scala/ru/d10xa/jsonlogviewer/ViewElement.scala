@@ -38,6 +38,8 @@ object ViewElement {
             formatIn = config.formatIn,
             rawInclude = None,
             rawExclude = None,
+            fuzzyInclude = None,
+            fuzzyExclude = None,
             excludeFields = None,
             fieldNames = None,
             showEmptyFields = None

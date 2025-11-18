@@ -123,6 +123,7 @@ object LogViewerStream {
       val timestampFilter = TimestampFilter()
       val parseResultKeys = ParseResultKeys(resolvedConfig)
       val logLineFilter = LogLineFilter(resolvedConfig, parseResultKeys)
+      val fuzzyFilter = new FuzzyFilter(resolvedConfig)
 
       val outputLineFormatter = resolvedConfig.formatOut match {
         case Some(Config.FormatOut.Raw) => RawFormatter()
@@ -142,6 +143,7 @@ object LogViewerStream {
         .map(parser.parse)
         .filter(logLineFilter.grep)
         .filter(logLineFilter.logLineQueryPredicate)
+        .filter(fuzzyFilter.test)
         .through(
           timestampFilter.filterTimestampAfter(resolvedConfig.timestampAfter)
         )
@@ -165,6 +167,7 @@ object LogViewerStream {
         val timestampFilter = TimestampFilter()
         val parseResultKeys = ParseResultKeys(resolvedConfig)
         val logLineFilter = LogLineFilter(resolvedConfig, parseResultKeys)
+        val fuzzyFilter = new FuzzyFilter(resolvedConfig)
 
         val outputLineFormatter = resolvedConfig.formatOut match {
           case Some(Config.FormatOut.Raw) => RawFormatter()
@@ -183,6 +186,7 @@ object LogViewerStream {
           .map(csvHeaderParser.parse)
           .filter(logLineFilter.grep)
           .filter(logLineFilter.logLineQueryPredicate)
+          .filter(fuzzyFilter.test)
           .through(
             timestampFilter.filterTimestampAfter(resolvedConfig.timestampAfter)
           )

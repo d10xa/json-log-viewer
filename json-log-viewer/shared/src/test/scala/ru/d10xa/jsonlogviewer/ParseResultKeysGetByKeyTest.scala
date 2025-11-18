@@ -23,6 +23,8 @@ class ParseResultKeysGetByKeyTest extends FunSuite {
     ),
     rawInclude = None,
     rawExclude = None,
+    fuzzyInclude = None,
+    fuzzyExclude = None,
     excludeFields = None,
     timestampAfter = None,
     timestampBefore = None,

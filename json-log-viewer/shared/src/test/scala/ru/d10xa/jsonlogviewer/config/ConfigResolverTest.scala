@@ -105,6 +105,8 @@ class ConfigResolverTest extends FunSuite {
             ),
             rawInclude = None,
             rawExclude = None,
+            fuzzyInclude = None,
+            fuzzyExclude = None,
             excludeFields = None,
             showEmptyFields = None
           ),
@@ -117,6 +119,8 @@ class ConfigResolverTest extends FunSuite {
             fieldNames = None,
             rawInclude = None,
             rawExclude = None,
+            fuzzyInclude = None,
+            fuzzyExclude = None,
             excludeFields = None,
             showEmptyFields = None
           )

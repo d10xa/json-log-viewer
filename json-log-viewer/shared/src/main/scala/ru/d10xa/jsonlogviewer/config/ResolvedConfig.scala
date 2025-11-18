@@ -30,6 +30,8 @@ final case class ResolvedConfig(
   // Feed-specific settings
   rawInclude: Option[List[String]],
   rawExclude: Option[List[String]],
+  fuzzyInclude: Option[List[String]],
+  fuzzyExclude: Option[List[String]],
   excludeFields: Option[List[String]],
 
   // Timestamp settings
@@ -89,6 +91,8 @@ object ConfigResolver {
                 fieldNames = feedFieldNames,
                 rawInclude = feed.rawInclude,
                 rawExclude = feed.rawExclude,
+                fuzzyInclude = feed.fuzzyInclude,
+                fuzzyExclude = feed.fuzzyExclude,
                 excludeFields = feed.excludeFields,
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
@@ -109,6 +113,8 @@ object ConfigResolver {
                 fieldNames = globalFieldNames,
                 rawInclude = None,
                 rawExclude = None,
+                fuzzyInclude = None,
+                fuzzyExclude = None,
                 excludeFields = None,
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
@@ -130,6 +136,8 @@ object ConfigResolver {
             fieldNames = config.fieldNames,
             rawInclude = None,
             rawExclude = None,
+            fuzzyInclude = None,
+            fuzzyExclude = None,
             excludeFields = None,
             timestampAfter = config.timestamp.after,
             timestampBefore = config.timestamp.before,
