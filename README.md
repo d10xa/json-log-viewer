@@ -155,6 +155,113 @@ You can use comparison and logical operations.
    cat log.txt | json-log-viewer --filter "(level = 'ERROR' OR level = 'WARN') AND message LIKE '%connection%'"
    ```
 
+### Fuzzy Search Filtering
+
+`json-log-viewer` supports fuzzy search filtering that searches for words across all JSON fields.
+Unlike `rawInclude`/`rawExclude` (which use regex on raw strings), fuzzy search:
+- Works after JSON parsing
+- Searches across all fields (level, message, stackTrace, custom fields, etc.)
+- Is case-insensitive
+- Ignores punctuation
+- Supports partial token matching
+
+#### How It Works
+
+Fuzzy search tokenizes both the search pattern and log content, then checks if all pattern tokens are present.
+
+**Example:**
+```yaml
+fuzzyInclude: ["error timeout"]
+```
+
+**Will match:**
+```json
+{"level": "ERROR", "message": "Connection timeout"}
+{"level": "WARN", "message": "Error: request timeout occurred"}
+{"severity": "ERROR", "details": "timeout"}
+```
+
+All words from the pattern must be present in the log entry (order doesn't matter).
+
+#### Examples
+
+1. Simple fuzzy search:
+   ```yaml
+   feeds:
+     - name: "app-errors"
+       commands: ["kubectl logs -f app-pod"]
+       fuzzyInclude:
+         - "error timeout"           # Both words must be present
+         - "database connection"     # OR these words
+   ```
+
+2. With exclusions:
+   ```yaml
+   feeds:
+     - name: "production-logs"
+       commands: ["cat prod.log"]
+       fuzzyInclude:
+         - "payment failed"
+         - "order timeout"
+       fuzzyExclude:
+         - "test mock"               # Exclude test logs
+         - "health check"            # Exclude health checks
+   ```
+
+3. Combining with other filters:
+   ```yaml
+   feeds:
+     - name: "critical-errors"
+       commands: ["cat app.log"]
+
+       # Step 1: Fast regex pre-filter (before parsing)
+       rawInclude:
+         - "ERROR|WARN|FATAL"
+
+       # Step 2: Fuzzy search (after parsing, across all fields)
+       fuzzyInclude:
+         - "database timeout"
+         - "user authentication failed"
+
+       # Step 3: SQL-like precise filtering
+       filter: |
+         level != 'DEBUG'
+   ```
+
+#### Token-Based Matching
+
+Fuzzy search uses intelligent tokenization:
+- Preserves dots and underscores: `user_id`, `john.doe`, `database.query`
+- Ignores punctuation: `"error"`, `(timeout)`, `failed!` → `error`, `timeout`, `failed`
+- Minimum token length: 2 characters
+- Supports partial matching: pattern `"timeout"` matches `"timeout_ms"`, `"timeouts"`
+
+#### Practical Examples
+
+**Kubernetes logs:**
+```yaml
+feeds:
+  - name: "backend-issues"
+    commands:
+      - "kubectl logs -f backend-1"
+      - "kubectl logs -f backend-2"
+    fuzzyInclude:
+      - "payment card failed"
+      - "inventory timeout"
+```
+
+**Multiple services:**
+```yaml
+feeds:
+  - name: "service-1"
+    commands: ["cat service1.log"]
+    fuzzyInclude: ["error timeout"]
+
+  - name: "service-2"
+    commands: ["cat service2.log"]
+    fuzzyInclude: ["connection refused"]
+```
+
 ### Timestamp Filtering
 
 Filter logs by timestamp range:
