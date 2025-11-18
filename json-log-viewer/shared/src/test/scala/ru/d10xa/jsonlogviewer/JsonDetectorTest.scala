@@ -5,7 +5,7 @@ class JsonDetectorTest extends munit.FunSuite {
 
   test("valid json") {
     val stringWithJsonInside = """abc {"x":"y"}a"""
-    val Some((start, end)) = jsonDetector.detectJson(stringWithJsonInside)
+    val Some((start, end)) = jsonDetector.detectJson(stringWithJsonInside): @unchecked
     assertEquals(stringWithJsonInside.charAt(start), '{')
     assertEquals(stringWithJsonInside.charAt(end), '}')
   }

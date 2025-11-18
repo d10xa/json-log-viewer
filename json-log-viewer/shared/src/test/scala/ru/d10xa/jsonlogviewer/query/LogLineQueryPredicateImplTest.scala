@@ -100,6 +100,8 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     formatOut = None,
     rawInclude = None,
     rawExclude = None,
+    fuzzyInclude = None,
+    fuzzyExclude = None,
     excludeFields = None,
     timestampAfter = None,
     timestampBefore = None,

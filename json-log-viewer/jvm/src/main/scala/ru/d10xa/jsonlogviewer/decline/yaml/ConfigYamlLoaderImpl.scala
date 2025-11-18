@@ -201,6 +201,10 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           parseOptionalListString(feedFields, "rawInclude")
         val rawExcludeValidated =
           parseOptionalListString(feedFields, "rawExclude")
+        val fuzzyIncludeValidated =
+          parseOptionalListString(feedFields, "fuzzyInclude")
+        val fuzzyExcludeValidated =
+          parseOptionalListString(feedFields, "fuzzyExclude")
         val excludeFieldsValidated =
           parseOptionalListString(
             feedFields,
@@ -218,6 +222,8 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
           fieldNamesValidated,
           rawIncludeValidated,
           rawExcludeValidated,
+          fuzzyIncludeValidated,
+          fuzzyExcludeValidated,
           excludeFieldsValidated,
           showEmptyFieldsValidated
         )
