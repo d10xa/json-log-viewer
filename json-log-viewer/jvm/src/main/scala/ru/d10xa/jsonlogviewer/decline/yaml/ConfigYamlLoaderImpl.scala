@@ -27,14 +27,12 @@ class ConfigYamlLoaderImpl extends ConfigYamlLoader {
     }
   }
 
-  // Custom Decoder for FormatIn - converts string to enum
   private given Decoder[FormatIn] = Decoder[String].emap { formatStr =>
     FormatInValidator.toValidatedFormatIn(formatStr).toEither.leftMap { errors =>
       errors.toList.mkString(", ")
     }
   }
 
-  // Automatic derivation for case classes
   private given Decoder[FieldNames] = deriveDecoder[FieldNames]
   private given Decoder[Feed] = deriveDecoder[Feed]
   private given Decoder[ConfigYaml] = deriveDecoder[ConfigYaml]
