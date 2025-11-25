@@ -6,19 +6,11 @@ import fs2.*
 import fs2.Pull
 import ru.d10xa.jsonlogviewer.config.ConfigResolver
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
-import ru.d10xa.jsonlogviewer.csv.CsvLogLineParser
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
-import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
-import ru.d10xa.jsonlogviewer.formatout.RawFormatter
-import ru.d10xa.jsonlogviewer.logfmt.LogfmtLogLineParser
 import ru.d10xa.jsonlogviewer.shell.Shell
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
-import scala.util.matching.Regex
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
 
 object LogViewerStream {
 
@@ -116,43 +108,18 @@ object LogViewerStream {
           )
         )
       } else {
-        IO.pure(makeNonCsvLogLineParser(resolvedConfig))
+        IO.pure(LogLineParserFactory.createNonCsvParser(resolvedConfig))
       }
 
     Stream.eval(getParser).flatMap { parser =>
-      val timestampFilter = TimestampFilter()
-      val parseResultKeys = ParseResultKeys(resolvedConfig)
-      val logLineFilter = LogLineFilter(resolvedConfig, parseResultKeys)
-      val fuzzyFilter = new FuzzyFilter(resolvedConfig)
+      val components = FilterComponents.fromConfig(resolvedConfig)
 
-      val outputLineFormatter = resolvedConfig.formatOut match {
-        case Some(Config.FormatOut.Raw) => RawFormatter()
-        case Some(Config.FormatOut.Pretty) | None =>
-          ColorLineFormatter(
-            resolvedConfig,
-            resolvedConfig.feedName,
-            resolvedConfig.excludeFields
-          )
-      }
-
-      Stream
-        .emit(line)
-        .filter(
-          rawFilter(_, resolvedConfig.rawInclude, resolvedConfig.rawExclude)
-        )
-        .map(parser.parse)
-        .filter(logLineFilter.grep)
-        .filter(logLineFilter.logLineQueryPredicate)
-        .filter(fuzzyFilter.test)
-        .through(
-          timestampFilter.filterTimestampAfter(resolvedConfig.timestampAfter)
-        )
-        .through(
-          timestampFilter.filterTimestampBefore(
-            resolvedConfig.timestampBefore
-          )
-        )
-        .map(formatWithSafety(_, outputLineFormatter))
+      FilterPipeline.applyFilters(
+        Stream.emit(line),
+        parser,
+        components,
+        resolvedConfig
+      )
     }
   }
 
@@ -162,80 +129,14 @@ object LogViewerStream {
   ): Stream[IO, String] =
     lines.pull.uncons1.flatMap {
       case Some((headerLine, rest)) =>
-        val csvHeaderParser = CsvLogLineParser(resolvedConfig, headerLine)
+        val csvHeaderParser = LogLineParserFactory.createCsvParser(resolvedConfig, headerLine)
+        val components = FilterComponents.fromConfig(resolvedConfig)
 
-        val timestampFilter = TimestampFilter()
-        val parseResultKeys = ParseResultKeys(resolvedConfig)
-        val logLineFilter = LogLineFilter(resolvedConfig, parseResultKeys)
-        val fuzzyFilter = new FuzzyFilter(resolvedConfig)
-
-        val outputLineFormatter = resolvedConfig.formatOut match {
-          case Some(Config.FormatOut.Raw) => RawFormatter()
-          case Some(Config.FormatOut.Pretty) | None =>
-            ColorLineFormatter(
-              resolvedConfig,
-              resolvedConfig.feedName,
-              resolvedConfig.excludeFields
-            )
-        }
-
-        rest
-          .filter(
-            rawFilter(_, resolvedConfig.rawInclude, resolvedConfig.rawExclude)
-          )
-          .map(csvHeaderParser.parse)
-          .filter(logLineFilter.grep)
-          .filter(logLineFilter.logLineQueryPredicate)
-          .filter(fuzzyFilter.test)
-          .through(
-            timestampFilter.filterTimestampAfter(resolvedConfig.timestampAfter)
-          )
-          .through(
-            timestampFilter.filterTimestampBefore(
-              resolvedConfig.timestampBefore
-            )
-          )
-          .map(formatWithSafety(_, outputLineFormatter))
+        FilterPipeline
+          .applyFilters(rest, csvHeaderParser, components, resolvedConfig)
           .pull
           .echo
       case None =>
         Pull.done
     }.stream
-
-  private def formatWithSafety(
-    parseResult: ParseResult,
-    formatter: OutputLineFormatter
-  ): String =
-    Try(formatter.formatLine(parseResult)) match {
-      case Success(formatted) => formatted.toString
-      case Failure(_)         => parseResult.raw
-    }
-
-  def makeNonCsvLogLineParser(
-    resolvedConfig: ResolvedConfig
-  ): LogLineParser = {
-    val jsonPrefixPostfix = JsonPrefixPostfix(JsonDetector())
-    resolvedConfig.formatIn match {
-      case Some(FormatIn.Logfmt) => LogfmtLogLineParser(resolvedConfig)
-      case Some(FormatIn.Csv) =>
-        throw new IllegalStateException(
-          "method makeNonCsvLogLineParser does not support csv"
-        )
-      case _ => JsonLogLineParser(resolvedConfig, jsonPrefixPostfix)
-    }
-  }
-
-  def rawFilter(
-    str: String,
-    include: Option[List[String]],
-    exclude: Option[List[String]]
-  ): Boolean = {
-    val includeRegexes: List[Regex] = include.getOrElse(Nil).map(_.r)
-    val excludeRegexes: List[Regex] = exclude.getOrElse(Nil).map(_.r)
-    val includeMatches = includeRegexes.isEmpty || includeRegexes.exists(
-      _.findFirstIn(str).isDefined
-    )
-    val excludeMatches = excludeRegexes.forall(_.findFirstIn(str).isEmpty)
-    includeMatches && excludeMatches
-  }
 }
