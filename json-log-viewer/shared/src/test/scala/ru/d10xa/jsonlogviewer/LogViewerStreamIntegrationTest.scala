@@ -5,6 +5,8 @@ import cats.effect.Ref
 import fs2.concurrent.Channel
 import fs2.Stream
 import munit.CatsEffectSuite
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.yaml.FieldNames
@@ -79,10 +81,13 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
     // Results collector
     val results = scala.collection.mutable.ArrayBuffer.empty[String]
+    val initialConfigYaml = Some(initialConfig)
+    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml)
 
     for {
       // Initialize config reference with initial configuration
-      configRef <- Ref.of[IO, Option[ConfigYaml]](Some(initialConfig))
+      configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
 
       // Setup input channel for test logs
       logInputChannel <- Channel.unbounded[IO, String]
@@ -95,7 +100,7 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
       // Start stream processing in background
       streamFiber <- LogViewerStream
-        .stream(baseConfig, configRef, testStreamImpl, new ShellImpl)
+        .stream(baseConfig, configRef, cacheRef, testStreamImpl, new ShellImpl)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain
@@ -201,10 +206,14 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
     // Results collector
     val results = scala.collection.mutable.ArrayBuffer.empty[String]
+    val initialConfigYaml = Some(initialConfig)
+    val initialCache =
+      FilterCacheManager.buildCache(errorFilterConfig, initialConfigYaml)
 
     for {
       // Initialize config reference with initial configuration
-      configRef <- Ref.of[IO, Option[ConfigYaml]](Some(initialConfig))
+      configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
 
       // Setup input channel for test logs
       logInputChannel <- Channel.unbounded[IO, String]
@@ -217,7 +226,13 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
 
       // Start stream processing in background
       streamFiber <- LogViewerStream
-        .stream(errorFilterConfig, configRef, testStreamImpl, new ShellImpl)
+        .stream(
+          errorFilterConfig,
+          configRef,
+          cacheRef,
+          testStreamImpl,
+          new ShellImpl
+        )
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain

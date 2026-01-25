@@ -4,6 +4,8 @@ import cats.effect.IO
 import cats.effect.Ref
 import fs2.Stream
 import munit.CatsEffectSuite
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
@@ -37,8 +39,12 @@ class CsvProcessingTest extends CatsEffectSuite {
       showEmptyFields = false
     )
 
+    val initialConfigYaml: Option[ConfigYaml] = None
+    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml)
+
     for {
-      configRef <- Ref.of[IO, Option[ConfigYaml]](None)
+      configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
 
       testStreamImpl = new StdInLinesStream {
         override def stdinLinesStream: fs2.Stream[IO, String] =
@@ -49,6 +55,7 @@ class CsvProcessingTest extends CatsEffectSuite {
         .stream(
           config = csvConfig,
           configYamlRef = configRef,
+          cacheRef = cacheRef,
           stdinStream = testStreamImpl,
           shell = new ShellImpl
         )
@@ -95,8 +102,12 @@ class CsvProcessingTest extends CatsEffectSuite {
       showEmptyFields = false
     )
 
+    val initialConfigYaml: Option[ConfigYaml] = None
+    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml)
+
     for {
-      configRef <- Ref.of[IO, Option[ConfigYaml]](None)
+      configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
 
       testStreamImpl = new StdInLinesStream {
         override def stdinLinesStream: fs2.Stream[IO, String] =
@@ -107,6 +118,7 @@ class CsvProcessingTest extends CatsEffectSuite {
         .stream(
           config = csvConfig,
           configYamlRef = configRef,
+          cacheRef = cacheRef,
           stdinStream = testStreamImpl,
           shell = new ShellImpl
         )

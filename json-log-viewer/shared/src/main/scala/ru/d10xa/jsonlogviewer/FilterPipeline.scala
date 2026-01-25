@@ -3,7 +3,9 @@ package ru.d10xa.jsonlogviewer
 import cats.effect.IO
 import fs2.Stream
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
-import scala.util.{Failure, Success, Try}
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 object FilterPipeline {
 
@@ -13,7 +15,7 @@ object FilterPipeline {
     parser: LogLineParser,
     components: FilterComponents,
     resolvedConfig: ResolvedConfig
-  ): Stream[IO, String] = {
+  ): Stream[IO, String] =
     stream
       .filter(
         rawFilter(_, resolvedConfig.rawInclude, resolvedConfig.rawExclude)
@@ -23,7 +25,9 @@ object FilterPipeline {
       .filter(components.logLineFilter.logLineQueryPredicate)
       .filter(components.fuzzyFilter.test)
       .through(
-        components.timestampFilter.filterTimestampAfter(resolvedConfig.timestampAfter)
+        components.timestampFilter.filterTimestampAfter(
+          resolvedConfig.timestampAfter
+        )
       )
       .through(
         components.timestampFilter.filterTimestampBefore(
@@ -31,7 +35,6 @@ object FilterPipeline {
         )
       )
       .map(formatWithSafety(_, components.outputLineFormatter))
-  }
 
   private def rawFilter(
     str: String,

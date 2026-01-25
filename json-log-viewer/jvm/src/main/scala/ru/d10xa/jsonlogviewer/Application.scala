@@ -20,11 +20,12 @@ object Application
 
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { config =>
     Supervisor[IO].use { supervisor =>
-      configInit.initConfigYaml(config, supervisor).use { configRef =>
+      configInit.initConfigRefs(config, supervisor).use { configRefs =>
         LogViewerStream
           .stream(
             config = config,
-            configYamlRef = configRef,
+            configYamlRef = configRefs.configYamlRef,
+            cacheRef = configRefs.cacheRef,
             stdinStream = new StdInLinesStreamImpl,
             shell = new ShellImpl
           )

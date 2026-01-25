@@ -9,6 +9,8 @@ import com.raquo.airstream.eventbus.EventBus
 import com.raquo.airstream.ownership.Owner
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.DomApi
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.Config
@@ -57,20 +59,24 @@ object ViewElement {
       .combineWith(configSignal)
       .foreach {
         case (string, Right(c)) =>
-          val configYamlRefIO =
-            Ref.of[IO, Option[ConfigYaml]](
-              Some(makeConfigYamlForInlineInput(string, c))
-            )
+          val configYaml = Some(makeConfigYamlForInlineInput(string, c))
+          val initialCache = FilterCacheManager.buildCache(c, configYaml)
+          val refsIO = for {
+            configYamlRef <- Ref.of[IO, Option[ConfigYaml]](configYaml)
+            cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+          } yield (configYamlRef, cacheRef)
+
           fs2.Stream
-            .eval(configYamlRefIO)
-            .flatMap(configYamlRef =>
+            .eval(refsIO)
+            .flatMap { case (configYamlRef, cacheRef) =>
               LogViewerStream.stream(
                 c,
                 configYamlRef,
+                cacheRef,
                 new StdInLinesStreamImpl,
                 new ShellImpl
               )
-            )
+            }
             .compile
             .toList
             .map(stringsToHtmlElement)
