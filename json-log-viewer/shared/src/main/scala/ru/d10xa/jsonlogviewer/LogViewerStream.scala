@@ -13,7 +13,6 @@ import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.shell.Shell
-import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object LogViewerStream {
 
@@ -181,24 +180,6 @@ object LogViewerStream {
         // CSV: parser=None, will throw error (CSV needs header for parser creation)
         processLineWithResolvedConfig(line, filterSet.resolvedConfig)
     }
-
-  private def createCsvProcessStream(
-    resolvedConfig: ResolvedConfig,
-    lines: Stream[IO, String]
-  ): Stream[IO, String] =
-    lines.pull.uncons1.flatMap {
-      case Some((headerLine, rest)) =>
-        val csvHeaderParser =
-          LogLineParserFactory.createCsvParser(resolvedConfig, headerLine)
-        val components = FilterComponents.fromConfig(resolvedConfig)
-
-        FilterPipeline
-          .applyFilters(rest, csvHeaderParser, components, resolvedConfig)
-          .pull
-          .echo
-      case None =>
-        Pull.done
-    }.stream
 
   private def createCsvProcessStreamCached(
     initialFilterSet: FilterSet,
