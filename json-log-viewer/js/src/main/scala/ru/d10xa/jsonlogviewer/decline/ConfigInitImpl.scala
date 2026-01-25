@@ -11,12 +11,6 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 
 class ConfigInitImpl extends ConfigInit {
 
-  override def initConfigYaml(
-    c: Config,
-    supervisor: Supervisor[IO]
-  ): Resource[IO, Ref[IO, Option[ConfigYaml]]] =
-    Resource.eval(Ref.of(None))
-
   override def initConfigRefs(
     c: Config,
     supervisor: Supervisor[IO]

@@ -13,11 +13,6 @@ final case class ConfigRefs(
 )
 
 trait ConfigInit {
-  def initConfigYaml(
-    c: Config,
-    supervisor: Supervisor[IO]
-  ): Resource[IO, Ref[IO, Option[ConfigYaml]]]
-
   def initConfigRefs(
     c: Config,
     supervisor: Supervisor[IO]

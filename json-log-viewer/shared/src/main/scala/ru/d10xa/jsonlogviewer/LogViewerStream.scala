@@ -17,6 +17,27 @@ import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object LogViewerStream {
 
+  private def getOrUpdateCache(
+    cacheRef: Ref[IO, CachedResolvedState],
+    config: Config,
+    currentConfigYaml: Option[ConfigYaml]
+  ): IO[CachedResolvedState] =
+    cacheRef.get.flatMap { currentCache =>
+      val (newCache, wasUpdated) = FilterCacheManager.updateCacheIfNeeded(
+        Some(currentCache),
+        config,
+        currentConfigYaml
+      )
+      if (wasUpdated) cacheRef.set(newCache).as(newCache)
+      else IO.pure(currentCache)
+    }
+
+  private def findFilterSet(
+    cache: CachedResolvedState,
+    feedName: Option[String]
+  ): Option[FilterSet] =
+    cache.filterSets.find(_.resolvedConfig.feedName == feedName)
+
   def stream(
     config: Config,
     configYamlRef: Ref[IO, Option[ConfigYaml]],
@@ -24,25 +45,6 @@ object LogViewerStream {
     stdinStream: StdInLinesStream,
     shell: Shell
   ): Stream[IO, String] = {
-
-    def getOrUpdateCache(
-      currentConfigYaml: Option[ConfigYaml]
-    ): IO[CachedResolvedState] =
-      cacheRef.get.flatMap { currentCache =>
-        val (newCache, wasUpdated) = FilterCacheManager.updateCacheIfNeeded(
-          Some(currentCache),
-          config,
-          currentConfigYaml
-        )
-        if (wasUpdated) cacheRef.set(newCache).as(newCache)
-        else IO.pure(currentCache)
-      }
-
-    def findFilterSet(
-      cache: CachedResolvedState,
-      feedName: Option[String]
-    ): Option[FilterSet] =
-      cache.filterSets.find(_.resolvedConfig.feedName == feedName)
 
     def processStreamWithCache(
       inputStream: Stream[IO, String],
@@ -64,7 +66,7 @@ object LogViewerStream {
           Stream
             .eval(for {
               currentConfigYaml <- configYamlRef.get
-              cache <- getOrUpdateCache(currentConfigYaml)
+              cache <- getOrUpdateCache(cacheRef, config, currentConfigYaml)
             } yield findFilterSet(cache, feedName).getOrElse(initialFilterSet))
             .flatMap { filterSet =>
               processLineWithFilterSet(line, filterSet)
@@ -206,52 +208,64 @@ object LogViewerStream {
     config: Config,
     feedName: Option[String]
   ): Stream[IO, String] = {
-
-    def getOrUpdateCache(
-      currentConfigYaml: Option[ConfigYaml]
-    ): IO[CachedResolvedState] =
-      cacheRef.get.flatMap { currentCache =>
-        val (newCache, wasUpdated) = FilterCacheManager.updateCacheIfNeeded(
-          Some(currentCache),
-          config,
-          currentConfigYaml
-        )
-        if (wasUpdated) cacheRef.set(newCache).as(newCache)
-        else IO.pure(currentCache)
-      }
-
-    def findFilterSet(
-      cache: CachedResolvedState,
-      name: Option[String]
-    ): Option[FilterSet] =
-      cache.filterSets.find(_.resolvedConfig.feedName == name)
+    import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 
     lines.pull.uncons1.flatMap {
       case Some((headerLine, rest)) =>
-        val resolvedConfig = initialFilterSet.resolvedConfig
-        val csvHeaderParser =
-          LogLineParserFactory.createCsvParser(resolvedConfig, headerLine)
+        val initialParser =
+          LogLineParserFactory.createCsvParser(
+            initialFilterSet.resolvedConfig,
+            headerLine
+          )
+        val initialFieldNames = initialFilterSet.resolvedConfig.fieldNames
 
-        // CSV parser created from header, but components from cache support live reload
-        rest
-          .flatMap { line =>
-            Stream
-              .eval(
-                for {
-                  currentConfigYaml <- configYamlRef.get
-                  cache <- getOrUpdateCache(currentConfigYaml)
-                } yield findFilterSet(cache, feedName).getOrElse(
-                  initialFilterSet
+        // Track parser and fieldNames to recreate parser when fieldNames change
+        Stream
+          .eval(
+            Ref.of[IO, (LogLineParser, FieldNamesConfig)](
+              (initialParser, initialFieldNames)
+            )
+          )
+          .flatMap { parserRef =>
+            rest.flatMap { line =>
+              Stream
+                .eval(
+                  for {
+                    currentConfigYaml <- configYamlRef.get
+                    cache <- getOrUpdateCache(
+                      cacheRef,
+                      config,
+                      currentConfigYaml
+                    )
+                    filterSet = findFilterSet(cache, feedName).getOrElse(
+                      initialFilterSet
+                    )
+                    currentFieldNames = filterSet.resolvedConfig.fieldNames
+                    parserAndFieldNames <- parserRef.get
+                    (currentParser, prevFieldNames) = parserAndFieldNames
+                    updatedParser <-
+                      if (currentFieldNames != prevFieldNames) {
+                        val newParser = LogLineParserFactory.createCsvParser(
+                          filterSet.resolvedConfig,
+                          headerLine
+                        )
+                        parserRef
+                          .set((newParser, currentFieldNames))
+                          .as(newParser)
+                      } else {
+                        IO.pure(currentParser)
+                      }
+                  } yield (filterSet, updatedParser)
                 )
-              )
-              .flatMap { filterSet =>
-                FilterPipeline.applyFilters(
-                  Stream.emit(line),
-                  csvHeaderParser,
-                  filterSet.components,
-                  filterSet.resolvedConfig
-                )
-              }
+                .flatMap { case (filterSet, parser) =>
+                  FilterPipeline.applyFilters(
+                    Stream.emit(line),
+                    parser,
+                    filterSet.components,
+                    filterSet.resolvedConfig
+                  )
+                }
+            }
           }
           .pull
           .echo
