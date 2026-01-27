@@ -24,7 +24,6 @@ object LogLineParserFactory {
   def createCsvParser(
     resolvedConfig: ResolvedConfig,
     headerLine: String
-  ): LogLineParser = {
+  ): LogLineParser =
     CsvLogLineParser(resolvedConfig, headerLine)
-  }
 }

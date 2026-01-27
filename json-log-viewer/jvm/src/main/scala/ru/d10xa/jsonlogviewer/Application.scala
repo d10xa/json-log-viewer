@@ -20,14 +20,15 @@ object Application
 
   def main: Opts[IO[ExitCode]] = DeclineOpts.config.map { config =>
     Supervisor[IO].use { supervisor =>
-      configInit.initConfigYaml(config, supervisor).use { configRef =>
-        LogViewerStream
-          .stream(
-            config = config,
-            configYamlRef = configRef,
-            stdinStream = new StdInLinesStreamImpl,
-            shell = new ShellImpl
-          )
+      configInit.initConfigRefs(config, supervisor).use { configRefs =>
+        val ctx = StreamContext(
+          config = config,
+          configYamlRef = configRefs.configYamlRef,
+          cacheRef = configRefs.cacheRef,
+          stdinStream = new StdInLinesStreamImpl,
+          shell = new ShellImpl
+        )
+        LogViewerStream.stream(ctx)
           .through(text.utf8.encode)
           .through(fs2.io.stdout)
           .compile

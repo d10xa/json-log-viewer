@@ -2,7 +2,8 @@ package ru.d10xa.jsonlogviewer
 
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.decline.Config
-import ru.d10xa.jsonlogviewer.formatout.{ColorLineFormatter, RawFormatter}
+import ru.d10xa.jsonlogviewer.formatout.ColorLineFormatter
+import ru.d10xa.jsonlogviewer.formatout.RawFormatter
 
 final case class FilterComponents(
   timestampFilter: TimestampFilter,

@@ -3,65 +3,107 @@ package ru.d10xa.jsonlogviewer
 import cats.effect.IO
 import cats.effect.Ref
 import fs2.*
-import fs2.Pull
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
+import ru.d10xa.jsonlogviewer.cache.CachedFilterSet
 import ru.d10xa.jsonlogviewer.config.ConfigResolver
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.shell.Shell
-import ru.d10xa.jsonlogviewer.shell.ShellImpl
 
 object LogViewerStream {
 
-  def stream(
+  private def getOrUpdateCache(
+    cacheRef: Ref[IO, CachedResolvedState],
     config: Config,
-    configYamlRef: Ref[IO, Option[ConfigYaml]],
+    currentConfigYaml: Option[ConfigYaml]
+  ): IO[CachedResolvedState] =
+    cacheRef.get.flatMap { currentCache =>
+      val (newCache, wasUpdated) = FilterCacheManager.updateCacheIfNeeded(
+        Some(currentCache),
+        config,
+        currentConfigYaml
+      )
+      if (wasUpdated) cacheRef.set(newCache).as(newCache)
+      else IO.pure(currentCache)
+    }
+
+  private def findCachedFilterSet(
+    cache: CachedResolvedState,
+    feedName: Option[String]
+  ): Option[CachedFilterSet] =
+    cache.filterSets.find(_.resolvedConfig.feedName == feedName)
+
+  private def getInputStream(
+    resolvedConfig: ResolvedConfig,
     stdinStream: StdInLinesStream,
     shell: Shell
-  ): Stream[IO, String] = {
-    def processStreamWithConfig(
+  ): Stream[IO, String] =
+    if (resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty) {
+      shell.mergeCommandsAndInlineInput(
+        resolvedConfig.commands,
+        resolvedConfig.inlineInput
+      )
+    } else {
+      stdinStream.stdinLinesStream
+    }
+
+  private def getCachedFilterSet(
+    configYamlRef: Ref[IO, Option[ConfigYaml]],
+    cacheRef: Ref[IO, CachedResolvedState],
+    config: Config,
+    feedName: Option[String],
+    fallback: CachedFilterSet
+  ): IO[CachedFilterSet] =
+    for {
+      currentConfigYaml <- configYamlRef.get
+      cache <- getOrUpdateCache(cacheRef, config, currentConfigYaml)
+    } yield findCachedFilterSet(cache, feedName).getOrElse(fallback)
+
+  def stream(ctx: StreamContext): Stream[IO, String] = {
+    import ctx.*
+
+    def processStreamWithCache(
       inputStream: Stream[IO, String],
-      resolvedConfig: ResolvedConfig
-    ): Stream[IO, String] =
-      if (resolvedConfig.formatIn.contains(FormatIn.Csv)) {
-        createCsvProcessStream(resolvedConfig, inputStream)
+      initialCachedFilterSet: CachedFilterSet
+    ): Stream[IO, String] = {
+      val feedName = initialCachedFilterSet.resolvedConfig.feedName
+
+      if (initialCachedFilterSet.resolvedConfig.formatIn.contains(FormatIn.Csv)) {
+        val csvContext = CsvProcessingContext(
+          initialFilterSet = initialCachedFilterSet,
+          feedName = feedName,
+          getCachedFilterSet = getCachedFilterSet(configYamlRef, cacheRef, config, feedName, initialCachedFilterSet)
+        )
+        CsvStreamProcessor.process(inputStream, csvContext)
       } else {
         inputStream.flatMap { line =>
-          Stream.eval(configYamlRef.get).flatMap { currentConfigYaml =>
-            processLineWithConfig(line, currentConfigYaml, config)
-          }
+          Stream
+            .eval(getCachedFilterSet(configYamlRef, cacheRef, config, feedName, initialCachedFilterSet))
+            .flatMap { filterSet =>
+              processLineWithCachedFilterSet(line, filterSet)
+            }
         }
       }
+    }
 
-    Stream.eval(configYamlRef.get).flatMap { initialConfigYaml =>
-      val resolvedConfigs = ConfigResolver.resolve(config, initialConfigYaml)
+    Stream.eval(cacheRef.get).flatMap { initialCache =>
+      val filterSets = initialCache.filterSets
 
-      val finalStream = if (resolvedConfigs.isEmpty) {
+      val finalStream = if (filterSets.isEmpty) {
         Stream.empty
-      } else if (resolvedConfigs.length > 1) {
-        val feedStreams = resolvedConfigs.map { resolvedConfig =>
-          val feedStream = shell.mergeCommandsAndInlineInput(
-            resolvedConfig.commands,
-            resolvedConfig.inlineInput
-          )
-          processStreamWithConfig(feedStream, resolvedConfig)
+      } else if (filterSets.length > 1) {
+        val feedStreams = filterSets.map { filterSet =>
+          val feedStream = getInputStream(filterSet.resolvedConfig, stdinStream, shell)
+          processStreamWithCache(feedStream, filterSet)
         }
         Stream.emits(feedStreams).parJoin(feedStreams.size)
       } else {
-        val resolvedConfig = resolvedConfigs.head
-        val inputStream =
-          if (
-            resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty
-          ) {
-            shell.mergeCommandsAndInlineInput(
-              resolvedConfig.commands,
-              resolvedConfig.inlineInput
-            )
-          } else {
-            stdinStream.stdinLinesStream
-          }
-        processStreamWithConfig(inputStream, resolvedConfig)
+        val filterSet = filterSets.head
+        val inputStream = getInputStream(filterSet.resolvedConfig, stdinStream, shell)
+        processStreamWithCache(inputStream, filterSet)
       }
 
       finalStream.intersperse("\n").append(Stream.emit("\n"))
@@ -123,20 +165,20 @@ object LogViewerStream {
     }
   }
 
-  private def createCsvProcessStream(
-    resolvedConfig: ResolvedConfig,
-    lines: Stream[IO, String]
+  def processLineWithCachedFilterSet(
+    line: String,
+    filterSet: CachedFilterSet
   ): Stream[IO, String] =
-    lines.pull.uncons1.flatMap {
-      case Some((headerLine, rest)) =>
-        val csvHeaderParser = LogLineParserFactory.createCsvParser(resolvedConfig, headerLine)
-        val components = FilterComponents.fromConfig(resolvedConfig)
-
-        FilterPipeline
-          .applyFilters(rest, csvHeaderParser, components, resolvedConfig)
-          .pull
-          .echo
+    filterSet.parser match {
+      case Some(parser) =>
+        FilterPipeline.applyFilters(
+          Stream.emit(line),
+          parser,
+          filterSet.components,
+          filterSet.resolvedConfig
+        )
       case None =>
-        Pull.done
-    }.stream
+        // CSV: parser=None, will throw error (CSV needs header for parser creation)
+        processLineWithResolvedConfig(line, filterSet.resolvedConfig)
+    }
 }

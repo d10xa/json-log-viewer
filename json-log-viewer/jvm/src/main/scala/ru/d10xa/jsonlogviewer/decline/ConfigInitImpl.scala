@@ -7,48 +7,58 @@ import cats.effect.Resource
 import fs2.io.file.Files
 import fs2.io.file.Path
 import fs2.io.file.Watcher
-import java.io.File
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader
 
 class ConfigInitImpl extends ConfigInit {
 
-  override def initConfigYaml(
+  override def initConfigRefs(
     c: Config,
     supervisor: Supervisor[IO]
-  ): Resource[IO, Ref[IO, Option[ConfigYaml]]] = {
+  ): Resource[IO, ConfigRefs] = {
     val configFileOpt: Option[Path] =
       c.configFile
         .map(file => Path(file.file))
-    loadConfigRef(configFileOpt, supervisor)
+    loadConfigRefs(c, configFileOpt, supervisor)
   }
 
-  private def loadConfigRef(
+  private def loadConfigRefs(
+    config: Config,
     configFileOpt: Option[Path],
     supervisor: Supervisor[IO]
-  ): Resource[IO, Ref[IO, Option[ConfigYaml]]] =
+  ): Resource[IO, ConfigRefs] =
     for {
-      updatedConfig <- Resource.eval {
+      initialConfigYaml <- Resource.eval {
         configFileOpt match {
           case Some(filePath) => readConfig(filePath)
           case None           => IO.pure(None)
         }
       }
-      configRef <- Resource.eval(Ref.of[IO, Option[ConfigYaml]](updatedConfig))
+      configYamlRef <- Resource.eval(
+        Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      )
+      initialCache = FilterCacheManager.buildCache(config, initialConfigYaml)
+      cacheRef <- Resource.eval(Ref.of[IO, CachedResolvedState](initialCache))
       _ <- configFileOpt match {
         case Some(filePath) =>
-          watchFileForChanges(
+          watchFileForChangesWithCache(
             absolutePath = filePath.absolute,
-            configRef = configRef,
+            config = config,
+            configYamlRef = configYamlRef,
+            cacheRef = cacheRef,
             supervisor = supervisor
           )
         case None => Resource.unit[IO]
       }
-    } yield configRef
+    } yield ConfigRefs(configYamlRef, cacheRef)
 
-  private def watchFileForChanges(
+  private def watchFileForChangesWithCache(
     absolutePath: Path,
-    configRef: Ref[IO, Option[ConfigYaml]],
+    config: Config,
+    configYamlRef: Ref[IO, Option[ConfigYaml]],
+    cacheRef: Ref[IO, CachedResolvedState],
     supervisor: Supervisor[IO]
   ): Resource[IO, Unit] =
     val watch: IO[Unit] = Files[IO]
@@ -59,8 +69,10 @@ class ConfigInitImpl extends ConfigInit {
       .evalMap {
         case Watcher.Event.Modified(_, _) | Watcher.Event.Created(_, _) =>
           for {
-            updatedConfig <- readConfig(absolutePath)
-            _ <- configRef.set(updatedConfig)
+            updatedConfigYaml <- readConfig(absolutePath)
+            _ <- configYamlRef.set(updatedConfigYaml)
+            newCache = FilterCacheManager.buildCache(config, updatedConfigYaml)
+            _ <- cacheRef.set(newCache)
           } yield ()
         case _ => IO.unit
       }

@@ -4,6 +4,8 @@ import cats.effect.IO
 import cats.effect.Ref
 import fs2.Stream
 import munit.CatsEffectSuite
+import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
+import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.Config
@@ -72,15 +74,20 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
       showEmptyFields = None
     )
 
+    val initialConfigYaml = Some(configYaml)
+    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml)
     for {
-      yamlRef <- Ref.of[IO, Option[ConfigYaml]](Some(configYaml))
+      yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+      ctx = StreamContext(
+        config = basicConfig,
+        configYamlRef = yamlRef,
+        cacheRef = cacheRef,
+        stdinStream = testStdinStream,
+        shell = testShell
+      )
       output <- LogViewerStream
-        .stream(
-          basicConfig,
-          yamlRef,
-          testStdinStream,
-          testShell
-        )
+        .stream(ctx)
         .compile
         .toList
       _ <- IO {
@@ -133,15 +140,20 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
       showEmptyFields = None
     )
 
+    val initialConfigYaml = Some(configYaml)
+    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml)
     for {
-      yamlRef <- Ref.of[IO, Option[ConfigYaml]](Some(configYaml))
+      yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
+      cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+      ctx = StreamContext(
+        config = basicConfig,
+        configYamlRef = yamlRef,
+        cacheRef = cacheRef,
+        stdinStream = testStdinStream,
+        shell = testShell
+      )
       output <- LogViewerStream
-        .stream(
-          basicConfig,
-          yamlRef,
-          testStdinStream,
-          testShell
-        )
+        .stream(ctx)
         .compile
         .toList
       _ <- IO {
