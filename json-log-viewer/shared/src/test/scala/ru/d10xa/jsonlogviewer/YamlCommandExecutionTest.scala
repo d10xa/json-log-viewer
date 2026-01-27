@@ -79,14 +79,15 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     for {
       yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+      ctx = StreamContext(
+        config = basicConfig,
+        configYamlRef = yamlRef,
+        cacheRef = cacheRef,
+        stdinStream = testStdinStream,
+        shell = testShell
+      )
       output <- LogViewerStream
-        .stream(
-          basicConfig,
-          yamlRef,
-          cacheRef,
-          testStdinStream,
-          testShell
-        )
+        .stream(ctx)
         .compile
         .toList
       _ <- IO {
@@ -144,14 +145,15 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     for {
       yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+      ctx = StreamContext(
+        config = basicConfig,
+        configYamlRef = yamlRef,
+        cacheRef = cacheRef,
+        stdinStream = testStdinStream,
+        shell = testShell
+      )
       output <- LogViewerStream
-        .stream(
-          basicConfig,
-          yamlRef,
-          cacheRef,
-          testStdinStream,
-          testShell
-        )
+        .stream(ctx)
         .compile
         .toList
       _ <- IO {

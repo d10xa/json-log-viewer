@@ -5,7 +5,7 @@ import ru.d10xa.jsonlogviewer.FilterComponents
 import ru.d10xa.jsonlogviewer.LogLineParser
 
 /** Pre-built filters and parser. Parser is None for CSV (requires header). */
-final case class FilterSet(
+final case class CachedFilterSet(
   resolvedConfig: ResolvedConfig,
   components: FilterComponents,
   parser: Option[LogLineParser]

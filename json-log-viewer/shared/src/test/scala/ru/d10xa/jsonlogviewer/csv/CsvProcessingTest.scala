@@ -16,6 +16,7 @@ import ru.d10xa.jsonlogviewer.query.QueryCompiler
 import ru.d10xa.jsonlogviewer.shell.ShellImpl
 import ru.d10xa.jsonlogviewer.LogViewerStream
 import ru.d10xa.jsonlogviewer.StdInLinesStream
+import ru.d10xa.jsonlogviewer.StreamContext
 
 import scala.concurrent.duration.*
 
@@ -56,14 +57,15 @@ class CsvProcessingTest extends CatsEffectSuite {
           Stream.emits(List(csvHeader, csvLine1, csvLine2))
       }
 
+      ctx = StreamContext(
+        config = csvConfig,
+        configYamlRef = configRef,
+        cacheRef = cacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       results <- LogViewerStream
-        .stream(
-          config = csvConfig,
-          configYamlRef = configRef,
-          cacheRef = cacheRef,
-          stdinStream = testStreamImpl,
-          shell = new ShellImpl
-        )
+        .stream(ctx)
         .compile
         .toList
 
@@ -119,14 +121,15 @@ class CsvProcessingTest extends CatsEffectSuite {
           Stream.emits(List(csvHeader, csvLine))
       }
 
+      ctx = StreamContext(
+        config = csvConfig,
+        configYamlRef = configRef,
+        cacheRef = cacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       results <- LogViewerStream
-        .stream(
-          config = csvConfig,
-          configYamlRef = configRef,
-          cacheRef = cacheRef,
-          stdinStream = testStreamImpl,
-          shell = new ShellImpl
-        )
+        .stream(ctx)
         .compile
         .toList
 
@@ -198,8 +201,15 @@ class CsvProcessingTest extends CatsEffectSuite {
           logInputChannel.stream
       }
 
+      ctx = StreamContext(
+        config = csvConfig,
+        configYamlRef = configRef,
+        cacheRef = cacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       streamFiber <- LogViewerStream
-        .stream(csvConfig, configRef, cacheRef, testStreamImpl, new ShellImpl)
+        .stream(ctx)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain

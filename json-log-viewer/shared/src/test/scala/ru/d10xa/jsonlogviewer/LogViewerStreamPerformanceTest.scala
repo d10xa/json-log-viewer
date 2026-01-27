@@ -74,14 +74,15 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
       }
 
       startTime <- IO.realTime
+      ctx = StreamContext(
+        config = baseConfig,
+        configYamlRef = configRef,
+        cacheRef = countingCacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       results <- LogViewerStream
-        .stream(
-          baseConfig,
-          configRef,
-          countingCacheRef,
-          testStreamImpl,
-          new ShellImpl
-        )
+        .stream(ctx)
         .compile
         .toList
       endTime <- IO.realTime
@@ -163,14 +164,15 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
             Stream.emits(logLines)
       }
 
+      ctx = StreamContext(
+        config = baseConfig,
+        configYamlRef = configRef,
+        cacheRef = countingCacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       results <- LogViewerStream
-        .stream(
-          baseConfig,
-          configRef,
-          countingCacheRef,
-          testStreamImpl,
-          new ShellImpl
-        )
+        .stream(ctx)
         .compile
         .toList
 

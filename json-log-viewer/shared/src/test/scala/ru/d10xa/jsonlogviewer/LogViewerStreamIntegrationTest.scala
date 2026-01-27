@@ -99,8 +99,15 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
       }
 
       // Start stream processing in background
+      ctx = StreamContext(
+        config = baseConfig,
+        configYamlRef = configRef,
+        cacheRef = cacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       streamFiber <- LogViewerStream
-        .stream(baseConfig, configRef, cacheRef, testStreamImpl, new ShellImpl)
+        .stream(ctx)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain
@@ -225,14 +232,15 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
       }
 
       // Start stream processing in background
+      ctx = StreamContext(
+        config = errorFilterConfig,
+        configYamlRef = configRef,
+        cacheRef = cacheRef,
+        stdinStream = testStreamImpl,
+        shell = new ShellImpl
+      )
       streamFiber <- LogViewerStream
-        .stream(
-          errorFilterConfig,
-          configRef,
-          cacheRef,
-          testStreamImpl,
-          new ShellImpl
-        )
+        .stream(ctx)
         .evalTap(result => IO(results.append(result)))
         .compile
         .drain

@@ -21,7 +21,7 @@ object FilterCacheManager {
     configYaml: Option[ConfigYaml]
   ): CachedResolvedState = {
     val resolvedConfigs = ConfigResolver.resolve(config, configYaml)
-    val filterSets = resolvedConfigs.map(createFilterSet)
+    val filterSets = resolvedConfigs.map(buildFilterSet)
     CachedResolvedState(config, configYaml, filterSets)
   }
 
@@ -38,7 +38,7 @@ object FilterCacheManager {
         (buildCache(config, configYaml), true)
     }
 
-  def createFilterSet(resolvedConfig: ResolvedConfig): FilterSet = {
+  def buildFilterSet(resolvedConfig: ResolvedConfig): CachedFilterSet = {
     val components = FilterComponents.fromConfig(resolvedConfig)
     val parser =
       if (resolvedConfig.formatIn.contains(FormatIn.Csv)) {
@@ -46,6 +46,6 @@ object FilterCacheManager {
       } else {
         Some(LogLineParserFactory.createNonCsvParser(resolvedConfig))
       }
-    FilterSet(resolvedConfig, components, parser)
+    CachedFilterSet(resolvedConfig, components, parser)
   }
 }

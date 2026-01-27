@@ -7,7 +7,7 @@ import ru.d10xa.jsonlogviewer.decline.Config
 final case class CachedResolvedState(
   config: Config,
   configYaml: Option[ConfigYaml],
-  filterSets: List[FilterSet]
+  filterSets: List[CachedFilterSet]
 ) {
 
   def isValid(

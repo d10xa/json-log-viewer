@@ -35,10 +35,10 @@ class FilterCacheManagerTest extends FunSuite {
     assertEquals(cache.config, standardConfig)
     assertEquals(cache.configYaml, None)
 
-    val filterSet = cache.filterSets.head
-    assertEquals(filterSet.resolvedConfig.feedName, None)
-    assert(filterSet.parser.isDefined, "Parser should be created for non-CSV format")
-    assertNotEquals(filterSet.components, null, "FilterComponents should be created")
+    val cachedFilterSet = cache.filterSets.head
+    assertEquals(cachedFilterSet.resolvedConfig.feedName, None)
+    assert(cachedFilterSet.parser.isDefined, "Parser should be created for non-CSV format")
+    assertNotEquals(cachedFilterSet.components, null, "FilterComponents should be created")
   }
 
   test("buildCache creates FilterSets from Config with YAML feeds") {
@@ -120,8 +120,8 @@ class FilterCacheManagerTest extends FunSuite {
     val cache = FilterCacheManager.buildCache(standardConfig, Some(configYaml))
 
     assertEquals(cache.filterSets.length, 1)
-    val filterSet = cache.filterSets.head
-    assertEquals(filterSet.parser, None, "CSV format should not have pre-built parser")
+    val cachedFilterSet = cache.filterSets.head
+    assertEquals(cachedFilterSet.parser, None, "CSV format should not have pre-built parser")
   }
 
   test("updateCacheIfNeeded returns existing cache when config unchanged") {
@@ -223,18 +223,18 @@ class FilterCacheManagerTest extends FunSuite {
     )
   }
 
-  test("createFilterSet creates FilterComponents for resolved config") {
+  test("buildFilterSet creates FilterComponents for resolved config") {
     val resolvedConfigs =
       ru.d10xa.jsonlogviewer.config.ConfigResolver.resolve(standardConfig, None)
     val resolvedConfig = resolvedConfigs.head
 
-    val filterSet = FilterCacheManager.createFilterSet(resolvedConfig)
+    val cachedFilterSet = FilterCacheManager.buildFilterSet(resolvedConfig)
 
-    assertEquals(filterSet.resolvedConfig, resolvedConfig)
-    assertNotEquals(filterSet.components, null)
-    assertNotEquals(filterSet.components.timestampFilter, null)
-    assertNotEquals(filterSet.components.logLineFilter, null)
-    assertNotEquals(filterSet.components.fuzzyFilter, null)
-    assertNotEquals(filterSet.components.outputLineFormatter, null)
+    assertEquals(cachedFilterSet.resolvedConfig, resolvedConfig)
+    assertNotEquals(cachedFilterSet.components, null)
+    assertNotEquals(cachedFilterSet.components.timestampFilter, null)
+    assertNotEquals(cachedFilterSet.components.logLineFilter, null)
+    assertNotEquals(cachedFilterSet.components.fuzzyFilter, null)
+    assertNotEquals(cachedFilterSet.components.outputLineFormatter, null)
   }
 }

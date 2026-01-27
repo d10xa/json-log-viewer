@@ -69,13 +69,14 @@ object ViewElement {
           fs2.Stream
             .eval(refsIO)
             .flatMap { case (configYamlRef, cacheRef) =>
-              LogViewerStream.stream(
-                c,
-                configYamlRef,
-                cacheRef,
-                new StdInLinesStreamImpl,
-                new ShellImpl
+              val ctx = StreamContext(
+                config = c,
+                configYamlRef = configYamlRef,
+                cacheRef = cacheRef,
+                stdinStream = new StdInLinesStreamImpl,
+                shell = new ShellImpl
               )
+              LogViewerStream.stream(ctx)
             }
             .compile
             .toList
