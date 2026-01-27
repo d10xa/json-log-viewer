@@ -8,11 +8,10 @@ import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.FilterComponents
 import ru.d10xa.jsonlogviewer.LogLineParserFactory
 
-/** Manages caching of resolved configurations and filter components.
+/** Manages caching of resolved configurations and filter components
   *
   * This reduces the overhead of ConfigResolver.resolve calls from once per log
-  * line to only when configuration actually changes (typically 5-10 times
-  * during live reload scenarios vs 1M+ for large log files).
+  * line to only when configuration actually changes
   */
 object FilterCacheManager {
 
