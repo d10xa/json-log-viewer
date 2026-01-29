@@ -3,14 +3,17 @@ package ru.d10xa.jsonlogviewer
 import cats.effect.IO
 import cats.effect.Ref
 import fs2.*
+import ru.d10xa.jsonlogviewer.cache.CachedFilterSet
 import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
 import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
-import ru.d10xa.jsonlogviewer.cache.CachedFilterSet
 import ru.d10xa.jsonlogviewer.config.ConfigResolver
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.restart.RestartState
+import ru.d10xa.jsonlogviewer.restart.RestartableStreamWrapper
+import ru.d10xa.jsonlogviewer.shell.RestartConfig
 import ru.d10xa.jsonlogviewer.shell.Shell
 
 object LogViewerStream {
@@ -39,13 +42,31 @@ object LogViewerStream {
   private def getInputStream(
     resolvedConfig: ResolvedConfig,
     stdinStream: StdInLinesStream,
-    shell: Shell
+    shell: Shell,
+    restartState: Option[RestartState]
   ): Stream[IO, String] =
-    if (resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty) {
-      shell.mergeCommandsAndInlineInput(
-        resolvedConfig.commands,
-        resolvedConfig.inlineInput
-      )
+    if (
+      resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty
+    ) {
+      restartState.filter(_ => resolvedConfig.restart) match {
+        case Some(state) =>
+          val restartConfig = RestartConfig(
+            enabled = true,
+            delayMs = resolvedConfig.restartDelayMs,
+            maxRestarts = resolvedConfig.maxRestarts
+          )
+          shell.mergeCommandsAndInlineInputWithRestart(
+            resolvedConfig.commands,
+            resolvedConfig.inlineInput,
+            restartConfig,
+            RestartableStreamWrapper.createOnRestartCallback(state.isRestartRef)
+          )
+        case None =>
+          shell.mergeCommandsAndInlineInput(
+            resolvedConfig.commands,
+            resolvedConfig.inlineInput
+          )
+      }
     } else {
       stdinStream.stdinLinesStream
     }
@@ -67,25 +88,66 @@ object LogViewerStream {
 
     def processStreamWithCache(
       inputStream: Stream[IO, String],
-      initialCachedFilterSet: CachedFilterSet
+      initialCachedFilterSet: CachedFilterSet,
+      restartState: Option[RestartState]
     ): Stream[IO, String] = {
       val feedName = initialCachedFilterSet.resolvedConfig.feedName
 
-      if (initialCachedFilterSet.resolvedConfig.formatIn.contains(FormatIn.Csv)) {
+      if (
+        initialCachedFilterSet.resolvedConfig.formatIn.contains(FormatIn.Csv)
+      ) {
         val csvContext = CsvProcessingContext(
           initialFilterSet = initialCachedFilterSet,
           feedName = feedName,
-          getCachedFilterSet = getCachedFilterSet(configYamlRef, cacheRef, config, feedName, initialCachedFilterSet)
+          getCachedFilterSet = getCachedFilterSet(
+            configYamlRef,
+            cacheRef,
+            config,
+            feedName,
+            initialCachedFilterSet
+          ),
+          restartState = restartState
         )
         CsvStreamProcessor.process(inputStream, csvContext)
       } else {
         inputStream.flatMap { line =>
           Stream
-            .eval(getCachedFilterSet(configYamlRef, cacheRef, config, feedName, initialCachedFilterSet))
+            .eval(
+              getCachedFilterSet(
+                configYamlRef,
+                cacheRef,
+                config,
+                feedName,
+                initialCachedFilterSet
+              )
+            )
             .flatMap { filterSet =>
-              processLineWithCachedFilterSet(line, filterSet)
+              processLineWithCachedFilterSet(
+                line,
+                filterSet,
+                restartState
+              )
             }
         }
+      }
+    }
+
+    def createFeedStream(filterSet: CachedFilterSet): Stream[IO, String] = {
+      val resolvedConfig = filterSet.resolvedConfig
+      if (resolvedConfig.restart) {
+        Stream.eval(RestartState.create).flatMap { restartState =>
+          val feedStream = getInputStream(
+            resolvedConfig,
+            stdinStream,
+            shell,
+            Some(restartState)
+          )
+          processStreamWithCache(feedStream, filterSet, Some(restartState))
+        }
+      } else {
+        val feedStream =
+          getInputStream(resolvedConfig, stdinStream, shell, None)
+        processStreamWithCache(feedStream, filterSet, None)
       }
     }
 
@@ -95,15 +157,10 @@ object LogViewerStream {
       val finalStream = if (filterSets.isEmpty) {
         Stream.empty
       } else if (filterSets.length > 1) {
-        val feedStreams = filterSets.map { filterSet =>
-          val feedStream = getInputStream(filterSet.resolvedConfig, stdinStream, shell)
-          processStreamWithCache(feedStream, filterSet)
-        }
+        val feedStreams = filterSets.map(createFeedStream)
         Stream.emits(feedStreams).parJoin(feedStreams.size)
       } else {
-        val filterSet = filterSets.head
-        val inputStream = getInputStream(filterSet.resolvedConfig, stdinStream, shell)
-        processStreamWithCache(inputStream, filterSet)
+        createFeedStream(filterSets.head)
       }
 
       finalStream.intersperse("\n").append(Stream.emit("\n"))
@@ -167,15 +224,17 @@ object LogViewerStream {
 
   def processLineWithCachedFilterSet(
     line: String,
-    filterSet: CachedFilterSet
+    filterSet: CachedFilterSet,
+    restartState: Option[RestartState] = None
   ): Stream[IO, String] =
     filterSet.parser match {
       case Some(parser) =>
-        FilterPipeline.applyFilters(
+        FilterPipeline.applyFiltersWithRestartState(
           Stream.emit(line),
           parser,
           filterSet.components,
-          filterSet.resolvedConfig
+          filterSet.resolvedConfig,
+          restartState
         )
       case None =>
         // CSV: parser=None, will throw error (CSV needs header for parser creation)

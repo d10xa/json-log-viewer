@@ -30,6 +30,9 @@ class ParseResultKeysGetByKeyTest extends FunSuite {
     timestampBefore = None,
     grep = List.empty,
     showEmptyFields = false,
+    restart = false,
+    restartDelayMs = 1000L,
+    maxRestarts = None
   )
 
   private val parseResult = ParseResult(

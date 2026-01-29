@@ -11,6 +11,7 @@ import ru.d10xa.jsonlogviewer.decline.yaml.Feed
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
 import ru.d10xa.jsonlogviewer.decline.TimestampConfig
+import ru.d10xa.jsonlogviewer.shell.RestartConfig
 import ru.d10xa.jsonlogviewer.shell.Shell
 
 /** Tests to verify the proper command execution behavior based on YAML
@@ -49,6 +50,14 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
         inlineInput: Option[String]
       ): Stream[IO, String] =
         Stream.emit(s"FROM_COMMAND:${commands.mkString(",")}")
+
+      override def mergeCommandsAndInlineInputWithRestart(
+        commands: List[String],
+        inlineInput: Option[String],
+        restartConfig: RestartConfig,
+        onRestart: IO[Unit]
+      ): Stream[IO, String] =
+        mergeCommandsAndInlineInput(commands, inlineInput)
     }
 
     val configYaml = ConfigYaml(
@@ -67,7 +76,10 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       ),
@@ -115,6 +127,14 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
         inlineInput: Option[String]
       ): Stream[IO, String] =
         Stream.emit("FROM_COMMAND")
+
+      override def mergeCommandsAndInlineInputWithRestart(
+        commands: List[String],
+        inlineInput: Option[String],
+        restartConfig: RestartConfig,
+        onRestart: IO[Unit]
+      ): Stream[IO, String] =
+        mergeCommandsAndInlineInput(commands, inlineInput)
     }
 
     val configYaml = ConfigYaml(
@@ -133,7 +153,10 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       ),

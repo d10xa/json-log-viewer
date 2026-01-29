@@ -1,22 +1,39 @@
 package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
+import cats.effect.Ref
 import fs2.Stream
 import ru.d10xa.jsonlogviewer.config.ResolvedConfig
+import ru.d10xa.jsonlogviewer.restart.RestartState
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
 object FilterPipeline {
 
-  // Filter order: rawFilter -> parse -> grep -> query -> fuzzy -> timestamp -> format
+  // Filter order: rawFilter -> parse -> grep -> query -> fuzzy -> timestamp -> restartDedup -> format
   def applyFilters(
     stream: Stream[IO, String],
     parser: LogLineParser,
     components: FilterComponents,
     resolvedConfig: ResolvedConfig
   ): Stream[IO, String] =
-    stream
+    applyFiltersWithRestartState(
+      stream,
+      parser,
+      components,
+      resolvedConfig,
+      None
+    )
+
+  def applyFiltersWithRestartState(
+    stream: Stream[IO, String],
+    parser: LogLineParser,
+    components: FilterComponents,
+    resolvedConfig: ResolvedConfig,
+    restartState: Option[RestartState]
+  ): Stream[IO, String] = {
+    val baseFiltered = stream
       .filter(
         rawFilter(_, resolvedConfig.rawInclude, resolvedConfig.rawExclude)
       )
@@ -34,7 +51,21 @@ object FilterPipeline {
           resolvedConfig.timestampBefore
         )
       )
-      .map(formatWithSafety(_, components.outputLineFormatter))
+
+    val withRestartDedup = restartState match {
+      case Some(state) =>
+        ru.d10xa.jsonlogviewer.restart.RestartableStreamWrapper
+          .wrapWithTimestampTracking(
+            baseFiltered,
+            state.lastTsRef,
+            state.isRestartRef
+          )
+      case None =>
+        baseFiltered
+    }
+
+    withRestartDedup.map(formatWithSafety(_, components.outputLineFormatter))
+  }
 
   private def rawFilter(
     str: String,

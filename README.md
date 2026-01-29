@@ -55,7 +55,10 @@ Below is an example of formatted JSON logs in the command-line interface:
 - **Integration with k9s**  
   Seamlessly integrate with the k9s Kubernetes CLI tool to visualize logs directly within k9s.
 
-- **Custom Field Mapping**  
+- **Automatic Command Restart**
+  Auto-restart log streams when commands exit, with timestamp-based deduplication to avoid duplicate entries.
+
+- **Custom Field Mapping**
   Configure custom field names mapping to work with non-standard log formats.
 
 ## Installation
@@ -295,6 +298,61 @@ Each feed represents a log source and can have the following attributes:
 - **rawInclude** and **rawExclude** (optional): Lists of regular expressions to include or exclude from processing.
 - **excludeFields** (optional): List of fields to exclude from output.
 - **fieldNames** (optional): Custom mapping for field names, helpful when working with non-standard log formats.
+- **restart** (optional): Enable automatic restart when command exits (default: false).
+- **restartDelayMs** (optional): Delay in milliseconds before restart (default: 1000).
+- **maxRestarts** (optional): Maximum number of restarts (default: unlimited).
+
+### Automatic Command Restart
+
+For long-running log streams (like `kubectl logs -f`), you can enable automatic restart when the command exits. This is useful for:
+- Kubernetes pods that restart
+- Network connections that drop
+- Commands that occasionally fail
+
+The tool tracks the last emitted timestamp and filters out duplicate messages on restart.
+
+#### Configuration
+
+```yaml
+feeds:
+  - name: "kubernetes-logs"
+    commands:
+      - "kubectl logs -f deployment/my-app --tail=100"
+    restart: true           # Enable automatic restart
+    restartDelayMs: 2000    # Wait 2 seconds before restart (default: 1000)
+    maxRestarts: 10         # Max restarts (default: unlimited)
+```
+
+#### Parameters
+
+- **restart**: Set to `true` to enable automatic restart (default: `false`)
+- **restartDelayMs**: Delay in milliseconds before restarting the command (default: `1000`)
+- **maxRestarts**: Maximum number of restarts. If not set, restarts indefinitely.
+
+#### Timestamp Deduplication
+
+When a command restarts, the tool:
+1. Tracks the last emitted log timestamp
+2. Filters out messages with timestamps ≤ the last seen timestamp
+3. Only shows new messages after restart
+
+This prevents duplicate log entries when restarting commands like `kubectl logs --tail=100`.
+
+**Note:** Messages without timestamps will always pass through (no deduplication possible).
+
+#### Example: Kubernetes Multi-Pod Monitoring
+
+```yaml
+feeds:
+  - name: "backend-pods"
+    commands:
+      - "kubectl logs -f deployment/backend --tail=50"
+      - "kubectl logs -f deployment/api --tail=50"
+    restart: true
+    restartDelayMs: 5000
+    filter: |
+      level = 'ERROR' OR level = 'WARN'
+```
 
 ### Custom Field Mapping
 
@@ -344,6 +402,12 @@ feeds:
     filter: |
       message NOT LIKE '%heartbeat%'
     formatIn: logfmt
+  - name: "kubernetes-stream"
+    commands:
+      - "kubectl logs -f deployment/my-app --tail=100"
+    restart: true
+    restartDelayMs: 3000
+    maxRestarts: 5
   - name: "csv-logs"
     commands:
       - cat logs.csv

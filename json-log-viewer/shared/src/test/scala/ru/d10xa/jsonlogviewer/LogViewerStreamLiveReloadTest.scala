@@ -63,7 +63,10 @@ class LogViewerStreamLiveReloadTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )
@@ -140,7 +143,10 @@ class LogViewerStreamLiveReloadTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )

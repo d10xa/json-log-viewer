@@ -44,7 +44,10 @@ object ViewElement {
             fuzzyExclude = None,
             excludeFields = None,
             fieldNames = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )

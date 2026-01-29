@@ -2,10 +2,27 @@ package ru.d10xa.jsonlogviewer.shell
 import cats.effect.IO
 import fs2.*
 
+final case class RestartConfig(
+  enabled: Boolean,
+  delayMs: Long,
+  maxRestarts: Option[Int]
+)
+
+object RestartConfig:
+  val disabled: RestartConfig =
+    RestartConfig(enabled = false, delayMs = 1000L, maxRestarts = None)
+
 trait Shell {
   def mergeCommandsAndInlineInput(
     commands: List[String],
     inlineInput: Option[String]
+  ): Stream[IO, String]
+
+  def mergeCommandsAndInlineInputWithRestart(
+    commands: List[String],
+    inlineInput: Option[String],
+    restartConfig: RestartConfig,
+    onRestart: IO[Unit]
   ): Stream[IO, String]
 }
 
