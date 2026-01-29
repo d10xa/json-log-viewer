@@ -1,8 +1,5 @@
 package ru.d10xa.jsonlogviewer.decline
 
-import cats.data.NonEmptyList
-import cats.data.Validated
-import cats.data.ValidatedNel
 import cats.syntax.all.*
 import com.monovore.decline.*
 import com.monovore.decline.time.*
@@ -15,6 +12,18 @@ import ru.d10xa.jsonlogviewer.query.QueryAST
 
 object DeclineOpts {
 
+  private def fieldOpt(
+    name: String,
+    fieldDescription: String,
+    default: String
+  ): Opts[String] =
+    Opts
+      .option[String](
+        name,
+        help = s"Override default $fieldDescription field name"
+      )
+      .withDefault(default)
+
   // Timestamp filter options
   val timestampAfter: Opts[Option[ZonedDateTime]] =
     Opts.option[ZonedDateTime]("timestamp-after", "").orNone
@@ -23,49 +32,17 @@ object DeclineOpts {
 
   // Field name options
   val timestampField: Opts[String] =
-    Opts
-      .option[String](
-        "timestamp-field",
-        help = "Override default timestamp field name"
-      )
-      .withDefault("@timestamp")
-
+    fieldOpt("timestamp-field", "timestamp", "@timestamp")
   val levelField: Opts[String] =
-    Opts
-      .option[String]("level-field", help = "Override default level field name")
-      .withDefault("level")
-
+    fieldOpt("level-field", "level", "level")
   val messageField: Opts[String] =
-    Opts
-      .option[String](
-        "message-field",
-        help = "Override default message field name"
-      )
-      .withDefault("message")
-
+    fieldOpt("message-field", "message", "message")
   val stackTraceField: Opts[String] =
-    Opts
-      .option[String](
-        "stack-trace-field",
-        help = "Override default stack trace field name"
-      )
-      .withDefault("stack_trace")
-
+    fieldOpt("stack-trace-field", "stack trace", "stack_trace")
   val loggerNameField: Opts[String] =
-    Opts
-      .option[String](
-        "logger-name-field",
-        help = "Override default logger name field name"
-      )
-      .withDefault("logger_name")
-
+    fieldOpt("logger-name-field", "logger name", "logger_name")
   val threadNameField: Opts[String] =
-    Opts
-      .option[String](
-        "thread-name-field",
-        help = "Override default thread name field name"
-      )
-      .withDefault("thread_name")
+    fieldOpt("thread-name-field", "thread name", "thread_name")
 
   def fieldNamesConfig: Opts[FieldNamesConfig] =
     (
@@ -77,16 +54,11 @@ object DeclineOpts {
       threadNameField
     ).mapN(FieldNamesConfig.apply)
 
-  def validateConfigGrep(string: String): ValidatedNel[String, ConfigGrep] =
-    string.split(":", 2) match {
-      case Array(key, value) =>
-        Validated.valid(ConfigGrep(key, value.r))
-      case _ => Validated.invalidNel(s"Invalid key:value pair: $string")
-    }
-
   val grepConfig: Opts[List[ConfigGrep]] = Opts
     .options[String]("grep", "", metavar = "key:value")
-    .mapValidated(lines => lines.traverse(validateConfigGrep))
+    .mapValidated(lines =>
+      lines.traverse(ConfigGrepValidator.toValidatedConfigGrep)
+    )
     .orEmpty
 
   val filterConfig: Opts[Option[QueryAST]] = Opts
