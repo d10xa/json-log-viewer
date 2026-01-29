@@ -28,6 +28,9 @@ trait TestResolvedConfig {
     timestampAfter = None,
     timestampBefore = None,
     grep = List.empty,
-    showEmptyFields = false
+    showEmptyFields = false,
+    restart = false,
+    restartDelayMs = 1000L,
+    maxRestarts = None
   )
 }

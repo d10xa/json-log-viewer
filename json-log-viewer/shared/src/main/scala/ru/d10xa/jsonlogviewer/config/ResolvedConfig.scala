@@ -40,7 +40,12 @@ final case class ResolvedConfig(
 
   // Other settings
   grep: List[ConfigGrep],
-  showEmptyFields: Boolean
+  showEmptyFields: Boolean,
+
+  // Restart settings
+  restart: Boolean,
+  restartDelayMs: Long,
+  maxRestarts: Option[Int]
 )
 
 /** Resolves configuration by merging global and feed-specific settings into a
@@ -97,7 +102,10 @@ object ConfigResolver {
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
                 grep = config.grep,
-                showEmptyFields = feedShowEmptyFields
+                showEmptyFields = feedShowEmptyFields,
+                restart = feed.restart.getOrElse(false),
+                restartDelayMs = feed.restartDelayMs.getOrElse(1000L),
+                maxRestarts = feed.maxRestarts
               )
             }
           case _ =>
@@ -119,7 +127,10 @@ object ConfigResolver {
                 timestampAfter = config.timestamp.after,
                 timestampBefore = config.timestamp.before,
                 grep = config.grep,
-                showEmptyFields = config.showEmptyFields
+                showEmptyFields = config.showEmptyFields,
+                restart = false,
+                restartDelayMs = 1000L,
+                maxRestarts = None
               )
             )
         }
@@ -142,7 +153,10 @@ object ConfigResolver {
             timestampAfter = config.timestamp.after,
             timestampBefore = config.timestamp.before,
             grep = config.grep,
-            showEmptyFields = config.showEmptyFields
+            showEmptyFields = config.showEmptyFields,
+            restart = false,
+            restartDelayMs = 1000L,
+            maxRestarts = None
           )
         )
     }

@@ -13,4 +13,13 @@ class ShellImpl extends Shell {
       Shell.stringToStream(inlineInput)
     case None => Stream.empty
 
+  def mergeCommandsAndInlineInputWithRestart(
+    commands: List[String],
+    inlineInput: Option[String],
+    restartConfig: RestartConfig,
+    onRestart: IO[Unit]
+  ): Stream[IO, String] =
+    // JS doesn't execute shell commands, only supports inline input
+    mergeCommandsAndInlineInput(commands, inlineInput)
+
 }

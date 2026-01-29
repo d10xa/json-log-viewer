@@ -6,15 +6,19 @@ import fs2.*
 import fs2.Pull
 import ru.d10xa.jsonlogviewer.cache.CachedFilterSet
 import ru.d10xa.jsonlogviewer.decline.FieldNamesConfig
+import ru.d10xa.jsonlogviewer.restart.RestartState
 
 /** Context for CSV stream processing with cache support. */
 final case class CsvProcessingContext(
   initialFilterSet: CachedFilterSet,
   feedName: Option[String],
-  getCachedFilterSet: IO[CachedFilterSet]
+  getCachedFilterSet: IO[CachedFilterSet],
+  restartState: Option[RestartState] = None
 )
 
-/** Processes CSV log streams with header-based parser creation and live reload support. */
+/** Processes CSV log streams with header-based parser creation and live reload
+  * support.
+  */
 object CsvStreamProcessor {
 
   def process(
@@ -79,11 +83,12 @@ object CsvStreamProcessor {
         } yield (filterSet, updatedParser)
       )
       .flatMap { case (filterSet, parser) =>
-        FilterPipeline.applyFilters(
+        FilterPipeline.applyFiltersWithRestartState(
           Stream.emit(line),
           parser,
           filterSet.components,
-          filterSet.resolvedConfig
+          filterSet.resolvedConfig,
+          context.restartState
         )
       }
 

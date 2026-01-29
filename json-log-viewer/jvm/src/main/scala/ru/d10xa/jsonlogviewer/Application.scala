@@ -28,7 +28,8 @@ object Application
           stdinStream = new StdInLinesStreamImpl,
           shell = new ShellImpl
         )
-        LogViewerStream.stream(ctx)
+        LogViewerStream
+          .stream(ctx)
           .through(text.utf8.encode)
           .through(fs2.io.stdout)
           .compile

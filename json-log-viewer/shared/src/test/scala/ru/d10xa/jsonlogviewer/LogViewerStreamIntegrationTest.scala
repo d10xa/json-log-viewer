@@ -67,7 +67,10 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )
@@ -184,7 +187,10 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )

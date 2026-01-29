@@ -59,7 +59,10 @@ class FilterCacheManagerTest extends FunSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           ),
           Feed(
             name = Some("feed2"),
@@ -73,7 +76,10 @@ class FilterCacheManagerTest extends FunSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )
@@ -111,7 +117,10 @@ class FilterCacheManagerTest extends FunSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )

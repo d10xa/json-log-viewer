@@ -105,7 +105,10 @@ class LogLineQueryPredicateImplTest extends munit.FunSuite {
     excludeFields = None,
     timestampAfter = None,
     timestampBefore = None,
-    grep = List.empty
+    grep = List.empty,
+    restart = false,
+    restartDelayMs = 1000L,
+    maxRestarts = None
   )
 
   private lazy val parseResultKeys = new ParseResultKeys(resolvedConfig)

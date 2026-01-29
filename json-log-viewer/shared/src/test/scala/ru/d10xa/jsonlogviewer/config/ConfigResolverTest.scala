@@ -108,7 +108,10 @@ class ConfigResolverTest extends FunSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           ),
           Feed(
             name = Some("feed2"),
@@ -122,7 +125,10 @@ class ConfigResolverTest extends FunSuite {
             fuzzyInclude = None,
             fuzzyExclude = None,
             excludeFields = None,
-            showEmptyFields = None
+            showEmptyFields = None,
+            restart = None,
+            restartDelayMs = None,
+            maxRestarts = None
           )
         )
       )

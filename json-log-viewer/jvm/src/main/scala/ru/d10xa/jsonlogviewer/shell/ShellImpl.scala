@@ -2,6 +2,7 @@ package ru.d10xa.jsonlogviewer.shell
 
 import cats.effect.*
 import cats.syntax.all.*
+import scala.concurrent.duration.*
 
 class ShellImpl extends Shell {
 
@@ -27,6 +28,27 @@ class ShellImpl extends Shell {
         }.void)
     }
 
+  private def runCommandWithRestart(
+    command: String,
+    restartConfig: RestartConfig,
+    onRestart: IO[Unit]
+  ): fs2.Stream[IO, String] = {
+    def loop(restartCount: Int): fs2.Stream[IO, String] = {
+      val canRestart = restartConfig.maxRestarts.forall(restartCount < _)
+
+      runInfiniteCommand(command) ++ (
+        if (restartConfig.enabled && canRestart)
+          fs2.Stream.eval(onRestart) >>
+            fs2.Stream.sleep[IO](restartConfig.delayMs.millis) >>
+            loop(restartCount + 1)
+        else
+          fs2.Stream.empty
+      )
+    }
+
+    if (restartConfig.enabled) loop(0) else runInfiniteCommand(command)
+  }
+
   def mergeCommandsAndInlineInput(
     commands: List[String],
     inlineInput: Option[String]
@@ -35,6 +57,19 @@ class ShellImpl extends Shell {
       commands
         .map(runInfiniteCommand) ++ inlineInput.map(Shell.stringToStream).toList
     fs2.Stream.emits(streams).parJoin(math.max(1, commands.length))
+  }
+
+  def mergeCommandsAndInlineInputWithRestart(
+    commands: List[String],
+    inlineInput: Option[String],
+    restartConfig: RestartConfig,
+    onRestart: IO[Unit]
+  ): fs2.Stream[IO, String] = {
+    val commandStreams =
+      commands.map(cmd => runCommandWithRestart(cmd, restartConfig, onRestart))
+    val inlineStream = inlineInput.map(Shell.stringToStream).toList
+    val streams = commandStreams ++ inlineStream
+    fs2.Stream.emits(streams).parJoin(math.max(1, streams.length))
   }
 
 }

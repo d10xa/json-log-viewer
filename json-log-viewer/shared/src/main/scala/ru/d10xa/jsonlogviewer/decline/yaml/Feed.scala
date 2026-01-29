@@ -15,5 +15,8 @@ case class Feed(
   fuzzyInclude: Option[List[String]],
   fuzzyExclude: Option[List[String]],
   excludeFields: Option[List[String]],
-  showEmptyFields: Option[Boolean]
+  showEmptyFields: Option[Boolean],
+  restart: Option[Boolean],
+  restartDelayMs: Option[Long],
+  maxRestarts: Option[Int]
 )
