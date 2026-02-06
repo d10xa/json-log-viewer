@@ -8,6 +8,9 @@ import java.time.ZonedDateTime
 import ru.d10xa.jsonlogviewer.decline.Config.ConfigGrep
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
+import ru.d10xa.jsonlogviewer.decline.ConfigGrepValidator.given
+import ru.d10xa.jsonlogviewer.decline.FormatInValidator.given
+import ru.d10xa.jsonlogviewer.decline.FormatOutValidator.given
 import ru.d10xa.jsonlogviewer.query.QueryAST
 
 object DeclineOpts {
@@ -26,9 +29,19 @@ object DeclineOpts {
 
   // Timestamp filter options
   val timestampAfter: Opts[Option[ZonedDateTime]] =
-    Opts.option[ZonedDateTime]("timestamp-after", "").orNone
+    Opts
+      .option[ZonedDateTime](
+        "timestamp-after",
+        "Show only entries after this timestamp"
+      )
+      .orNone
   val timestampBefore: Opts[Option[ZonedDateTime]] =
-    Opts.option[ZonedDateTime]("timestamp-before", "").orNone
+    Opts
+      .option[ZonedDateTime](
+        "timestamp-before",
+        "Show only entries before this timestamp"
+      )
+      .orNone
 
   // Field name options
   val timestampField: Opts[String] =
@@ -44,7 +57,7 @@ object DeclineOpts {
   val threadNameField: Opts[String] =
     fieldOpt("thread-name-field", "thread name", "thread_name")
 
-  def fieldNamesConfig: Opts[FieldNamesConfig] =
+  val fieldNamesConfig: Opts[FieldNamesConfig] =
     (
       timestampField,
       levelField,
@@ -55,9 +68,9 @@ object DeclineOpts {
     ).mapN(FieldNamesConfig.apply)
 
   val grepConfig: Opts[List[ConfigGrep]] = Opts
-    .options[String]("grep", "", metavar = "key:value")
-    .mapValidated(lines =>
-      lines.traverse(ConfigGrepValidator.toValidatedConfigGrep)
+    .options[ConfigGrep](
+      "grep",
+      help = "Filter by key:value regex"
     )
     .orEmpty
 
@@ -67,16 +80,14 @@ object DeclineOpts {
     .orNone
 
   val formatIn: Opts[Option[FormatIn]] = Opts
-    .option[String]("format-in", help = "json, logfmt, csv")
-    .mapValidated(FormatInValidator.toValidatedFormatIn)
+    .option[FormatIn]("format-in", help = "Input format")
     .orNone
 
   val formatOut: Opts[Option[FormatOut]] = Opts
-    .option[String]("format-out", help = "pretty, raw")
-    .mapValidated(FormatOutValidator.toValidatedFormatOut)
+    .option[FormatOut]("format-out", help = "Output format")
     .orNone
 
-  def timestampConfig: Opts[TimestampConfig] =
+  val timestampConfig: Opts[TimestampConfig] =
     (timestampAfter, timestampBefore)
       .mapN(TimestampConfig.apply)
 
@@ -99,28 +110,7 @@ object DeclineOpts {
       formatIn,
       formatOut,
       showEmptyFields
-    ).mapN {
-      case (
-            configFile,
-            fieldNamesConfig,
-            timestampConfig,
-            grepConfig,
-            filterConfig,
-            formatIn,
-            formatOut,
-            showEmptyFields
-          ) =>
-        Config(
-          configFile = configFile,
-          fieldNames = fieldNamesConfig,
-          timestamp = timestampConfig,
-          grep = grepConfig,
-          filter = filterConfig,
-          formatIn = formatIn,
-          formatOut = formatOut,
-          showEmptyFields = showEmptyFields
-        )
-    }
+    ).mapN(Config.apply)
 
   val command: Command[Config] = Command(
     name = "json-log-viewer",
