@@ -2,6 +2,8 @@ package ru.d10xa.jsonlogviewer.decline
 
 import cats.data.NonEmptyList
 import cats.data.Validated
+import cats.data.ValidatedNel
+import com.monovore.decline.Argument
 import ru.d10xa.jsonlogviewer.decline.Config.FormatOut
 
 object FormatOutValidator {
@@ -11,4 +13,9 @@ object FormatOutValidator {
     case "pretty" => Validated.valid(FormatOut.Pretty)
     case "raw"    => Validated.valid(FormatOut.Raw)
     case other    => Validated.invalidNel(s"Wrong format: $other")
+
+  given Argument[FormatOut] with
+    def read(string: String): ValidatedNel[String, FormatOut] =
+      toValidatedFormatOut(string)
+    def defaultMetavar: String = "pretty|raw"
 }
