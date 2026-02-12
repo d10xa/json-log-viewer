@@ -466,6 +466,26 @@ json-log-viewer --config-file json-log-viewer.yml
   cat log.txt | json-log-viewer --show-empty-fields
   ```
 
+- **--command**: Shell command to execute for log input. Can be specified multiple times for multiple commands.
+  ```bash
+  json-log-viewer --command "kubectl logs -f my-pod --tail 500"
+  ```
+
+- **--restart**: Automatically restart commands when they exit. Useful for long-running log streams that may disconnect.
+  ```bash
+  json-log-viewer --command "kubectl logs -f my-pod --tail 500" --restart
+  ```
+
+- **--restart-delay-ms**: Delay in milliseconds before restarting a command (default: 1000).
+  ```bash
+  json-log-viewer --command "kubectl logs -f my-pod" --restart --restart-delay-ms 5000
+  ```
+
+- **--max-restarts**: Maximum number of restarts. If not set, restarts indefinitely.
+  ```bash
+  json-log-viewer --command "kubectl logs -f my-pod" --restart --max-restarts 10
+  ```
+
 
 #### Field Name Options
 
@@ -525,14 +545,17 @@ plugins:
         if command -v json-log-viewer >/dev/null 2>&1; then
           VIEWER_COMMAND="json-log-viewer"
         else
-          VIEWER_COMMAND="coursier launch ru.d10xa:json-log-viewer_3:latest.release"
+          VIEWER_COMMAND="coursier launch ru.d10xa:json-log-viewer_3:latest.release --"
         fi
 
         if [ -n "$POD" ]; then
-          kubectl logs $POD -n $NAMESPACE --context $CONTEXT -c $NAME -f --tail 500 | $VIEWER_COMMAND; read -p "Press [Enter] to close..."
+          CMD="kubectl logs $POD -n $NAMESPACE --context $CONTEXT -c $NAME -f --tail 500"
         else
-          kubectl logs $NAME -n $NAMESPACE --context $CONTEXT -f --tail 500 | $VIEWER_COMMAND; read -p "Press [Enter] to close..."
+          CMD="kubectl logs $NAME -n $NAMESPACE --context $CONTEXT -f --tail 500"
         fi
+
+        echo "$VIEWER_COMMAND --command \"$CMD\" --restart"
+        $VIEWER_COMMAND --command "$CMD" --restart; read -p "Press [Enter] to close..."
 ```
 
 ###  k9s plugin usage

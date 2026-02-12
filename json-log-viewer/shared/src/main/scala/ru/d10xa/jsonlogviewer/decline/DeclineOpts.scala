@@ -100,6 +100,34 @@ object DeclineOpts {
     .flag("show-empty-fields", help = "Show fields with empty values in output")
     .orFalse
 
+  val commandOpt: Opts[List[String]] = Opts
+    .options[String](
+      "command",
+      help = "Shell command to execute for log input (repeatable)"
+    )
+    .orEmpty
+
+  val restartOpt: Opts[Boolean] = Opts
+    .flag(
+      "restart",
+      help = "Automatically restart commands when they exit"
+    )
+    .orFalse
+
+  val restartDelayMsOpt: Opts[Option[Long]] = Opts
+    .option[Long](
+      "restart-delay-ms",
+      help = "Delay in milliseconds before restarting (default: 1000)"
+    )
+    .orNone
+
+  val maxRestartsOpt: Opts[Option[Int]] = Opts
+    .option[Int](
+      "max-restarts",
+      help = "Maximum number of restarts (default: unlimited)"
+    )
+    .orNone
+
   val config: Opts[Config] =
     (
       configFile,
@@ -109,7 +137,11 @@ object DeclineOpts {
       filterConfig,
       formatIn,
       formatOut,
-      showEmptyFields
+      showEmptyFields,
+      commandOpt,
+      restartOpt,
+      restartDelayMsOpt,
+      maxRestartsOpt
     ).mapN(Config.apply)
 
   val command: Command[Config] = Command(

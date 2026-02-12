@@ -113,7 +113,7 @@ object ConfigResolver {
             List(
               ResolvedConfig(
                 feedName = None,
-                commands = List.empty,
+                commands = config.commands,
                 inlineInput = None,
                 filter = config.filter,
                 formatIn = config.formatIn,
@@ -128,9 +128,9 @@ object ConfigResolver {
                 timestampBefore = config.timestamp.before,
                 grep = config.grep,
                 showEmptyFields = config.showEmptyFields,
-                restart = false,
-                restartDelayMs = 1000L,
-                maxRestarts = None
+                restart = config.restart,
+                restartDelayMs = config.restartDelayMs.getOrElse(1000L),
+                maxRestarts = config.maxRestarts
               )
             )
         }
@@ -139,7 +139,7 @@ object ConfigResolver {
         List(
           ResolvedConfig(
             feedName = None,
-            commands = List.empty,
+            commands = config.commands,
             inlineInput = None,
             filter = config.filter,
             formatIn = config.formatIn,
@@ -154,9 +154,9 @@ object ConfigResolver {
             timestampBefore = config.timestamp.before,
             grep = config.grep,
             showEmptyFields = config.showEmptyFields,
-            restart = false,
-            restartDelayMs = 1000L,
-            maxRestarts = None
+            restart = config.restart,
+            restartDelayMs = config.restartDelayMs.getOrElse(1000L),
+            maxRestarts = config.maxRestarts
           )
         )
     }

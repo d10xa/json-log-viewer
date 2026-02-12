@@ -35,7 +35,11 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     filter = None,
     formatIn = None,
     formatOut = None,
-    showEmptyFields = false
+    showEmptyFields = false,
+    commands = List.empty,
+    restart = false,
+    restartDelayMs = None,
+    maxRestarts = None
   )
 
   test("should use commands from YAML when inlineInput is absent") {

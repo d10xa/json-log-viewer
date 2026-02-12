@@ -12,7 +12,11 @@ final case class Config(
   filter: Option[QueryAST],
   formatIn: Option[Config.FormatIn],
   formatOut: Option[Config.FormatOut],
-  showEmptyFields: Boolean
+  showEmptyFields: Boolean,
+  commands: List[String],
+  restart: Boolean,
+  restartDelayMs: Option[Long],
+  maxRestarts: Option[Int]
 )
 
 object Config:

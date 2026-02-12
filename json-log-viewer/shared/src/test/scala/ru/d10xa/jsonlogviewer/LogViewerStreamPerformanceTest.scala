@@ -29,7 +29,11 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
     filter = None,
     formatIn = Some(Config.FormatIn.Json),
     formatOut = Some(Config.FormatOut.Raw),
-    showEmptyFields = false
+    showEmptyFields = false,
+    commands = List.empty,
+    restart = false,
+    restartDelayMs = None,
+    maxRestarts = None
   )
 
   def generateLogLine(i: Int): String =

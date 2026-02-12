@@ -42,7 +42,11 @@ class CsvProcessingTest extends CatsEffectSuite {
       filter = None,
       formatIn = Some(Config.FormatIn.Csv),
       formatOut = Some(Config.FormatOut.Raw),
-      showEmptyFields = false
+      showEmptyFields = false,
+      commands = List.empty,
+      restart = false,
+      restartDelayMs = None,
+      maxRestarts = None
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
@@ -106,7 +110,11 @@ class CsvProcessingTest extends CatsEffectSuite {
       filter = None,
       formatIn = Some(Config.FormatIn.Csv),
       formatOut = Some(Config.FormatOut.Raw),
-      showEmptyFields = false
+      showEmptyFields = false,
+      commands = List.empty,
+      restart = false,
+      restartDelayMs = None,
+      maxRestarts = None
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
@@ -164,7 +172,11 @@ class CsvProcessingTest extends CatsEffectSuite {
       filter = QueryCompiler("level = 'ERROR'").toOption,
       formatIn = Some(Config.FormatIn.Csv),
       formatOut = Some(Config.FormatOut.Raw),
-      showEmptyFields = false
+      showEmptyFields = false,
+      commands = List.empty,
+      restart = false,
+      restartDelayMs = None,
+      maxRestarts = None
     )
 
     // Initial config without field name mapping

@@ -24,7 +24,11 @@ class ConfigResolverRestartTest extends FunSuite {
     filter = None,
     formatIn = None,
     formatOut = None,
-    showEmptyFields = false
+    showEmptyFields = false,
+    commands = List.empty,
+    restart = false,
+    restartDelayMs = None,
+    maxRestarts = None
   )
 
   test("resolve sets default restart values when feed has no restart config") {
