@@ -9,6 +9,7 @@ object EditElement {
   def render(mods: Modifier[TextArea]*): HtmlElement =
     div(
       textArea(
+        minHeight := "320px",
         typ := "text",
         mods
       )
