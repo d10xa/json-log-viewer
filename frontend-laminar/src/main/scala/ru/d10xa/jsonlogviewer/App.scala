@@ -8,6 +8,7 @@ import com.raquo.waypoint.*
 import org.scalajs.dom
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLDivElement
+import ru.d10xa.jsonlogviewer.decline.yaml.FieldNames
 import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn.Csv
@@ -24,6 +25,14 @@ import ru.d10xa.jsonlogviewer.Router0.LivePage
 import ru.d10xa.jsonlogviewer.Router0.Page
 import ru.d10xa.jsonlogviewer.Router0.ViewPage
 import scala.util.matching.Regex
+
+case class UiExtraConfig(
+  fuzzyInclude: Option[List[String]],
+  fuzzyExclude: Option[List[String]],
+  showEmptyFields: Boolean,
+  excludeFields: Option[List[String]],
+  fieldNames: Option[FieldNames]
+)
 
 object App {
 
@@ -68,6 +77,63 @@ object App {
   val formatOutVar: Var[FormatOut] = Var(
     FormatOut.Pretty
   )
+
+  val fuzzyIncludeVar: Var[String] = Var("")
+  val fuzzyExcludeVar: Var[String] = Var("")
+  val showEmptyFieldsVar: Var[Boolean] = Var(false)
+  val excludeFieldsVar: Var[String] = Var("")
+  val timestampFieldVar: Var[String] = Var("")
+  val levelFieldVar: Var[String] = Var("")
+  val messageFieldVar: Var[String] = Var("")
+  val stackTraceFieldVar: Var[String] = Var("")
+  val loggerNameFieldVar: Var[String] = Var("")
+  val threadNameFieldVar: Var[String] = Var("")
+
+  private def nonEmptyToOption(s: String): Option[String] =
+    Option(s.trim).filter(_.nonEmpty)
+
+  private def commaSeparatedToOption(s: String): Option[List[String]] =
+    Option(s.trim)
+      .filter(_.nonEmpty)
+      .map(_.split(",").map(_.trim).filter(_.nonEmpty).toList)
+      .filter(_.nonEmpty)
+
+  val uiExtraConfigSignal: Signal[UiExtraConfig] = for {
+    fuzzyInc <- fuzzyIncludeVar.signal
+    fuzzyExc <- fuzzyExcludeVar.signal
+    showEmpty <- showEmptyFieldsVar.signal
+    excludeF <- excludeFieldsVar.signal
+    tsField <- timestampFieldVar.signal
+    lvlField <- levelFieldVar.signal
+    msgField <- messageFieldVar.signal
+    stField <- stackTraceFieldVar.signal
+    lnField <- loggerNameFieldVar.signal
+    tnField <- threadNameFieldVar.signal
+  } yield {
+    val fieldNames = FieldNames(
+      timestamp = nonEmptyToOption(tsField),
+      level = nonEmptyToOption(lvlField),
+      message = nonEmptyToOption(msgField),
+      stackTrace = nonEmptyToOption(stField),
+      loggerName = nonEmptyToOption(lnField),
+      threadName = nonEmptyToOption(tnField)
+    )
+    val hasFieldNames = fieldNames.timestamp.isDefined ||
+      fieldNames.level.isDefined ||
+      fieldNames.message.isDefined ||
+      fieldNames.stackTrace.isDefined ||
+      fieldNames.loggerName.isDefined ||
+      fieldNames.threadName.isDefined
+    UiExtraConfig(
+      fuzzyInclude =
+        nonEmptyToOption(fuzzyInc).map(s => s.split("\\s+").toList),
+      fuzzyExclude =
+        nonEmptyToOption(fuzzyExc).map(s => s.split("\\s+").toList),
+      showEmptyFields = showEmpty,
+      excludeFields = commaSeparatedToOption(excludeF),
+      fieldNames = if (hasFieldNames) Some(fieldNames) else None
+    )
+  }
 
   val splitPattern: Regex = "([^\"]\\S*|\".+?\")\\s*".r
   def splitArgs(s: String): Seq[String] =
@@ -196,6 +262,112 @@ object App {
     )
   )
 
+  def fuzzyIncludeDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    div(
+      label("--fuzzy-include", cls := "col-2"),
+      input(
+        cls := "col-10",
+        typ := "text",
+        placeholder := "token search (e.g., error timeout)",
+        value <-- fuzzyIncludeVar,
+        onInput.mapToValue --> fuzzyIncludeVar
+      )
+    )
+  )
+
+  def fuzzyExcludeDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    div(
+      label("--fuzzy-exclude", cls := "col-2"),
+      input(
+        cls := "col-10",
+        typ := "text",
+        placeholder := "exclude tokens",
+        value <-- fuzzyExcludeVar,
+        onInput.mapToValue --> fuzzyExcludeVar
+      )
+    )
+  )
+
+  def showEmptyFieldsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    div(
+      cls := "form-check",
+      input(
+        cls := "form-check-input",
+        typ := "checkbox",
+        idAttr := "showEmptyFieldsCheck",
+        checked <-- showEmptyFieldsVar.signal,
+        onChange.mapToChecked --> showEmptyFieldsVar
+      ),
+      label(
+        cls := "form-check-label",
+        forId := "showEmptyFieldsCheck",
+        "--show-empty-fields"
+      )
+    )
+  )
+
+  def excludeFieldsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    div(
+      label("--exclude-fields", cls := "col-2"),
+      input(
+        cls := "col-10",
+        typ := "text",
+        placeholder := "comma-separated: stack_trace,thread_name",
+        value <-- excludeFieldsVar,
+        onInput.mapToValue --> excludeFieldsVar
+      )
+    )
+  )
+
+  private val fieldNamesCollapsedVar: Var[Boolean] = Var(true)
+
+  def fieldNamesDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    div(
+      a(
+        href := "#",
+        child.text <-- fieldNamesCollapsedVar.signal.map(collapsed =>
+          if (collapsed) "Field name overrides [+]"
+          else "Field name overrides [-]"
+        ),
+        onClick.preventDefault --> { _ =>
+          fieldNamesCollapsedVar.update(!_)
+        }
+      ),
+      div(
+        display <-- fieldNamesCollapsedVar.signal.map(collapsed =>
+          if (collapsed) "none" else "block"
+        ),
+        fieldNameInput("timestamp", "@timestamp", timestampFieldVar),
+        fieldNameInput("level", "level", levelFieldVar),
+        fieldNameInput("message", "message", messageFieldVar),
+        fieldNameInput("stackTrace", "stack_trace", stackTraceFieldVar),
+        fieldNameInput("loggerName", "logger_name", loggerNameFieldVar),
+        fieldNameInput("threadName", "thread_name", threadNameFieldVar)
+      )
+    )
+  )
+
+  private def fieldNameInput(
+    labelText: String,
+    placeholderText: String,
+    v: Var[String]
+  ): ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "row-fluid",
+    label(labelText, cls := "col-2"),
+    input(
+      cls := "col-4",
+      typ := "text",
+      placeholder := placeholderText,
+      value <-- v,
+      onInput.mapToValue --> v
+    )
+  )
+
   def editElementDiv: ReactiveHtmlElement[HTMLDivElement] = div(
     cls := "row-fluid",
     EditElement.render(
@@ -223,17 +395,27 @@ object App {
       formatInDiv,
       formatOutDiv,
       filterDiv,
+      fuzzyIncludeDiv,
+      fuzzyExcludeDiv,
+      showEmptyFieldsDiv,
+      excludeFieldsDiv,
+      fieldNamesDiv,
       additionalArgsDiv,
       buttonGenerateLogs,
       editElementDiv,
-      div(cls := "row", ViewElement.render(textVar.signal, configSignal))
+      div(
+        cls := "row",
+        ViewElement
+          .render(textVar.signal, configSignal, uiExtraConfigSignal)
+      )
     )
   }
 
   private def renderViewPage(): HtmlElement = {
     implicit val owner: Owner = new Owner {}
     div(
-      ViewElement.render(textVar.signal, configSignal)
+      ViewElement
+        .render(textVar.signal, configSignal, uiExtraConfigSignal)
     )
   }
 
@@ -248,6 +430,11 @@ object App {
       formatInDiv,
       formatOutDiv,
       filterDiv,
+      fuzzyIncludeDiv,
+      fuzzyExcludeDiv,
+      showEmptyFieldsDiv,
+      excludeFieldsDiv,
+      fieldNamesDiv,
       additionalArgsDiv,
       buttonGenerateLogs,
       editElementDiv

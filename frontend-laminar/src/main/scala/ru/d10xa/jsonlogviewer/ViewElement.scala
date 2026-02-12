@@ -26,10 +26,14 @@ object ViewElement {
       .pipe(DomApi.unsafeParseHtmlString)
       .pipe(foreignHtmlElement)
 
-  def makeConfigYamlForInlineInput(string: String, config: Config): ConfigYaml =
+  def makeConfigYamlForInlineInput(
+    string: String,
+    config: Config,
+    extra: UiExtraConfig
+  ): ConfigYaml =
     ConfigYaml(
-      showEmptyFields = None,
-      fieldNames = None,
+      showEmptyFields = Some(extra.showEmptyFields),
+      fieldNames = extra.fieldNames,
       feeds = Some(
         List(
           Feed(
@@ -40,11 +44,11 @@ object ViewElement {
             formatIn = config.formatIn,
             rawInclude = None,
             rawExclude = None,
-            fuzzyInclude = None,
-            fuzzyExclude = None,
-            excludeFields = None,
-            fieldNames = None,
-            showEmptyFields = None,
+            fuzzyInclude = extra.fuzzyInclude,
+            fuzzyExclude = extra.fuzzyExclude,
+            excludeFields = extra.excludeFields,
+            fieldNames = extra.fieldNames,
+            showEmptyFields = Some(extra.showEmptyFields),
             restart = None,
             restartDelayMs = None,
             maxRestarts = None
@@ -55,14 +59,16 @@ object ViewElement {
 
   def render(
     logLinesSignal: Signal[String],
-    configSignal: Signal[Either[Help, Config]]
+    configSignal: Signal[Either[Help, Config]],
+    uiExtraSignal: Signal[UiExtraConfig]
   )(implicit owner: Owner): HtmlElement = {
     val eventBus = new EventBus[HtmlElement]
     logLinesSignal
-      .combineWith(configSignal)
+      .combineWith(configSignal, uiExtraSignal)
       .foreach {
-        case (string, Right(c)) =>
-          val configYaml = Some(makeConfigYamlForInlineInput(string, c))
+        case (string, Right(c), extra) =>
+          val configYaml =
+            Some(makeConfigYamlForInlineInput(string, c, extra))
           val initialCache = FilterCacheManager.buildCache(c, configYaml)
           val refsIO = for {
             configYamlRef <- Ref.of[IO, Option[ConfigYaml]](configYaml)
@@ -87,7 +93,7 @@ object ViewElement {
             .flatMap(e => IO(eventBus.writer.onNext(e)))
             .unsafeRunAndForget()
 
-        case (_, Left(help)) =>
+        case (_, Left(help), _) =>
           eventBus.writer.onNext(pre(cls := "text-light", help.toString))
       }(owner)
 
