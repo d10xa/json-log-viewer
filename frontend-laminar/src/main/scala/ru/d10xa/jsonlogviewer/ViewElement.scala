@@ -94,11 +94,11 @@ object ViewElement {
             .unsafeRunAndForget()
 
         case (_, Left(help), _) =>
-          eventBus.writer.onNext(pre(cls := "text-light", help.toString))
+          eventBus.writer.onNext(pre(cls := "help-text", help.toString))
       }(owner)
 
     pre(
-      cls := "bg-dark font-monospace text-white",
+      cls := "output-pre",
       child <-- eventBus.events
     )
   }

@@ -8,7 +8,6 @@ object EditElement {
     div(
       textArea(
         minHeight := "320px",
-        cls := "col-12",
         typ := "text",
         mods
       )

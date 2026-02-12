@@ -1,24 +1,215 @@
-.ansi-green {
-  color: #198754
+:root {
+  --term-bg: #1a1b26;
+  --term-fg: #c0caf5;
+  --term-dim: #7982a9;
+  --term-accent: #9ece6a;
+  --term-border: #3b4261;
+  --term-input-bg: #24283b;
+  --term-hover: #292e42;
+  --term-font: "JetBrains Mono", "Fira Code", "Source Code Pro", "Cascadia Code", "Consolas", monospace;
 }
-.ansi-lightgray {
-  color: #959da6
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-.ansi-red {
-  color: #dc3545
+
+body {
+  background: var(--term-bg);
+  color: var(--term-fg);
+  font-family: var(--term-font);
+  font-size: 13px;
+  line-height: 1.4;
 }
-.ansi-white {
-  color: white
+
+.app-container {
+  width: 100%;
+  padding: 0 8px;
 }
-.ansi-black {
-  color: black
+
+/* Navigation */
+.nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  gap: 0;
+  background: var(--term-bg);
+  border-bottom: 1px solid var(--term-border);
+  padding: 4px 0;
 }
-.ansi-yellow {
-  color: #ffc107
+
+.nav-tab a {
+  display: inline-block;
+  padding: 2px 4px;
+  color: var(--term-dim);
+  text-decoration: none;
+  cursor: pointer;
 }
-.ansi-magenta {
-  color: #e31081
+
+.nav-tab a::before { content: "["; }
+.nav-tab a::after { content: "]"; }
+
+.nav-tab a:hover {
+  color: var(--term-fg);
 }
-.ansi-lightmagenta {
-  color: #f567b3
+
+.nav-tab a.active {
+  color: var(--term-accent);
 }
+
+/* Control rows */
+.ctrl-row {
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+  gap: 6px;
+}
+
+.ctrl-label {
+  flex: 0 0 160px;
+  text-align: right;
+  color: var(--term-dim);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ctrl-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ctrl-input-narrow {
+  flex: 0 0 auto;
+  width: 100px;
+}
+
+.ctrl-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0 2px 166px;
+}
+
+.ctrl-checkbox label {
+  color: var(--term-dim);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Form elements */
+input[type="text"],
+select,
+textarea {
+  background: var(--term-input-bg);
+  color: var(--term-fg);
+  border: 1px solid var(--term-border);
+  border-radius: 0;
+  font-family: var(--term-font);
+  font-size: 13px;
+  padding: 2px 6px;
+  outline: none;
+  width: 100%;
+}
+
+input[type="text"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--term-accent);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--term-accent);
+}
+
+select {
+  width: auto;
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 320px;
+}
+
+/* Buttons */
+.term-btn {
+  background: transparent;
+  color: var(--term-accent);
+  border: 1px solid var(--term-accent);
+  border-radius: 0;
+  font-family: var(--term-font);
+  font-size: 13px;
+  padding: 2px 12px;
+  cursor: pointer;
+  margin: 4px 0;
+}
+
+.term-btn:hover {
+  background: var(--term-accent);
+  color: var(--term-bg);
+}
+
+/* Output */
+.output-pre {
+  background: var(--term-input-bg);
+  color: var(--term-fg);
+  font-family: var(--term-font);
+  font-size: 13px;
+  padding: 8px;
+  margin: 4px 0;
+  border: 1px solid var(--term-border);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Help page */
+.help-pre {
+  background: var(--term-input-bg);
+  color: var(--term-fg);
+  font-family: var(--term-font);
+  font-size: 13px;
+  padding: 8px;
+  margin: 4px 0;
+  border: 1px solid var(--term-border);
+  white-space: pre-wrap;
+}
+
+.help-text {
+  color: var(--term-fg);
+}
+
+/* Field names toggle */
+.field-toggle a {
+  color: var(--term-accent);
+  text-decoration: none;
+}
+
+.field-toggle a:hover {
+  color: var(--term-fg);
+}
+
+/* ANSI color spans */
+.ansi-span {
+  word-break: break-all;
+}
+
+/* ANSI colors */
+.ansi-black { color: #414868; }
+.ansi-red { color: #f7768e; }
+.ansi-green { color: #9ece6a; }
+.ansi-yellow { color: #e0af68; }
+.ansi-blue { color: #7aa2f7; }
+.ansi-magenta { color: #bb9af7; }
+.ansi-cyan { color: #7dcfff; }
+.ansi-lightgray { color: #a9b1d6; }
+.ansi-darkgray { color: #565f89; }
+.ansi-lightred { color: #f7768e; }
+.ansi-lightgreen { color: #9ece6a; }
+.ansi-lightyellow { color: #e0af68; }
+.ansi-lightblue { color: #7aa2f7; }
+.ansi-lightmagenta { color: #bb9af7; }
+.ansi-lightcyan { color: #7dcfff; }
+.ansi-white { color: #c0caf5; }

@@ -163,14 +163,13 @@ object App {
 
     lazy val appElement =
       div(
-        cls := "container-fluid",
-        ul(
-          cls := "bg-light bd-navbar nav nav-tabs sticky-top",
+        cls := "app-container",
+        div(
+          cls := "nav-bar",
           linkPages.map { page =>
-            li(
-              cls := "nav-item p-1",
+            span(
+              cls := "nav-tab",
               a(
-                cls := "nav-link",
                 cls <-- Router0.router.currentPageSignal.map {
                   case currentPage if currentPage == page =>
                     Seq("active")
@@ -198,10 +197,11 @@ object App {
       .collectStatic(HelpPage)(renderHelpPage())
       .signal
 
-  def formatInDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    label("--format-in", cls := "col-2"),
+  def formatsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
+    cls := "ctrl-row",
+    label("--format-in", cls := "ctrl-label"),
     select(
-      cls := "col-1",
+      cls := "ctrl-input-narrow",
       value <-- formatInVar.signal.map {
         case FormatIn.Json   => "json"
         case FormatIn.Logfmt => "logfmt"
@@ -215,12 +215,10 @@ object App {
       option(value := "json", "json"),
       option(value := "logfmt", "logfmt"),
       option(value := "csv", "csv")
-    )
-  )
-  def formatOutDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    label("--format-out", cls := "col-2"),
+    ),
+    label("--format-out", cls := "ctrl-label"),
     select(
-      cls := "col-1",
+      cls := "ctrl-input-narrow",
       value <-- formatOutVar.signal.map {
         case FormatOut.Raw    => "raw"
         case FormatOut.Pretty => "pretty"
@@ -235,119 +233,102 @@ object App {
   )
 
   def filterDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      label("--filter", cls := "col-2"),
-      input(
-        cls := "col-10",
-        typ := "text",
-        placeholder := "message LIKE '%first%' OR level = 'ERROR'",
-        value <-- filterVar,
-        onInput.mapToValue --> filterVar
-      )
+    cls := "ctrl-row",
+    label("--filter", cls := "ctrl-label"),
+    input(
+      cls := "ctrl-input",
+      typ := "text",
+      placeholder := "message LIKE '%first%' OR level = 'ERROR'",
+      value <-- filterVar,
+      onInput.mapToValue --> filterVar
     )
   )
 
   def additionalArgsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      label("additional args", cls := "col-2"),
-      input(
-        cls := "col-10",
-        typ := "text",
-        value <-- cliVar,
-        onInput.mapToValue --> cliVar
-      )
+    cls := "ctrl-row",
+    label("additional args", cls := "ctrl-label"),
+    input(
+      cls := "ctrl-input",
+      typ := "text",
+      value <-- cliVar,
+      onInput.mapToValue --> cliVar
     )
   )
 
   def fuzzyIncludeDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      label("--fuzzy-include", cls := "col-2"),
-      input(
-        cls := "col-10",
-        typ := "text",
-        placeholder := "token search (e.g., error timeout)",
-        value <-- fuzzyIncludeVar,
-        onInput.mapToValue --> fuzzyIncludeVar
-      )
+    cls := "ctrl-row",
+    label("--fuzzy-include", cls := "ctrl-label"),
+    input(
+      cls := "ctrl-input",
+      typ := "text",
+      placeholder := "token search (e.g., error timeout)",
+      value <-- fuzzyIncludeVar,
+      onInput.mapToValue --> fuzzyIncludeVar
     )
   )
 
   def fuzzyExcludeDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      label("--fuzzy-exclude", cls := "col-2"),
-      input(
-        cls := "col-10",
-        typ := "text",
-        placeholder := "exclude tokens",
-        value <-- fuzzyExcludeVar,
-        onInput.mapToValue --> fuzzyExcludeVar
-      )
+    cls := "ctrl-row",
+    label("--fuzzy-exclude", cls := "ctrl-label"),
+    input(
+      cls := "ctrl-input",
+      typ := "text",
+      placeholder := "exclude tokens",
+      value <-- fuzzyExcludeVar,
+      onInput.mapToValue --> fuzzyExcludeVar
     )
   )
 
   def showEmptyFieldsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      cls := "form-check",
-      input(
-        cls := "form-check-input",
-        typ := "checkbox",
-        idAttr := "showEmptyFieldsCheck",
-        checked <-- showEmptyFieldsVar.signal,
-        onChange.mapToChecked --> showEmptyFieldsVar
-      ),
-      label(
-        cls := "form-check-label",
-        forId := "showEmptyFieldsCheck",
-        "--show-empty-fields"
-      )
+    cls := "ctrl-checkbox",
+    input(
+      typ := "checkbox",
+      idAttr := "showEmptyFieldsCheck",
+      checked <-- showEmptyFieldsVar.signal,
+      onChange.mapToChecked --> showEmptyFieldsVar
+    ),
+    label(
+      forId := "showEmptyFieldsCheck",
+      "--show-empty-fields"
     )
   )
 
   def excludeFieldsDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      label("--exclude-fields", cls := "col-2"),
-      input(
-        cls := "col-10",
-        typ := "text",
-        placeholder := "comma-separated: stack_trace,thread_name",
-        value <-- excludeFieldsVar,
-        onInput.mapToValue --> excludeFieldsVar
-      )
+    cls := "ctrl-row",
+    label("--exclude-fields", cls := "ctrl-label"),
+    input(
+      cls := "ctrl-input",
+      typ := "text",
+      placeholder := "comma-separated: stack_trace,thread_name",
+      value <-- excludeFieldsVar,
+      onInput.mapToValue --> excludeFieldsVar
     )
   )
 
   private val fieldNamesCollapsedVar: Var[Boolean] = Var(true)
 
   def fieldNamesDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    div(
-      a(
-        href := "#",
-        child.text <-- fieldNamesCollapsedVar.signal.map(collapsed =>
-          if (collapsed) "Field name overrides [+]"
-          else "Field name overrides [-]"
-        ),
-        onClick.preventDefault --> { _ =>
-          fieldNamesCollapsedVar.update(!_)
-        }
+    cls := "field-toggle",
+    a(
+      href := "#",
+      child.text <-- fieldNamesCollapsedVar.signal.map(collapsed =>
+        if (collapsed) "Field name overrides [+]"
+        else "Field name overrides [-]"
       ),
-      div(
-        display <-- fieldNamesCollapsedVar.signal.map(collapsed =>
-          if (collapsed) "none" else "block"
-        ),
-        fieldNameInput("timestamp", "@timestamp", timestampFieldVar),
-        fieldNameInput("level", "level", levelFieldVar),
-        fieldNameInput("message", "message", messageFieldVar),
-        fieldNameInput("stackTrace", "stack_trace", stackTraceFieldVar),
-        fieldNameInput("loggerName", "logger_name", loggerNameFieldVar),
-        fieldNameInput("threadName", "thread_name", threadNameFieldVar)
-      )
+      onClick.preventDefault --> { _ =>
+        fieldNamesCollapsedVar.update(!_)
+      }
+    ),
+    div(
+      display <-- fieldNamesCollapsedVar.signal.map(collapsed =>
+        if (collapsed) "none" else "block"
+      ),
+      fieldNameInput("timestamp", "@timestamp", timestampFieldVar),
+      fieldNameInput("level", "level", levelFieldVar),
+      fieldNameInput("message", "message", messageFieldVar),
+      fieldNameInput("stackTrace", "stack_trace", stackTraceFieldVar),
+      fieldNameInput("loggerName", "logger_name", loggerNameFieldVar),
+      fieldNameInput("threadName", "thread_name", threadNameFieldVar)
     )
   )
 
@@ -356,10 +337,10 @@ object App {
     placeholderText: String,
     v: Var[String]
   ): ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
-    label(labelText, cls := "col-2"),
+    cls := "ctrl-row",
+    label(labelText, cls := "ctrl-label"),
     input(
-      cls := "col-4",
+      cls := "ctrl-input",
       typ := "text",
       placeholder := placeholderText,
       value <-- v,
@@ -368,14 +349,13 @@ object App {
   )
 
   def editElementDiv: ReactiveHtmlElement[HTMLDivElement] = div(
-    cls := "row-fluid",
     EditElement.render(
       value <-- textVar,
       onInput.mapToValue --> textVar
     )
   )
   def buttonGenerateLogs: ReactiveHtmlElement[HTMLButtonElement] = button(
-    cls := "btn btn-primary",
+    cls := "term-btn",
     child.text <-- formatInVar.signal.map {
       case Logfmt => "Generate logfmt logs"
       case Json   => "Generate json logs"
@@ -391,8 +371,7 @@ object App {
   private def renderLivePage(): HtmlElement = {
     implicit val owner: Owner = new Owner {}
     div(
-      formatInDiv,
-      formatOutDiv,
+      formatsDiv,
       filterDiv,
       fuzzyIncludeDiv,
       fuzzyExcludeDiv,
@@ -402,11 +381,8 @@ object App {
       additionalArgsDiv,
       buttonGenerateLogs,
       editElementDiv,
-      div(
-        cls := "row",
-        ViewElement
-          .render(textVar.signal, configSignal, uiExtraConfigSignal)
-      )
+      ViewElement
+        .render(textVar.signal, configSignal, uiExtraConfigSignal)
     )
   }
 
@@ -420,14 +396,13 @@ object App {
 
   private def renderHelpPage(): HtmlElement =
     pre(
-      cls := "bg-dark font-monospace text-light",
+      cls := "help-pre",
       Help.fromCommand(DeclineOpts.command).toString
     )
 
   private def renderEditPage(): HtmlElement =
     div(
-      formatInDiv,
-      formatOutDiv,
+      formatsDiv,
       filterDiv,
       fuzzyIncludeDiv,
       fuzzyExcludeDiv,
