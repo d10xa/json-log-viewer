@@ -68,9 +68,7 @@ object App {
   val cliVar: Var[String] = Var(
     """"""
   )
-  val filterVar: Var[String] = Var(
-    """message LIKE '%first%' OR level = 'ERROR'"""
-  )
+  val filterVar: Var[String] = Var("")
   val formatInVar: Var[FormatIn] = Var(
     FormatIn.Json
   )
@@ -243,6 +241,7 @@ object App {
       input(
         cls := "col-10",
         typ := "text",
+        placeholder := "message LIKE '%first%' OR level = 'ERROR'",
         value <-- filterVar,
         onInput.mapToValue --> filterVar
       )
