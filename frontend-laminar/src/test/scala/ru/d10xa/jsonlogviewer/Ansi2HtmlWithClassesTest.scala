@@ -41,4 +41,25 @@ class Ansi2HtmlWithClassesTest extends FunSuite {
         assertEquals(result, "")
     }
 
+    test("apply escapes HTML special characters to prevent XSS") {
+        val input = "<script>alert(1)</script>"
+        val result = Ansi2HtmlWithClasses.apply(input)
+        assert(!result.contains("<script>"), "Raw <script> tag should not appear")
+        assert(result.contains("&lt;script&gt;"), "< and > should be escaped")
+        assert(result.contains("&lt;/script&gt;"), "Closing tag should be escaped")
+    }
+
+    test("apply escapes ampersand") {
+        val input = "a & b"
+        val result = Ansi2HtmlWithClasses.apply(input)
+        assert(result.contains("&amp;"), "Ampersand should be escaped")
+        assert(!result.contains("a & b"), "Raw ampersand should not appear unescaped")
+    }
+
+    test("apply escapes double quotes") {
+        val input = """key="value""""
+        val result = Ansi2HtmlWithClasses.apply(input)
+        assert(result.contains("&quot;"), "Double quotes should be escaped")
+    }
+
 }

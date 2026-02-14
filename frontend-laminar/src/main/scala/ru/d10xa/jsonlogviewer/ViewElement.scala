@@ -1,14 +1,15 @@
 package ru.d10xa.jsonlogviewer
 
 import cats.effect.unsafe.implicits.global
+import cats.effect.FiberIO
 import cats.effect.IO
 import cats.effect.Ref
 import com.monovore.decline.Help
 import com.raquo.airstream.core.Signal
 import com.raquo.airstream.eventbus.EventBus
-import com.raquo.airstream.ownership.Owner
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.DomApi
+import org.scalajs.dom
 import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
 import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
@@ -60,46 +61,83 @@ object ViewElement {
   def render(
     logLinesSignal: Signal[String],
     configSignal: Signal[Either[Help, Config]],
-    uiExtraSignal: Signal[UiExtraConfig]
-  )(implicit owner: Owner): HtmlElement = {
-    val eventBus = new EventBus[HtmlElement]
-    logLinesSignal
-      .combineWith(configSignal, uiExtraSignal)
-      .foreach {
-        case (string, Right(c), extra) =>
-          val configYaml =
-            Some(makeConfigYamlForInlineInput(string, c, extra))
-          val initialCache = FilterCacheManager.buildCache(c, configYaml)
-          val refsIO = for {
-            configYamlRef <- Ref.of[IO, Option[ConfigYaml]](configYaml)
-            cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
-          } yield (configYamlRef, cacheRef)
+    uiExtraSignal: Signal[UiExtraConfig],
+    loadingBus: EventBus[Boolean]
+  ): HtmlElement = {
+    val contentBus = new EventBus[HtmlElement]
+    val plainTextVar = Var("")
+    val fiberRef = Ref.unsafe[IO, Option[FiberIO[Unit]]](None)
 
-          fs2.Stream
-            .eval(refsIO)
-            .flatMap { case (configYamlRef, cacheRef) =>
-              val ctx = StreamContext(
-                config = c,
-                configYamlRef = configYamlRef,
-                cacheRef = cacheRef,
-                stdinStream = new StdInLinesStreamImpl,
-                shell = new ShellImpl
+    val debouncedSignal =
+      logLinesSignal
+        .combineWith(configSignal, uiExtraSignal)
+        .composeChanges(_.debounce(300))
+
+    div(
+      styleAttr := "position: relative;",
+      div(
+        styleAttr := "position: absolute; top: 4px; right: 4px; z-index: 10;",
+        child <-- plainTextVar.signal.map { text =>
+          if text.nonEmpty then
+            button(
+              cls := "term-btn",
+              "Copy",
+              onClick --> { _ =>
+                dom.window.navigator.clipboard.writeText(text)
+              }
+            )
+          else emptyNode
+        }
+      ),
+      pre(
+        cls := "output-pre",
+        child <-- contentBus.events,
+        debouncedSignal --> Observer[
+          (String, Either[Help, Config], UiExtraConfig)
+        ] {
+          case (string, Right(c), extra) =>
+            val task = for {
+              _ <- IO(loadingBus.writer.onNext(true))
+              configYaml = Some(
+                makeConfigYamlForInlineInput(string, c, extra)
               )
-              LogViewerStream.stream(ctx)
-            }
-            .compile
-            .toList
-            .map(stringsToHtmlElement)
-            .flatMap(e => IO(eventBus.writer.onNext(e)))
-            .unsafeRunAndForget()
+              initialCache = FilterCacheManager.buildCache(c, configYaml)
+              result <- (for {
+                configYamlRef <- Ref.of[IO, Option[ConfigYaml]](configYaml)
+                cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
+              } yield (configYamlRef, cacheRef)).flatMap {
+                case (configYamlRef, cacheRef) =>
+                  val ctx = StreamContext(
+                    config = c,
+                    configYamlRef = configYamlRef,
+                    cacheRef = cacheRef,
+                    stdinStream = new StdInLinesStreamImpl,
+                    shell = new ShellImpl
+                  )
+                  LogViewerStream.stream(ctx).compile.toList
+              }
+              _ <- IO {
+                contentBus.writer.onNext(stringsToHtmlElement(result))
+                plainTextVar.set(result.mkString("\n"))
+              }
+              _ <- IO(loadingBus.writer.onNext(false))
+            } yield ()
 
-        case (_, Left(help), _) =>
-          eventBus.writer.onNext(pre(cls := "text-light", help.toString))
-      }(owner)
+            val managed = for {
+              prev <- fiberRef.get
+              _ <- prev.fold(IO.unit)(_.cancel)
+              fiber <- task.start
+              _ <- fiberRef.set(Some(fiber))
+            } yield ()
 
-    pre(
-      cls := "bg-dark font-monospace text-white",
-      child <-- eventBus.events
+            managed.unsafeRunAndForget()
+
+          case (_, Left(help), _) =>
+            loadingBus.writer.onNext(false)
+            plainTextVar.set("")
+            contentBus.writer.onNext(pre(cls := "help-text", help.toString))
+        }
+      )
     )
   }
 }

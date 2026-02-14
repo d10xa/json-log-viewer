@@ -17,7 +17,7 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
       case (col1, col2) if color.isDefinedAt(col2) =>
         val closing = if color.isDefinedAt(col1) then "</span>" else ""
         val nextColor = color(col2)
-        s"$closing<span class='text-break ansi-$nextColor'>"
+        s"$closing<span class='ansi-span ansi-$nextColor'>"
       case (col1, fansi.Color.Reset) if color.isDefinedAt(col1) =>
         "</span>"
       case _ => ""
@@ -43,6 +43,13 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
     case fansi.Color.White        => "white"
   }
 
+  private def escapeHtmlChar(c: Char): String = c match
+    case '<' => "&lt;"
+    case '>' => "&gt;"
+    case '&' => "&amp;"
+    case '"' => "&quot;"
+    case _   => c.toString
+
   @JSExport("ansi_2_html")
   def apply(s: String): String =
     val colored = fansi.Str(s, ErrorMode.Strip)
@@ -67,7 +74,7 @@ object Ansi2HtmlWithClasses extends Function1[String, String]:
       end if
       if character == ' ' then sb.append("&nbsp;")
       else if character == '\n' then sb.append("<br />")
-      else if character != '\r' then sb.append(character)
+      else if character != '\r' then sb.append(escapeHtmlChar(character))
     }
 
     if current != 0L then

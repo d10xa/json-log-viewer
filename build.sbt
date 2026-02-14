@@ -89,7 +89,7 @@ lazy val `frontend-laminar` = project
       "com.raquo" %%% "waypoint" % "7.0.0",
       "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.28.4",
       "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided",
-      "org.scalameta" %% "munit" % munitVersion % Test
+      "org.scalameta" %%% "munit" % munitVersion % Test
     ),
     Compile / fastLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
     Compile / fullLinkJS / scalaJSLinkerConfig ~= { _.withSourceMap(true) },
