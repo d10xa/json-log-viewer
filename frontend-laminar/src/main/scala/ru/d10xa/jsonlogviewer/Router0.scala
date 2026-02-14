@@ -42,22 +42,14 @@ object Router0 {
 
   val router = new Router[Page](
     routes = routes,
-    getPageTitle = _.title, // displayed in the browser tab next to favicon
-    serializePage = page =>
-      writeToString(
-        page
-      ), // serialize page data for storage in History API log
-    deserializePage = pageStr =>
-      readFromString(pageStr) // deserialize the above
+    getPageTitle = _.title,
+    serializePage = page => writeToString(page),
+    deserializePage = pageStr => readFromString(pageStr)
   )(
-    popStateEvents = windowEvents(
-      _.onPopState
-    ), // this is how Waypoint avoids an explicit dependency on Laminar
-    owner = unsafeWindowOwner // this router will live as long as the window
+    popStateEvents = windowEvents(_.onPopState),
+    owner = unsafeWindowOwner
   )
 
-  // Note: for fragment ('#') URLs this isn't actually needed.
-  // See https://github.com/raquo/Waypoint docs for why this modifier is useful in general.
   def navigateTo(page: Page): Binder[HtmlElement] = Binder { el =>
 
     val isLinkElement = el.ref.isInstanceOf[dom.html.Anchor]
@@ -66,10 +58,6 @@ object Router0 {
       el.amend(href(router.absoluteUrlForPage(page)))
     }
 
-    // If element is a link and user is holding a modifier while clicking:
-    //  - Do nothing, browser will open the URL in new tab / window / etc. depending on the modifier key
-    // Otherwise:
-    //  - Perform regular pushState transition
     (onClick
       .filter(ev =>
         !(isLinkElement && (ev.ctrlKey || ev.metaKey || ev.shiftKey || ev.altKey))
