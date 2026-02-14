@@ -25,6 +25,10 @@ object ViewElement {
       .map(Ansi2HtmlWithClasses.apply)
       .mkString("<div>", "", "</div>")
       .pipe(DomApi.unsafeParseHtmlString)
+      .pipe { elem =>
+        JsonClickablePostProcessor.process(elem, json => JsonModal.show(json))
+        elem
+      }
       .pipe(foreignHtmlElement)
 
   def makeConfigYamlForInlineInput(

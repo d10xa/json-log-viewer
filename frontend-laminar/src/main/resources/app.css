@@ -213,3 +213,65 @@ textarea {
 .ansi-lightmagenta { color: #bb9af7; }
 .ansi-lightcyan { color: #7dcfff; }
 .ansi-white { color: #c0caf5; }
+
+/* Clickable embedded JSON */
+.json-clickable {
+  cursor: pointer;
+  border-bottom: 1px dashed currentColor;
+}
+
+.json-clickable:hover {
+  opacity: 0.8;
+}
+
+/* JSON Modal */
+.json-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.json-modal-content {
+  background: var(--term-bg);
+  border: 1px solid var(--term-border);
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.json-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--term-border);
+  color: var(--term-dim);
+  font-size: 12px;
+}
+
+.json-modal-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.json-modal-body {
+  padding: 12px;
+  overflow: auto;
+  flex: 1;
+  background: var(--term-input-bg);
+  color: var(--term-fg);
+  font-family: var(--term-font);
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}

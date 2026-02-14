@@ -54,7 +54,8 @@ object App {
             )
           }
         ),
-        div(child <-- selectedAppSignal)
+        div(child <-- selectedAppSignal),
+        JsonModal.render
       )
     renderOnDomContentLoaded(container, appElement)
   }
