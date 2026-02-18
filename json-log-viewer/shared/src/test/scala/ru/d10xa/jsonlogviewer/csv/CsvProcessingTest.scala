@@ -50,7 +50,7 @@ class CsvProcessingTest extends CatsEffectSuite {
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
@@ -118,7 +118,7 @@ class CsvProcessingTest extends CatsEffectSuite {
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
@@ -181,7 +181,7 @@ class CsvProcessingTest extends CatsEffectSuite {
 
     // Initial config without field name mapping
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(csvConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     // Updated config with custom field names mapping
     val updatedConfigYaml = Some(

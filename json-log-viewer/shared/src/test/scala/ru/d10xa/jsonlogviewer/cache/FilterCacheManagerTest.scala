@@ -33,7 +33,7 @@ class FilterCacheManagerTest extends FunSuite {
   )
 
   test("buildCache creates FilterSets from Config without YAML") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
 
     assertEquals(cache.filterSets.length, 1)
     assertEquals(cache.config, standardConfig)
@@ -89,7 +89,8 @@ class FilterCacheManagerTest extends FunSuite {
       )
     )
 
-    val cache = FilterCacheManager.buildCache(standardConfig, Some(configYaml))
+    val cache =
+      FilterCacheManager.buildCache(standardConfig, Some(configYaml)).fold(err => fail(s"buildCache failed: $err"), identity)
 
     assertEquals(cache.filterSets.length, 2)
     assertEquals(cache.configYaml, Some(configYaml))
@@ -130,7 +131,8 @@ class FilterCacheManagerTest extends FunSuite {
       )
     )
 
-    val cache = FilterCacheManager.buildCache(standardConfig, Some(configYaml))
+    val cache =
+      FilterCacheManager.buildCache(standardConfig, Some(configYaml)).fold(err => fail(s"buildCache failed: $err"), identity)
 
     assertEquals(cache.filterSets.length, 1)
     val cachedFilterSet = cache.filterSets.head
@@ -138,7 +140,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("updateCacheIfNeeded returns existing cache when config unchanged") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
 
     val (updatedCache, wasRebuilt) =
       FilterCacheManager.updateCacheIfNeeded(Some(cache), standardConfig, None)
@@ -148,7 +150,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("updateCacheIfNeeded rebuilds cache when CLI config changes") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
 
     val modifiedConfig = standardConfig.copy(showEmptyFields = true)
     val (updatedCache, wasRebuilt) =
@@ -160,7 +162,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("updateCacheIfNeeded rebuilds cache when YAML config changes") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
 
     val configYaml = ConfigYaml(
       showEmptyFields = Some(true),
@@ -185,7 +187,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("CachedResolvedState.isValid returns true for identical config") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
 
     assert(
       cache.isValid(standardConfig, None),
@@ -194,7 +196,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("CachedResolvedState.isValid returns false when CLI config differs") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
     val modifiedConfig = standardConfig.copy(showEmptyFields = true)
 
     assert(
@@ -204,7 +206,7 @@ class FilterCacheManagerTest extends FunSuite {
   }
 
   test("CachedResolvedState.isValid returns false when YAML config differs") {
-    val cache = FilterCacheManager.buildCache(standardConfig, None)
+    val cache = FilterCacheManager.buildCache(standardConfig, None).fold(err => fail(s"buildCache failed: $err"), identity)
     val configYaml = ConfigYaml(
       showEmptyFields = None,
       fieldNames = None,
@@ -228,7 +230,8 @@ class FilterCacheManagerTest extends FunSuite {
       fieldNames = None,
       feeds = None
     )
-    val cache = FilterCacheManager.buildCache(standardConfig, Some(configYaml1))
+    val cache =
+      FilterCacheManager.buildCache(standardConfig, Some(configYaml1)).fold(err => fail(s"buildCache failed: $err"), identity)
 
     assert(
       !cache.isValid(standardConfig, Some(configYaml2)),

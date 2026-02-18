@@ -105,7 +105,9 @@ object ViewElement {
               configYaml = Some(
                 makeConfigYamlForInlineInput(string, c, extra)
               )
-              initialCache = FilterCacheManager.buildCache(c, configYaml)
+              initialCache = FilterCacheManager
+                .buildCache(c, configYaml)
+                .getOrElse(CachedResolvedState.noFilters(c, configYaml))
               result <- (for {
                 configYamlRef <- Ref.of[IO, Option[ConfigYaml]](configYaml)
                 cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)

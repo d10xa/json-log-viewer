@@ -14,6 +14,14 @@ import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader
 
 class ConfigInitImpl extends ConfigInit {
 
+  private def printError(message: String): IO[Unit] =
+    fs2.Stream
+      .emit(s"\n${fansi.Color.Red(message).render}\n")
+      .through(fs2.text.utf8.encode)
+      .through(fs2.io.stderr[IO])
+      .compile
+      .drain
+
   override def initConfigRefs(
     c: Config,
     supervisor: Supervisor[IO]
@@ -39,7 +47,17 @@ class ConfigInitImpl extends ConfigInit {
       configYamlRef <- Resource.eval(
         Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       )
-      initialCache = FilterCacheManager.buildCache(config, initialConfigYaml)
+      initialCache <- Resource.eval {
+        FilterCacheManager.buildCache(config, initialConfigYaml) match {
+          case Right(cache) => IO.pure(cache)
+          case Left(errorMessage) =>
+            printError(s"[CONFIG ERROR] $errorMessage").as(
+              FilterCacheManager
+                .buildCache(config, None)
+                .getOrElse(CachedResolvedState.noFilters(config, None))
+            )
+        }
+      }
       cacheRef <- Resource.eval(Ref.of[IO, CachedResolvedState](initialCache))
       _ <- configFileOpt match {
         case Some(filePath) =>
@@ -70,9 +88,19 @@ class ConfigInitImpl extends ConfigInit {
         case Watcher.Event.Modified(_, _) | Watcher.Event.Created(_, _) =>
           for {
             updatedConfigYaml <- readConfig(absolutePath)
-            _ <- configYamlRef.set(updatedConfigYaml)
-            newCache = FilterCacheManager.buildCache(config, updatedConfigYaml)
-            _ <- cacheRef.set(newCache)
+            _ <- updatedConfigYaml match {
+              case Some(yaml) =>
+                FilterCacheManager.buildCache(config, Some(yaml)) match {
+                  case Right(newCache) =>
+                    configYamlRef.set(Some(yaml)) >> cacheRef.set(newCache)
+                  case Left(errorMessage) =>
+                    printError(
+                      s"[CONFIG ERROR] $errorMessage. Keeping previous configuration."
+                    )
+                }
+              case None =>
+                IO.unit
+            }
           } yield ()
         case _ => IO.unit
       }
@@ -85,8 +113,9 @@ class ConfigInitImpl extends ConfigInit {
       case cats.data.Validated.Valid(configYaml) =>
         IO.pure(Some(configYaml))
       case cats.data.Validated.Invalid(errors) =>
-        IO.println(s"Failed to parse config: ${errors.toList.mkString(", ")}")
-          .as(None)
+        printError(
+          s"[CONFIG ERROR] Failed to parse config: ${errors.toList.mkString(", ")}. Keeping previous configuration."
+        ).as(None)
     }
 
 }

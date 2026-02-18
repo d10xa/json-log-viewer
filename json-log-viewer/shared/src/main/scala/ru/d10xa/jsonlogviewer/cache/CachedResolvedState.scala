@@ -16,3 +16,11 @@ final case class CachedResolvedState(
   ): Boolean =
     config == currentConfig && configYaml == currentConfigYaml
 }
+
+object CachedResolvedState {
+  def noFilters(
+    config: Config,
+    configYaml: Option[ConfigYaml]
+  ): CachedResolvedState =
+    CachedResolvedState(config, configYaml, Nil)
+}

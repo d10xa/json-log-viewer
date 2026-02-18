@@ -44,7 +44,7 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
     val logLines = (1 to lineCount).map(generateLogLine).toList
 
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
@@ -121,7 +121,7 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
     val logLines = (1 to linesPerPhase).map(generateLogLine).toList
 
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       configRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
