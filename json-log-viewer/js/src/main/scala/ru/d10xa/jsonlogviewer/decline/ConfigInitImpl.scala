@@ -16,7 +16,9 @@ class ConfigInitImpl extends ConfigInit {
     supervisor: Supervisor[IO]
   ): Resource[IO, ConfigRefs] = {
     val initialConfigYaml: Option[ConfigYaml] = None
-    val initialCache = FilterCacheManager.buildCache(c, initialConfigYaml)
+    val initialCache = FilterCacheManager
+      .buildCache(c, initialConfigYaml)
+      .getOrElse(CachedResolvedState.noFilters(c, initialConfigYaml))
     Resource.eval(for {
       configYamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)

@@ -7,6 +7,7 @@ import ru.d10xa.jsonlogviewer.decline.Config
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
 import ru.d10xa.jsonlogviewer.FilterComponents
 import ru.d10xa.jsonlogviewer.LogLineParserFactory
+import scala.util.Try
 
 /** Manages caching of resolved configurations and filter components
   *
@@ -18,11 +19,12 @@ object FilterCacheManager {
   def buildCache(
     config: Config,
     configYaml: Option[ConfigYaml]
-  ): CachedResolvedState = {
-    val resolvedConfigs = ConfigResolver.resolve(config, configYaml)
-    val filterSets = resolvedConfigs.map(buildFilterSet)
-    CachedResolvedState(config, configYaml, filterSets)
-  }
+  ): Either[String, CachedResolvedState] =
+    Try {
+      val resolvedConfigs = ConfigResolver.resolve(config, configYaml)
+      val filterSets = resolvedConfigs.map(buildFilterSet)
+      CachedResolvedState(config, configYaml, filterSets)
+    }.toEither.left.map(_.getMessage)
 
   /** @return (cache, wasRebuilt) */
   def updateCacheIfNeeded(
@@ -34,7 +36,16 @@ object FilterCacheManager {
       case Some(cache) if cache.isValid(config, configYaml) =>
         (cache, false)
       case _ =>
-        (buildCache(config, configYaml), true)
+        buildCache(config, configYaml) match {
+          case Right(newCache) => (newCache, true)
+          case Left(_) =>
+            existingCache match {
+              case Some(cache) => (cache, false)
+              case None =>
+                val fallback = CachedResolvedState.noFilters(config, configYaml)
+                (fallback, true)
+            }
+        }
     }
 
   def buildFilterSet(resolvedConfig: ResolvedConfig): CachedFilterSet = {

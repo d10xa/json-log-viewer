@@ -89,7 +89,7 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
     // Results collector
     val results = scala.collection.mutable.ArrayBuffer.empty[String]
     val initialConfigYaml = Some(initialConfig)
-    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(baseConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       // Initialize config reference with initial configuration
@@ -225,7 +225,7 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
     val results = scala.collection.mutable.ArrayBuffer.empty[String]
     val initialConfigYaml = Some(initialConfig)
     val initialCache =
-      FilterCacheManager.buildCache(errorFilterConfig, initialConfigYaml)
+      FilterCacheManager.buildCache(errorFilterConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
 
     for {
       // Initialize config reference with initial configuration

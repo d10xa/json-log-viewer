@@ -10,7 +10,8 @@ final case class FilterComponents(
   parseResultKeys: ParseResultKeys,
   logLineFilter: LogLineFilter,
   fuzzyFilter: FuzzyFilter,
-  outputLineFormatter: OutputLineFormatter
+  outputLineFormatter: OutputLineFormatter,
+  rawFilter: RawFilter
 )
 
 object FilterComponents {
@@ -31,12 +32,16 @@ object FilterComponents {
         )
     }
 
+    val rawFilter =
+      RawFilter.fromConfig(resolvedConfig.rawInclude, resolvedConfig.rawExclude)
+
     FilterComponents(
       timestampFilter,
       parseResultKeys,
       logLineFilter,
       fuzzyFilter,
-      outputLineFormatter
+      outputLineFormatter,
+      rawFilter
     )
   }
 }

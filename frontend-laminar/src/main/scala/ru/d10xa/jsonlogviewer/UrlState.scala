@@ -152,8 +152,7 @@ object UrlState {
           else if hash.isEmpty then "#/"
           else hash
         val newUrl =
-          if qs.nonEmpty then
-            s"${dom.window.location.pathname}$hashPath?$qs"
+          if qs.nonEmpty then s"${dom.window.location.pathname}$hashPath?$qs"
           else s"${dom.window.location.pathname}$hashPath"
         dom.window.history.replaceState(null, "", newUrl)
     }

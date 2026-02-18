@@ -91,7 +91,7 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     )
 
     val initialConfigYaml = Some(configYaml)
-    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
     for {
       yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
@@ -168,7 +168,7 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     )
 
     val initialConfigYaml = Some(configYaml)
-    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml)
+    val initialCache = FilterCacheManager.buildCache(basicConfig, initialConfigYaml).fold(err => fail(s"buildCache failed: $err"), identity)
     for {
       yamlRef <- Ref.of[IO, Option[ConfigYaml]](initialConfigYaml)
       cacheRef <- Ref.of[IO, CachedResolvedState](initialCache)
