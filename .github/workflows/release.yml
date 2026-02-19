@@ -15,29 +15,9 @@ jobs:
           distribution: temurin
           java-version: 11
           cache: sbt
-      - run: sbt -Djava.net.debug=all -Dsun.net.client.defaultReadTimeout=120000 -Dsun.net.client.defaultConnectTimeout=120000 -Dhttp.keepAlive=true -Dhttp.maxConnections=5 ci-release
+      - run: sbt ci-release
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-#      - name: Upload bundle artifact
-#        if: failure()
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: sonatype-bundle
-#          path: target/sonatype-staging/0.3.0-bundle/bundle.zip
-#      - name: Set up GPG
-#        run: |
-#          echo "${{ secrets.PGP_SECRET }}" | base64 --decode > private.key
-#          gpg --import --batch private.key
-#          rm private.key
-#        env:
-#          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-#      - name: Run sbt publish
-#        run: |
-#          sbt sonatypeBundleRelease
-#        env:
-#          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
-#          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-#          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}

@@ -1,5 +1,3 @@
-import xerial.sbt.Sonatype.sonatypeCentralHost
-
 ThisBuild / scalaVersion := "3.6.2"
 ThisBuild / licenses := List(("MIT", url("https://opensource.org/licenses/MIT")))
 ThisBuild / homepage := Some(url("https://github.com/d10xa/json-log-viewer"))
@@ -12,7 +10,6 @@ ThisBuild / developers := List(
     url("https://d10xa.ru")
   )
 )
-ThisBuild / sonatypeCredentialHost := sonatypeCentralHost
 
 val circeVersion = "0.14.10"
 val declineVersion = "2.4.1"
