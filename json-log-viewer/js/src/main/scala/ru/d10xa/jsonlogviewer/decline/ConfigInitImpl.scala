@@ -8,8 +8,9 @@ import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
 import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.Config.FormatIn
+import ru.d10xa.jsonlogviewer.DiagnosticLog
 
-class ConfigInitImpl extends ConfigInit {
+class ConfigInitImpl(diagnosticLog: DiagnosticLog) extends ConfigInit {
 
   override def initConfigRefs(
     c: Config,

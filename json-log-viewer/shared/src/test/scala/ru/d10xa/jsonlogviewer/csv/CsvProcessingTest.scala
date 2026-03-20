@@ -46,7 +46,8 @@ class CsvProcessingTest extends CatsEffectSuite {
       commands = List.empty,
       restart = false,
       restartDelayMs = None,
-      maxRestarts = None
+      maxRestarts = None,
+      debug = false
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
@@ -66,7 +67,8 @@ class CsvProcessingTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = cacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(ru.d10xa.jsonlogviewer.TestDiagnosticLog),
+        diagnosticLog = ru.d10xa.jsonlogviewer.TestDiagnosticLog
       )
       results <- LogViewerStream
         .stream(ctx)
@@ -114,7 +116,8 @@ class CsvProcessingTest extends CatsEffectSuite {
       commands = List.empty,
       restart = false,
       restartDelayMs = None,
-      maxRestarts = None
+      maxRestarts = None,
+      debug = false
     )
 
     val initialConfigYaml: Option[ConfigYaml] = None
@@ -134,7 +137,8 @@ class CsvProcessingTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = cacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(ru.d10xa.jsonlogviewer.TestDiagnosticLog),
+        diagnosticLog = ru.d10xa.jsonlogviewer.TestDiagnosticLog
       )
       results <- LogViewerStream
         .stream(ctx)
@@ -176,7 +180,8 @@ class CsvProcessingTest extends CatsEffectSuite {
       commands = List.empty,
       restart = false,
       restartDelayMs = None,
-      maxRestarts = None
+      maxRestarts = None,
+      debug = false
     )
 
     // Initial config without field name mapping
@@ -218,7 +223,8 @@ class CsvProcessingTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = cacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(ru.d10xa.jsonlogviewer.TestDiagnosticLog),
+        diagnosticLog = ru.d10xa.jsonlogviewer.TestDiagnosticLog
       )
       streamFiber <- LogViewerStream
         .stream(ctx)

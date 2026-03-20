@@ -48,7 +48,8 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   test("config filters should update during live reload") {
@@ -111,7 +112,8 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = cacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(TestDiagnosticLog),
+        diagnosticLog = TestDiagnosticLog
       )
       streamFiber <- LogViewerStream
         .stream(ctx)
@@ -247,7 +249,8 @@ class LogViewerStreamIntegrationTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = cacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(TestDiagnosticLog),
+        diagnosticLog = TestDiagnosticLog
       )
       streamFiber <- LogViewerStream
         .stream(ctx)

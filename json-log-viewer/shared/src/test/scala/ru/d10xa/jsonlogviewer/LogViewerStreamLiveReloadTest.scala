@@ -44,7 +44,8 @@ class LogViewerStreamLiveReloadTest extends CatsEffectSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   test("live reload should update filters during execution") {

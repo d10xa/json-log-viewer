@@ -16,7 +16,8 @@ final case class Config(
   commands: List[String],
   restart: Boolean,
   restartDelayMs: Option[Long],
-  maxRestarts: Option[Int]
+  maxRestarts: Option[Int],
+  debug: Boolean
 )
 
 object Config:

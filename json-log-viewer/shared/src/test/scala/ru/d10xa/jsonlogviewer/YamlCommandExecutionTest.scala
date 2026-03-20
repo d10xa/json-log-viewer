@@ -39,7 +39,8 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   test("should use commands from YAML when inlineInput is absent") {
@@ -100,7 +101,8 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
         configYamlRef = yamlRef,
         cacheRef = cacheRef,
         stdinStream = testStdinStream,
-        shell = testShell
+        shell = testShell,
+        diagnosticLog = TestDiagnosticLog
       )
       output <- LogViewerStream
         .stream(ctx)
@@ -177,7 +179,8 @@ class YamlCommandExecutionTest extends CatsEffectSuite {
         configYamlRef = yamlRef,
         cacheRef = cacheRef,
         stdinStream = testStdinStream,
-        shell = testShell
+        shell = testShell,
+        diagnosticLog = TestDiagnosticLog
       )
       output <- LogViewerStream
         .stream(ctx)
