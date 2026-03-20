@@ -33,7 +33,8 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   def generateLogLine(i: Int): String =
@@ -83,7 +84,8 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = countingCacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(TestDiagnosticLog),
+        diagnosticLog = TestDiagnosticLog
       )
       results <- LogViewerStream
         .stream(ctx)
@@ -173,7 +175,8 @@ class LogViewerStreamPerformanceTest extends CatsEffectSuite {
         configYamlRef = configRef,
         cacheRef = countingCacheRef,
         stdinStream = testStreamImpl,
-        shell = new ShellImpl
+        shell = new ShellImpl(TestDiagnosticLog),
+        diagnosticLog = TestDiagnosticLog
       )
       results <- LogViewerStream
         .stream(ctx)

@@ -2,8 +2,9 @@ package ru.d10xa.jsonlogviewer.shell
 
 import cats.effect.IO
 import fs2.*
+import ru.d10xa.jsonlogviewer.DiagnosticLog
 
-class ShellImpl extends Shell {
+class ShellImpl(diagnosticLog: DiagnosticLog) extends Shell {
 
   def mergeCommandsAndInlineInput(
     commands: List[String],

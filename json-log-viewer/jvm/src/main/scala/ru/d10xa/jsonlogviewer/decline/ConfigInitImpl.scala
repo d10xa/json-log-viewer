@@ -11,16 +11,9 @@ import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
 import ru.d10xa.jsonlogviewer.cache.FilterCacheManager
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYaml
 import ru.d10xa.jsonlogviewer.decline.yaml.ConfigYamlReader
+import ru.d10xa.jsonlogviewer.DiagnosticLog
 
-class ConfigInitImpl extends ConfigInit {
-
-  private def printError(message: String): IO[Unit] =
-    fs2.Stream
-      .emit(s"\n${fansi.Color.Red(message).render}\n")
-      .through(fs2.text.utf8.encode)
-      .through(fs2.io.stderr[IO])
-      .compile
-      .drain
+class ConfigInitImpl(diagnosticLog: DiagnosticLog) extends ConfigInit {
 
   override def initConfigRefs(
     c: Config,
@@ -49,13 +42,20 @@ class ConfigInitImpl extends ConfigInit {
       )
       initialCache <- Resource.eval {
         FilterCacheManager.buildCache(config, initialConfigYaml) match {
-          case Right(cache) => IO.pure(cache)
+          case Right(cache) =>
+            diagnosticLog
+              .debug(
+                s"Config: ${cache.filterSets.length} feed(s) loaded"
+              )
+              .as(cache)
           case Left(errorMessage) =>
-            printError(s"[CONFIG ERROR] $errorMessage").as(
-              FilterCacheManager
-                .buildCache(config, None)
-                .getOrElse(CachedResolvedState.noFilters(config, None))
-            )
+            diagnosticLog
+              .error(s"[CONFIG ERROR] $errorMessage")
+              .as(
+                FilterCacheManager
+                  .buildCache(config, None)
+                  .getOrElse(CachedResolvedState.noFilters(config, None))
+              )
         }
       }
       cacheRef <- Resource.eval(Ref.of[IO, CachedResolvedState](initialCache))
@@ -82,7 +82,9 @@ class ConfigInitImpl extends ConfigInit {
     val watch: IO[Unit] = Files[IO]
       .watch(absolutePath)
       .handleErrorWith { e =>
-        fs2.Stream.eval(IO.println(s"Watcher error: ${e.getMessage}"))
+        fs2.Stream.eval(
+          diagnosticLog.error(s"Watcher error: ${e.getMessage}")
+        )
       }
       .evalMap {
         case Watcher.Event.Modified(_, _) | Watcher.Event.Created(_, _) =>
@@ -94,7 +96,7 @@ class ConfigInitImpl extends ConfigInit {
                   case Right(newCache) =>
                     configYamlRef.set(Some(yaml)) >> cacheRef.set(newCache)
                   case Left(errorMessage) =>
-                    printError(
+                    diagnosticLog.error(
                       s"[CONFIG ERROR] $errorMessage. Keeping previous configuration."
                     )
                 }
@@ -113,9 +115,11 @@ class ConfigInitImpl extends ConfigInit {
       case cats.data.Validated.Valid(configYaml) =>
         IO.pure(Some(configYaml))
       case cats.data.Validated.Invalid(errors) =>
-        printError(
-          s"[CONFIG ERROR] Failed to parse config: ${errors.toList.mkString(", ")}. Keeping previous configuration."
-        ).as(None)
+        diagnosticLog
+          .error(
+            s"[CONFIG ERROR] Failed to parse config: ${errors.toList.mkString(", ")}. Keeping previous configuration."
+          )
+          .as(None)
     }
 
 }

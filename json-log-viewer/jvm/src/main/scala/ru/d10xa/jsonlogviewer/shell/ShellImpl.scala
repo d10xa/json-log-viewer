@@ -2,9 +2,10 @@ package ru.d10xa.jsonlogviewer.shell
 
 import cats.effect.*
 import cats.syntax.all.*
+import ru.d10xa.jsonlogviewer.DiagnosticLog
 import scala.concurrent.duration.*
 
-class ShellImpl extends Shell {
+class ShellImpl(diagnosticLog: DiagnosticLog) extends Shell {
 
   def createProcess(command: String): Resource[IO, Process] =
     Resource.make(IO {
@@ -14,19 +15,36 @@ class ShellImpl extends Shell {
     })(process => IO(process.destroy()))
 
   private def runInfiniteCommand(command: String): fs2.Stream[IO, String] =
-    fs2.Stream.resource(createProcess(command)).flatMap { process =>
-      fs2.io
-        .readInputStream(
-          IO(process.getInputStream),
-          4096,
-          closeAfterUse = false
-        )
-        .through(fs2.text.utf8.decode)
-        .through(fs2.text.lines)
-        .onFinalize(IO {
-          process.waitFor()
-        }.void)
-    }
+    fs2.Stream.eval(diagnosticLog.debug(s"Starting process: $command")) >>
+      fs2.Stream.resource(createProcess(command)).flatMap { process =>
+        fs2.Stream.eval(Ref.of[IO, Boolean](false)).flatMap { outputStarted =>
+          fs2.io
+            .readInputStream(
+              IO(process.getInputStream),
+              4096,
+              closeAfterUse = false
+            )
+            .through(fs2.text.utf8.decode)
+            .through(fs2.text.lines)
+            .evalTap { _ =>
+              outputStarted.get.flatMap {
+                case false =>
+                  outputStarted.set(true) >>
+                    diagnosticLog.debug(
+                      s"Process output started: $command"
+                    )
+                case true => IO.unit
+              }
+            }
+            .onFinalize(IO {
+              process.waitFor()
+            }.flatMap { exitCode =>
+              diagnosticLog.debug(
+                s"Process exited with code $exitCode: $command"
+              )
+            })
+        }
+      }
 
   private def runCommandWithRestart(
     command: String,

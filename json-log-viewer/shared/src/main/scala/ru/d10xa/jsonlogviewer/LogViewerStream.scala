@@ -2,6 +2,7 @@ package ru.d10xa.jsonlogviewer
 
 import cats.effect.IO
 import cats.effect.Ref
+import cats.syntax.all.*
 import fs2.*
 import ru.d10xa.jsonlogviewer.cache.CachedFilterSet
 import ru.d10xa.jsonlogviewer.cache.CachedResolvedState
@@ -43,32 +44,49 @@ object LogViewerStream {
     resolvedConfig: ResolvedConfig,
     stdinStream: StdInLinesStream,
     shell: Shell,
-    restartState: Option[RestartState]
+    restartState: Option[RestartState],
+    log: DiagnosticLog
   ): Stream[IO, String] =
+    val feedLabel = resolvedConfig.feedName.getOrElse("<unnamed>")
     if (
       resolvedConfig.inlineInput.isDefined || resolvedConfig.commands.nonEmpty
     ) {
-      restartState.filter(_ => resolvedConfig.restart) match {
-        case Some(state) =>
-          val restartConfig = RestartConfig(
-            enabled = true,
-            delayMs = resolvedConfig.restartDelayMs,
-            maxRestarts = resolvedConfig.maxRestarts
-          )
-          shell.mergeCommandsAndInlineInputWithRestart(
-            resolvedConfig.commands,
-            resolvedConfig.inlineInput,
-            restartConfig,
-            RestartableStreamWrapper.createOnRestartCallback(state.isRestartRef)
-          )
-        case None =>
-          shell.mergeCommandsAndInlineInput(
-            resolvedConfig.commands,
-            resolvedConfig.inlineInput
-          )
-      }
+      val logSource =
+        if (resolvedConfig.commands.nonEmpty)
+          log.debug(
+            s"Feed '$feedLabel': input source: commands"
+          ) >> resolvedConfig.commands
+            .traverse_(cmd => log.debug(s"Feed '$feedLabel': commands=[$cmd]"))
+        else
+          log.debug(s"Feed '$feedLabel': input source: inline input")
+      Stream.eval(logSource) >>
+        (restartState.filter(_ => resolvedConfig.restart) match {
+          case Some(state) =>
+            val restartConfig = RestartConfig(
+              enabled = true,
+              delayMs = resolvedConfig.restartDelayMs,
+              maxRestarts = resolvedConfig.maxRestarts
+            )
+            shell.mergeCommandsAndInlineInputWithRestart(
+              resolvedConfig.commands,
+              resolvedConfig.inlineInput,
+              restartConfig,
+              RestartableStreamWrapper.createOnRestartCallback(
+                state.isRestartRef
+              )
+            )
+          case None =>
+            shell.mergeCommandsAndInlineInput(
+              resolvedConfig.commands,
+              resolvedConfig.inlineInput
+            )
+        })
     } else {
-      stdinStream.stdinLinesStream
+      Stream.eval(
+        log.debug(
+          s"Feed '$feedLabel': input source: stdin (no commands configured)"
+        )
+      ) >> stdinStream.stdinLinesStream
     }
 
   private def getCachedFilterSet(
@@ -85,6 +103,7 @@ object LogViewerStream {
 
   def stream(ctx: StreamContext): Stream[IO, String] = {
     import ctx.*
+    val log = ctx.diagnosticLog
 
     def processStreamWithCache(
       inputStream: Stream[IO, String],
@@ -110,52 +129,89 @@ object LogViewerStream {
         )
         CsvStreamProcessor.process(inputStream, csvContext)
       } else {
-        inputStream.flatMap { line =>
-          Stream
-            .eval(
-              getCachedFilterSet(
-                configYamlRef,
-                cacheRef,
-                config,
-                feedName,
-                initialCachedFilterSet
-              )
-            )
-            .flatMap { filterSet =>
-              processLineWithCachedFilterSet(
-                line,
-                filterSet,
-                restartState
-              )
-            }
-        }
+        val feedLabel = feedName.getOrElse("<unnamed>")
+        Stream
+          .eval(Ref.of[IO, Boolean](false))
+          .flatMap { firstInputLogged =>
+            Stream
+              .eval(Ref.of[IO, Boolean](false))
+              .flatMap { firstOutputLogged =>
+                inputStream
+                  .evalTap { _ =>
+                    firstInputLogged.get.flatMap {
+                      case false =>
+                        firstInputLogged.set(true) >>
+                          log.debug(
+                            s"Feed '$feedLabel': first line received from input"
+                          )
+                      case true => IO.unit
+                    }
+                  }
+                  .flatMap { line =>
+                    Stream
+                      .eval(
+                        getCachedFilterSet(
+                          configYamlRef,
+                          cacheRef,
+                          config,
+                          feedName,
+                          initialCachedFilterSet
+                        )
+                      )
+                      .flatMap { filterSet =>
+                        processLineWithCachedFilterSet(
+                          line,
+                          filterSet,
+                          restartState
+                        )
+                      }
+                      .evalTap { _ =>
+                        firstOutputLogged.get.flatMap {
+                          case false =>
+                            firstOutputLogged.set(true) >>
+                              log.debug(
+                                s"Feed '$feedLabel': first line received after filtering"
+                              )
+                          case true => IO.unit
+                        }
+                      }
+                  }
+              }
+          }
       }
     }
 
     def createFeedStream(filterSet: CachedFilterSet): Stream[IO, String] = {
       val resolvedConfig = filterSet.resolvedConfig
-      if (resolvedConfig.restart) {
-        Stream.eval(RestartState.create).flatMap { restartState =>
-          val feedStream = getInputStream(
-            resolvedConfig,
-            stdinStream,
-            shell,
-            Some(restartState)
-          )
-          processStreamWithCache(feedStream, filterSet, Some(restartState))
-        }
-      } else {
-        val feedStream =
-          getInputStream(resolvedConfig, stdinStream, shell, None)
-        processStreamWithCache(feedStream, filterSet, None)
-      }
+      val feedLabel = resolvedConfig.feedName.getOrElse("<unnamed>")
+      Stream.eval(log.debug(s"Feed '$feedLabel': starting")) >>
+        (if (resolvedConfig.restart) {
+           Stream.eval(RestartState.create).flatMap { restartState =>
+             val feedStream = getInputStream(
+               resolvedConfig,
+               stdinStream,
+               shell,
+               Some(restartState),
+               log
+             )
+             processStreamWithCache(feedStream, filterSet, Some(restartState))
+           }
+         } else {
+           val feedStream =
+             getInputStream(resolvedConfig, stdinStream, shell, None, log)
+           processStreamWithCache(feedStream, filterSet, None)
+         })
     }
 
     Stream.eval(cacheRef.get).flatMap { initialCache =>
       val filterSets = initialCache.filterSets
 
       val finalStream = if (filterSets.isEmpty) {
-        Stream.empty
+        Stream.eval(
+          log.debug(
+            "WARNING: no feeds resolved, stream will produce no output"
+          )
+        ) >> Stream.empty
       } else if (filterSets.length > 1) {
         val feedStreams = filterSets.map(createFeedStream)
         Stream.emits(feedStreams).parJoin(feedStreams.size)

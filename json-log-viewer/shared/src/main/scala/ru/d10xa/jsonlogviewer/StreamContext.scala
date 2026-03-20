@@ -14,5 +14,6 @@ final case class StreamContext(
   configYamlRef: Ref[IO, Option[ConfigYaml]],
   cacheRef: Ref[IO, CachedResolvedState],
   stdinStream: StdInLinesStream,
-  shell: Shell
+  shell: Shell,
+  diagnosticLog: DiagnosticLog
 )

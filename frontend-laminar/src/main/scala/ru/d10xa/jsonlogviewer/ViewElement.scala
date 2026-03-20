@@ -118,7 +118,8 @@ object ViewElement {
                     configYamlRef = configYamlRef,
                     cacheRef = cacheRef,
                     stdinStream = new StdInLinesStreamImpl,
-                    shell = new ShellImpl
+                    shell = new ShellImpl(new DiagnosticLogImpl),
+                    diagnosticLog = new DiagnosticLogImpl
                   )
                   LogViewerStream.stream(ctx).compile.toList
               }

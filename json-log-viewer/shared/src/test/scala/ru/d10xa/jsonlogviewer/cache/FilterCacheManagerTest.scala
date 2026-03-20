@@ -29,7 +29,8 @@ class FilterCacheManagerTest extends FunSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   test("buildCache creates FilterSets from Config without YAML") {

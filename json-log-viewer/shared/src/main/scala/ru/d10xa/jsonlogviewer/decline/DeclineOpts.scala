@@ -128,6 +128,10 @@ object DeclineOpts {
     )
     .orNone
 
+  val debugOpt: Opts[Boolean] = Opts
+    .flag("debug", help = "Print diagnostic information to stderr")
+    .orFalse
+
   val config: Opts[Config] =
     (
       configFile,
@@ -141,7 +145,8 @@ object DeclineOpts {
       commandOpt,
       restartOpt,
       restartDelayMsOpt,
-      maxRestartsOpt
+      maxRestartsOpt,
+      debugOpt
     ).mapN(Config.apply)
 
   val command: Command[Config] = Command(

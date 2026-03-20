@@ -29,7 +29,8 @@ class ConfigResolverTest extends FunSuite {
     commands = List.empty,
     restart = false,
     restartDelayMs = None,
-    maxRestarts = None
+    maxRestarts = None,
+    debug = false
   )
 
   test("resolve returns single config when no ConfigYaml provided") {
